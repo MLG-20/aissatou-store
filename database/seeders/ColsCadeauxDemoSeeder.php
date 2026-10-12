@@ -43,7 +43,7 @@ class ColsCadeauxDemoSeeder extends Seeder
                 'material' => 'Satin de soie — tombé souple',
                 'price' => 15000,
                 'label' => ProductLabel::Selected,
-                'description' => "Un col cravate qui se noue librement, entre le lavallière et le foulard. La touche qui achève une silhouette sobre.",
+                'description' => 'Un col cravate qui se noue librement, entre le lavallière et le foulard. La touche qui achève une silhouette sobre.',
                 'variants' => [['couleur' => 'Cassis'], ['couleur' => 'Sauge']],
             ],
             [
@@ -51,7 +51,7 @@ class ColsCadeauxDemoSeeder extends Seeder
                 'material' => 'Tulle brodé — perles cousues main',
                 'price' => 22000,
                 'label' => ProductLabel::LimitedEdition,
-                'description' => "Un col de cérémonie entièrement perlé, pensé pour les grandes occasions. Chaque perle est cousue à la main.",
+                'description' => 'Un col de cérémonie entièrement perlé, pensé pour les grandes occasions. Chaque perle est cousue à la main.',
                 'variants' => [['couleur' => 'Ivoire'], ['couleur' => 'Doré']],
             ],
         ],
@@ -69,7 +69,7 @@ class ColsCadeauxDemoSeeder extends Seeder
                 'material' => 'Foulard soie & broche assortie',
                 'price' => 35000,
                 'label' => null,
-                'description' => "Un foulard de soie et sa broche, réunis dans un écrin prêt à offrir. Le duo se porte ensemble ou séparément.",
+                'description' => 'Un foulard de soie et sa broche, réunis dans un écrin prêt à offrir. Le duo se porte ensemble ou séparément.',
                 'variants' => [['couleur' => 'Cassis'], ['couleur' => 'Sauge']],
             ],
             [
@@ -77,7 +77,7 @@ class ColsCadeauxDemoSeeder extends Seeder
                 'material' => 'Montant libre — validité un an',
                 'price' => 25000,
                 'label' => null,
-                'description' => "Une carte cadeau à offrir, valable un an sur toute la sélection. Le choix revient à celle qui la reçoit.",
+                'description' => 'Une carte cadeau à offrir, valable un an sur toute la sélection. Le choix revient à celle qui la reçoit.',
                 'variants' => [['couleur' => 'Parchemin']],
             ],
             [

@@ -42,9 +42,7 @@
                     <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_85%_85%,rgba(74,24,51,0.5),transparent_55%)]"></div>
                 @endif
 
-                <a href="{{ route('home') }}" class="relative font-display text-2xl tracking-wide">
-                    Aissatou Store
-                </a>
+                <x-shop.signature variant="horizontal" class="-ml-3 text-brand-surface" />
 
                 <div class="relative">
                     <p class="font-display text-3xl xl:text-4xl leading-snug max-w-md">
@@ -60,9 +58,7 @@
 
             <div class="flex-1 flex flex-col justify-center items-center bg-brand-surface px-6 py-16">
                 <div class="w-full max-w-sm">
-                    <a href="{{ route('home') }}" class="lg:hidden block text-center font-display text-xl mb-10 text-brand-ink">
-                        Aissatou Store
-                    </a>
+                    <x-shop.signature variant="horizontal" :with-slogan="false" class="-ml-3 mb-10 lg:hidden" />
 
                     {{ $slot }}
                 </div>
