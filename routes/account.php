@@ -11,4 +11,5 @@ Route::middleware('auth')->prefix('compte')->name('account.')->group(function ()
     Route::delete('/adresses/{address}', [AddressController::class, 'destroy'])->name('addresses.destroy');
 
     Route::get('/commandes', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/commandes/{order}', [OrderController::class, 'show'])->name('orders.show');
 });

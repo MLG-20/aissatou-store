@@ -54,8 +54,10 @@ GitHub Actions (`.github/workflows/ci.yml`) exécute à chaque push/PR sur `main
 - `app/Services/Payment/` — contrat `PaymentProvider`, `CodProvider` (livraison), `PaymentManager`
 - `app/Mail/` — `OrderPlaced`, `OrderStatusChanged`, `NewOrderForAdmin` (queued ; worker requis : `php artisan queue:work`)
 - `app/Http/Controllers/Shop/` — contrôleurs du site public (catalogue, panier, tunnel `commande`)
+- `app/Http/Controllers/Account/` — espace client (adresses, historique et détail commandes)
+- `app/Http/Controllers/Admin/` — facture PDF d'une commande (guard `admin` uniquement)
 - `app/Http/Controllers/Api/V1/` — API publique (lecture catalogue) et authentification par token
-- `app/Filament/Resources/` — ressources du back-office admin
+- `app/Filament/Resources/` — ressources du back-office admin (dont `Order` : liste/filtres, fiche, changement de statut tracé)
 - `routes/web.php`, `routes/shop.php`, `routes/auth.php` — routes du site public
 - `routes/api.php` — routes API v1
 - `docs/files/0X-*.md` — cahier des charges détaillé par phase

@@ -30,8 +30,10 @@ API Sanctum `/api/v1`, spatie/laravel-permission.
   - ✅ (A) Domaine : `orders`, `order_items` (prix figés), `payments`, `order_status_history` ; enums `OrderStatus`/`PaymentStatus` ; contrat `PaymentProvider` + `CodProvider` + `PaymentManager` ; `OrderService` atomique (recalcul serveur, verrous anti-survente, n° `AS-AAAA-XXXXXX`) — 9 tests verts.
   - ✅ (B) Tunnel checkout (compte requis) : `GET/POST /commande` (récap + adresse + paiement), `GET /commande/merci/{n°}` (anti-IDOR) — 5 tests verts.
   - ✅ (C) Notifications queued : `OrderPlaced` + `NewOrderForAdmin` à la création, `OrderStatusChanged` à chaque transition. Piège : ne JAMAIS nommer une prop de mailable `$to` (collision fatale avec `Mailable::$to`).
-  - ⏳ (D) Back-office Filament commandes + facture PDF (`barryvdh/laravel-dompdf` installé).
-  - ⏳ (E) Compte client : historique + détail commandes.
+  - ✅ (D) Back-office Filament `Commandes` + facture PDF (`barryvdh/laravel-dompdf`) — 4 tests verts.
+  - ✅ (E) Compte client : historique paginé + détail (anti-IDOR) — 4 tests verts.
+  - Suite complète : 130 tests verts (vérifié par Ahmed lui-même).
+  - ⏳ Reste : revue sécurité de fin de phase (rejoue XSS/CSRF/IDOR sur le tunnel + vérification email reçu + facture conforme).
 
 ## 4. Décisions actives d'Ahmed (ne pas remettre en cause sans lui)
 
