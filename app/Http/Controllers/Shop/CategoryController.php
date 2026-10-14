@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\FilterProductsRequest;
 use App\Models\Catalogue\Category;
+use App\Models\Catalogue\Collection;
 use App\Models\Catalogue\Material;
 use Illuminate\View\View;
 
@@ -38,6 +39,7 @@ class CategoryController extends Controller
             'category' => $category,
             'products' => $products,
             'materials' => Material::query()->active()->orderBy('position')->get(),
+            'collections' => Collection::query()->active()->orderBy('position')->get(),
         ]);
     }
 }

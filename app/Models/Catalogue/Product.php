@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
@@ -76,6 +77,11 @@ class Product extends Model
         return $this->belongsTo(Material::class);
     }
 
+    public function collections(): BelongsToMany
+    {
+        return $this->belongsToMany(Collection::class)->withTimestamps();
+    }
+
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
@@ -122,7 +128,7 @@ class Product extends Model
      * des charges). Toutes les valeurs sont déjà validées et nettoyées en amont
      * par FilterProductsRequest — ce scope ne fait qu'assembler la requête.
      *
-     * @param  array{q: ?string, category_id: ?int, material_id: ?int, min_price: ?float, max_price: ?float, in_stock: bool, new_arrivals: bool}  $filters
+     * @param  array{q: ?string, category_id: ?int, material_id: ?int, collection_id: ?int, min_price: ?float, max_price: ?float, in_stock: bool, new_arrivals: bool}  $filters
      */
     public function scopeFilter(Builder $query, array $filters): Builder
     {
@@ -147,6 +153,10 @@ class Product extends Model
 
         if (filled($filters['material_id'] ?? null)) {
             $query->where('material_id', $filters['material_id']);
+        }
+
+        if (filled($filters['collection_id'] ?? null)) {
+            $query->whereHas('collections', fn (Builder $query) => $query->where('collections.id', $filters['collection_id']));
         }
 
         if (filled($filters['min_price'] ?? null)) {

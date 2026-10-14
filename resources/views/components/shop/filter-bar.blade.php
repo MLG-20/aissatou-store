@@ -1,4 +1,4 @@
-@props(['action', 'categories' => null, 'materials' => null])
+@props(['action', 'categories' => null, 'materials' => null, 'collections' => null])
 
 {{-- Panneau de filtres latéral de la maquette p.12 : « Filtres structurés :
      prix, matière, collection et disponibilité » à gauche, grille à droite.
@@ -98,6 +98,25 @@
                                 <input type="radio" value="{{ $material->id }}" x-model="filters.material_id" @change="apply()" class="border-brand-ink/30 text-brand-accent focus:ring-brand-accent">
                                 {{ $material->name }}
                             </label>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if ($collections)
+                    {{-- Navigation complète vers la page de la collection (comme
+                         Nouveautés) : le bandeau de tête est propre à la page,
+                         `apply()` ne remplaçant que la grille, il serait en
+                         contradiction avec son contenu. --}}
+                    <div class="flex flex-col gap-3 border-t border-brand-ink/10 pt-6">
+                        <span class="text-[0.65rem] uppercase tracking-[0.18em] text-brand-muted">Collection</span>
+
+                        @foreach ($collections as $collection)
+                            <a
+                                href="{{ route('shop.collection', $collection) }}"
+                                class="text-sm text-brand-ink hover:text-brand-signature"
+                            >
+                                {{ $collection->name }}
+                            </a>
                         @endforeach
                     </div>
                 @endif

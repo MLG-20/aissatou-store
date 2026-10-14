@@ -3,6 +3,7 @@
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CategoryController;
 use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\CollectionController;
 use App\Http\Controllers\Shop\ContactController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\ReviewController;
@@ -13,13 +14,12 @@ Route::get('catalogue', [ProductController::class, 'index'])->name('shop.index')
 Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('shop.category');
 Route::get('produits/{product:slug}', [ProductController::class, 'show'])->name('shop.product');
 
-// Sections présentes dans la maquette dont le module arrive en Phase 2.2. Elles
-// ont une page d'attente plutôt qu'un lien mort ; route et vue disparaissent
-// quand le module correspondant est livré.
-Route::get('collections', fn () => view('shop.coming-soon', [
-    'heading' => 'Collections',
-    'intro' => 'Le récit éditorial de la maison : Atelier Nocturne, Essentiels, Saison et L\'art d\'offrir.',
-]))->name('shop.collections');
+// Sections présentes dans la maquette dont le module arrive en Phase 2.2
+// (Journal, Liste d'envies). Elles ont une page d'attente plutôt qu'un lien
+// mort ; route et vue disparaissent quand le module correspondant est livré
+// (comme Collections en 2.2B).
+Route::get('collections', [CollectionController::class, 'index'])->name('shop.collections');
+Route::get('collections/{collection:slug}', [CollectionController::class, 'show'])->name('shop.collection');
 
 Route::get('journal', fn () => view('shop.coming-soon', [
     'heading' => 'Journal',

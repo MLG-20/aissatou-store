@@ -25,7 +25,8 @@ API Sanctum `/api/v1`, spatie/laravel-permission.
 - ✅ Phase 1 : terminée et validée.
 - ✅ Phase 2 : terminée (catalogue, panier invité+compte, recherche/filtres AJAX, comptes/adresses, WebP/srcset/cache, accueil + vitrine éditable, avis, tiroir panier). Suite : 97 tests.
 - ✅ Phase 2.1 : restes terminés au commit `5703a3e` — migration `rebrand_site_settings_to_aissatou_store` (À propos au positionnement officiel p.2), `x-shop.signature` sur pages auth (`layouts/guest.blade.php`).
-- ⏳ Phase 2.2 : spécifiée, non commencée (Matière → Collections → Wishlist → Journal, dans cet ordre).
+- ✅ Phase 2.2 (modules maquette) : EN COURS (journal `docs/progress/02.2-modules-maquette.md`). A Matière ✅, B Collections ✅ (bannières éditoriales, survol bordeaux validé). Reste : C Wishlist, D Journal, E Contact-admin + revue.
+- ⏳ Phase 5 (Wave/Orange Money) : non commencée — requiert comptes marchands cliente.
 - ✅ Phase 3 (tunnel commande + paiement à la livraison) : TERMINÉE (2026-10-14, revue sécurité incluse).
   - ✅ (A) Domaine : `orders`, `order_items` (prix figés), `payments`, `order_status_history` ; enums `OrderStatus`/`PaymentStatus` ; contrat `PaymentProvider` + `CodProvider` + `PaymentManager` ; `OrderService` atomique (recalcul serveur, verrous anti-survente, n° `AS-AAAA-XXXXXX`) — 9 tests verts.
   - ✅ (B) Tunnel checkout (compte requis) : `GET/POST /commande` (récap + adresse + paiement), `GET /commande/merci/{n°}` (anti-IDOR) — 5 tests verts.
@@ -36,7 +37,6 @@ API Sanctum `/api/v1`, spatie/laravel-permission.
   - ✅ Revue sécurité de fin de phase (2026-10-14) : aucun `{!! !!}` dans les 8 vues commande/emails/facture ; `web`+`auth` sur le tunnel, `auth:admin` + contrôle en contrôleur sur la facture ; IDOR/total-serveur/transitions couverts par tests ; rendu des 3 emails testé (`MailRenderTest`, le fake ne rendant pas les vues).
   - ✅ (Demo) `OrderDemoSeeder` : 2 clientes (`aicha/fatou.demo@example.com`, mdp `password`) + 5 commandes (une par statut), via le vrai `OrderService`. Lancé seul (`db:seed --class=OrderDemoSeeder`, sans wipe) et branché dans `DatabaseSeeder`.
 - ✅ Phase 4 (livraison) : TERMINÉE (2026-10-14, journal `docs/progress/04-livraison.md`). Zones + frais figés au tunnel, suivi manuel admin (livreur/note), suivi client (stepper), contrat `DeliveryProvider` (manuel actif, Yango inactif sans clés — compte business cliente requis). Emails de file vidés via worker (2/2 OK).
-- ⏳ Phase 5 (Wave/Orange Money) : non commencée — requiert comptes marchands cliente.
 
 ## 4. Décisions actives d'Ahmed (ne pas remettre en cause sans lui)
 

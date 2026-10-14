@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\FilterProductsRequest;
 use App\Models\Catalogue\Category;
+use App\Models\Catalogue\Collection;
 use App\Models\Catalogue\Material;
 use App\Models\Catalogue\Product;
 use Illuminate\View\View;
@@ -32,6 +33,7 @@ class ProductController extends Controller
             'products' => $products,
             'categories' => Category::query()->active()->orderBy('position')->get(),
             'materials' => Material::query()->active()->orderBy('position')->get(),
+            'collections' => Collection::query()->active()->orderBy('position')->get(),
             // L'onglet « Nouveautés » de la maquette mène ici, filtré. Sans ce
             // drapeau, la page s'annoncerait « Tout le catalogue » alors qu'elle
             // n'en montre qu'une partie — c'est exactement ce qui donnait

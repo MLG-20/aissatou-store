@@ -40,7 +40,7 @@
             </div>
         @endif
 
-        <x-shop.filter-bar :action="route('shop.category', $category)" :materials="$materials">
+        <x-shop.filter-bar :action="route('shop.category', $category)" :materials="$materials" :collections="$collections">
             @include('shop.partials.product-grid', ['products' => $products])
         </x-shop.filter-bar>
     </div>

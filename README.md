@@ -49,7 +49,7 @@ GitHub Actions (`.github/workflows/ci.yml`) exécute à chaque push/PR sur `main
 
 ## Structure du projet
 
-- `app/Models/Catalogue/` — modèles du domaine catalogue (Catégorie, Produit, Variante, Image)
+- `app/Models/Catalogue/` — modèles du domaine catalogue (Catégorie, Produit, Variante, Image, Matière, Collection)
 - `app/Models/Order/` — modèles du domaine commande (Commande, Ligne, Paiement, Historique statuts)
 - `app/Models/Delivery/` — zones de livraison (frais par ville + défaut, cache 1h)
 - `app/Services/Delivery/` — contrat `DeliveryProvider`, `ManualDeliveryProvider`, `YangoDeliveryProvider` (inactif sans clés), `DeliveryManager`
