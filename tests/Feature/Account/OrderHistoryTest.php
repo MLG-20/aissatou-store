@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Account;
 
+use App\Enums\Order\OrderStatus;
 use App\Models\Cart\Cart;
 use App\Models\Cart\CartItem;
 use App\Models\Catalogue\Product;
@@ -66,5 +67,23 @@ class OrderHistoryTest extends TestCase
             ->get(route('account.orders.show', $order))
             ->assertOk()
             ->assertSee($order->number);
+    }
+
+    public function test_the_detail_shows_delivery_tracking(): void
+    {
+        Mail::fake();
+
+        $user = User::factory()->create();
+        $order = $this->makeOrder($user);
+        $order->update(['delivery_assignee' => 'Moussa (moto)', 'delivery_note' => 'Appeler avant de passer.']);
+        app(OrderService::class)->changeStatus($order, OrderStatus::Preparing);
+        app(OrderService::class)->changeStatus($order->fresh(), OrderStatus::Shipped);
+
+        $this->actingAs($user)
+            ->get(route('account.orders.show', $order))
+            ->assertOk()
+            ->assertSee('Expédiée')
+            ->assertSee('Moussa (moto)')
+            ->assertSee('Appeler avant de passer.');
     }
 }

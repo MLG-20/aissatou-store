@@ -6,6 +6,7 @@ use App\Exceptions\OrderException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\CheckoutStoreRequest;
 use App\Models\Customer\Address;
+use App\Models\Delivery\DeliveryZone;
 use App\Models\Order\Order;
 use App\Services\CartService;
 use App\Services\OrderService;
@@ -37,9 +38,24 @@ class CheckoutController extends Controller
 
         $addresses = $request->user()->addresses()->orderByDesc('is_default')->orderBy('id')->get();
 
+        // Frais calculés serveur pour chaque adresse du carnet : la vue ne
+        // fait qu'afficher ces chiffres (Alpine), le total validé est
+        // recalculé côté serveur dans OrderService — jamais depuis le client.
+        $fees = $addresses->mapWithKeys(function (Address $address): array {
+            $zone = DeliveryZone::forCity($address->city);
+
+            return [$address->id => [
+                'fee' => $zone ? (float) $zone->fee : 0,
+                'label' => $zone
+                    ? $zone->name.($zone->delay_label ? ' — '.$zone->delay_label : '')
+                    : 'Retrait ou livraison à convenir',
+            ]];
+        })->all();
+
         return view('shop.checkout', [
             'cart' => $cart,
             'addresses' => $addresses,
+            'fees' => $fees,
             'providers' => $this->payments->available(),
         ]);
     }

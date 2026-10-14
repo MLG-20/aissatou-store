@@ -14,7 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'user_id', 'number', 'status', 'payment_status',
-    'subtotal', 'shipping_total', 'total',
+    'subtotal', 'shipping_total', 'shipping_zone', 'total',
+    'delivery_assignee', 'delivery_note',
     'recipient_name', 'phone', 'city', 'address_line', 'landmark',
 ])]
 class Order extends Model

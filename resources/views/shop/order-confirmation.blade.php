@@ -29,6 +29,12 @@
             @endforeach
         </div>
 
+        <div class="mt-4 space-y-1 text-right">
+            <p class="text-sm text-brand-muted">Sous-total : {{ number_format($order->subtotal, 0, ',', ' ') }} FCFA</p>
+            <p class="text-sm text-brand-muted">Livraison{{ $order->shipping_zone ? ' ('.$order->shipping_zone.')' : '' }} : {{ number_format($order->shipping_total, 0, ',', ' ') }} FCFA</p>
+            <p class="font-display text-xl">Total : {{ number_format($order->total, 0, ',', ' ') }} FCFA</p>
+        </div>
+
         <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
             <x-shop.cta href="{{ route('shop.index') }}" variant="primary">Continuer mes achats</x-shop.cta>
             <a href="{{ route('account.orders.index') }}" class="inline-flex items-center justify-center px-6 py-3 text-sm uppercase tracking-wide border border-brand-ink/20 rounded-sm hover:border-brand-signature hover:text-brand-signature">

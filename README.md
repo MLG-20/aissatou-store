@@ -51,6 +51,8 @@ GitHub Actions (`.github/workflows/ci.yml`) exécute à chaque push/PR sur `main
 
 - `app/Models/Catalogue/` — modèles du domaine catalogue (Catégorie, Produit, Variante, Image)
 - `app/Models/Order/` — modèles du domaine commande (Commande, Ligne, Paiement, Historique statuts)
+- `app/Models/Delivery/` — zones de livraison (frais par ville + défaut, cache 1h)
+- `app/Services/Delivery/` — contrat `DeliveryProvider`, `ManualDeliveryProvider`, `YangoDeliveryProvider` (inactif sans clés), `DeliveryManager`
 - `app/Services/OrderService.php` — création atomique de commande (recalcul serveur, anti-survente) + transitions gardées
 - `app/Services/Payment/` — contrat `PaymentProvider`, `CodProvider` (livraison), `PaymentManager`
 - `app/Mail/` — `OrderPlaced`, `OrderStatusChanged`, `NewOrderForAdmin` (queued ; worker requis : `php artisan queue:work`)

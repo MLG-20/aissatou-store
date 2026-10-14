@@ -38,6 +38,10 @@
                     <td>{{ number_format($item->lineTotal(), 0, ',', ' ') }} FCFA</td>
                 </tr>
             @endforeach
+            <tr>
+                <td colspan="4">Livraison{{ $order->shipping_zone ? ' ('.$order->shipping_zone.')' : '' }}</td>
+                <td>{{ number_format($order->shipping_total, 0, ',', ' ') }} FCFA</td>
+            </tr>
         </tbody>
     </table>
 

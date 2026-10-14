@@ -6,7 +6,17 @@
             <p class="mb-6 text-sm text-brand-signature">{{ $errors->first() }}</p>
         @endif
 
-        <form method="POST" action="{{ route('shop.checkout.store') }}" class="space-y-8">
+        <form
+            method="POST"
+            action="{{ route('shop.checkout.store') }}"
+            class="space-y-8"
+            x-data="{
+                subtotal: {{ $cart->items->sum(fn ($item) => $item->lineTotal()) }},
+                fee: {{ ($fees[$addresses->firstWhere('is_default', true)?->id ?? $addresses->first()?->id] ?? ['fee' => 0])['fee'] }},
+                zone: '{{ addslashes(($fees[$addresses->firstWhere('is_default', true)?->id ?? $addresses->first()?->id] ?? ['label' => ''])['label']) }}',
+                fmt(n) { return new Intl.NumberFormat('fr-FR', {maximumFractionDigits: 0}).format(n) + ' FCFA'; }
+            }"
+        >
             @csrf
 
             <section>
@@ -27,9 +37,11 @@
                         </div>
                     @endforeach
                 </div>
-                <p class="mt-4 text-right font-display text-xl">
-                    Total : {{ number_format($cart->items->sum(fn ($item) => $item->lineTotal()), 0, ',', ' ') }} FCFA
-                </p>
+                <div class="mt-4 space-y-1 text-right">
+                    <p class="text-sm text-brand-muted">Sous-total : <span x-text="fmt(subtotal)"></span></p>
+                    <p class="text-sm text-brand-muted">Livraison (<span x-text="zone"></span>) : <span x-text="fmt(fee)"></span></p>
+                    <p class="font-display text-xl">Total : <span x-text="fmt(subtotal + fee)"></span></p>
+                </div>
             </section>
 
             <section>
@@ -48,6 +60,9 @@
                                     name="address_id"
                                     value="{{ $address->id }}"
                                     @checked($address->is_default)
+                                    data-fee="{{ $fees[$address->id]['fee'] }}"
+                                    data-zone="{{ $fees[$address->id]['label'] }}"
+                                    @change="fee = +$el.dataset.fee; zone = $el.dataset.zone"
                                     class="mt-1 accent-brand-signature"
                                 >
                                 <span>

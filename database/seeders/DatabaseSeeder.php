@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             AdminSeeder::class,
             CatalogueSeeder::class,
+            DeliveryZoneSeeder::class,
             ReviewSeeder::class,
             OrderDemoSeeder::class,
         ]);

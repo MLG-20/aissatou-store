@@ -9,6 +9,8 @@ use App\Models\Order\Order;
 use App\Services\OrderService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
@@ -71,6 +73,15 @@ class ViewOrder extends ViewRecord
                     ])
                     ->columns(3),
 
+                Section::make('Livraison')
+                    ->schema([
+                        TextEntry::make('shipping_zone')->label('Zone appliquée')->placeholder('—'),
+                        TextEntry::make('shipping_total')->label('Frais')->money('XOF'),
+                        TextEntry::make('delivery_assignee')->label('Livreur / mode')->placeholder('Non assignée'),
+                        TextEntry::make('delivery_note')->label('Note')->placeholder('—'),
+                    ])
+                    ->columns(2),
+
                 Section::make('Historique des statuts')
                     ->schema([
                         RepeatableEntry::make('history')
@@ -124,6 +135,32 @@ class ViewOrder extends ViewRecord
                 ->icon('heroicon-o-document-arrow-down')
                 ->url(fn (Order $record): string => route('admin.orders.invoice', $record))
                 ->openUrlInNewTab(),
+
+            // Assignation manuelle (Phase 4) : qui livre, avec quelle consigne.
+            // Réservée à l'admin (guard du panel) ; visible par le client dans
+            // son suivi une fois renseignée.
+            Action::make('assignDelivery')
+                ->label('Organiser la livraison')
+                ->icon('heroicon-o-truck')
+                ->form([
+                    TextInput::make('delivery_assignee')
+                        ->label('Livreur / mode')
+                        ->helperText('Nom du livreur ou mode (« moto », « retrait boutique »…).')
+                        ->maxLength(255),
+                    Textarea::make('delivery_note')
+                        ->label('Note')
+                        ->helperText('Consigne visible par le client dans son suivi.')
+                        ->rows(2)
+                        ->maxLength(1000),
+                ])
+                ->action(function (Order $record, array $data): void {
+                    $record->update([
+                        'delivery_assignee' => $data['delivery_assignee'] ?: null,
+                        'delivery_note' => $data['delivery_note'] ?: null,
+                    ]);
+
+                    Notification::make()->success()->title('Livraison organisée.')->send();
+                }),
         ];
     }
 }

@@ -86,4 +86,21 @@ class OrderAdminTest extends TestCase
         $this->actingAs(User::factory()->create())->get(route('admin.orders.invoice', $order))
             ->assertRedirect();
     }
+
+    public function test_admin_can_assign_the_delivery_from_the_view_page(): void
+    {
+        $order = $this->makeOrder();
+        $this->actingAs(Admin::factory()->create(), 'admin');
+
+        Livewire::test(ViewOrder::class, ['record' => $order->getRouteKey()])
+            ->callAction('assignDelivery', data: [
+                'delivery_assignee' => 'Moussa (moto)',
+                'delivery_note' => 'Appeler avant de passer.',
+            ])
+            ->assertHasNoActionErrors();
+
+        $order = $order->fresh();
+        $this->assertEquals('Moussa (moto)', $order->delivery_assignee);
+        $this->assertEquals('Appeler avant de passer.', $order->delivery_note);
+    }
 }

@@ -12,6 +12,7 @@ use App\Models\Cart\Cart;
 use App\Models\Catalogue\ProductVariant;
 use App\Models\Content\SiteSetting;
 use App\Models\Customer\Address;
+use App\Models\Delivery\DeliveryZone;
 use App\Models\Order\Order;
 use App\Models\User;
 use App\Services\Payment\PaymentManager;
@@ -98,14 +99,20 @@ class OrderService
 
             $subtotal = collect($lines)->sum(fn (array $line) => $line['unit_price'] * $line['quantity']);
 
+            // Frais de livraison recalculés côté serveur depuis la ville de
+            // l'adresse (jamais depuis le client) et figés avec le reste.
+            $zone = DeliveryZone::forCity($address->city);
+            $shipping = $zone ? (float) $zone->fee : 0;
+
             $order = Order::create([
                 'user_id' => $user->id,
                 'number' => $this->generateNumber(),
                 'status' => OrderStatus::New,
                 'payment_status' => PaymentStatus::Pending,
                 'subtotal' => $subtotal,
-                'shipping_total' => 0,
-                'total' => $subtotal,
+                'shipping_total' => $shipping,
+                'shipping_zone' => $zone?->name,
+                'total' => $subtotal + $shipping,
                 'recipient_name' => $address->recipient_name,
                 'phone' => $address->phone,
                 'city' => $address->city,

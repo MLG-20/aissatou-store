@@ -26,7 +26,7 @@ API Sanctum `/api/v1`, spatie/laravel-permission.
 - ✅ Phase 2 : terminée (catalogue, panier invité+compte, recherche/filtres AJAX, comptes/adresses, WebP/srcset/cache, accueil + vitrine éditable, avis, tiroir panier). Suite : 97 tests.
 - ✅ Phase 2.1 : restes terminés au commit `5703a3e` — migration `rebrand_site_settings_to_aissatou_store` (À propos au positionnement officiel p.2), `x-shop.signature` sur pages auth (`layouts/guest.blade.php`).
 - ⏳ Phase 2.2 : spécifiée, non commencée (Matière → Collections → Wishlist → Journal, dans cet ordre).
-- ⏳ Phase 3 (tunnel commande + paiement à la livraison) : EN COURS (2026-10-14).
+- ✅ Phase 3 (tunnel commande + paiement à la livraison) : TERMINÉE (2026-10-14, revue sécurité incluse).
   - ✅ (A) Domaine : `orders`, `order_items` (prix figés), `payments`, `order_status_history` ; enums `OrderStatus`/`PaymentStatus` ; contrat `PaymentProvider` + `CodProvider` + `PaymentManager` ; `OrderService` atomique (recalcul serveur, verrous anti-survente, n° `AS-AAAA-XXXXXX`) — 9 tests verts.
   - ✅ (B) Tunnel checkout (compte requis) : `GET/POST /commande` (récap + adresse + paiement), `GET /commande/merci/{n°}` (anti-IDOR) — 5 tests verts.
   - ✅ (C) Notifications queued : `OrderPlaced` + `NewOrderForAdmin` à la création, `OrderStatusChanged` à chaque transition. Piège : ne JAMAIS nommer une prop de mailable `$to` (collision fatale avec `Mailable::$to`).
@@ -35,6 +35,8 @@ API Sanctum `/api/v1`, spatie/laravel-permission.
   - Suite complète : 130 tests verts (vérifié par Ahmed lui-même).
   - ✅ Revue sécurité de fin de phase (2026-10-14) : aucun `{!! !!}` dans les 8 vues commande/emails/facture ; `web`+`auth` sur le tunnel, `auth:admin` + contrôle en contrôleur sur la facture ; IDOR/total-serveur/transitions couverts par tests ; rendu des 3 emails testé (`MailRenderTest`, le fake ne rendant pas les vues).
   - ✅ (Demo) `OrderDemoSeeder` : 2 clientes (`aicha/fatou.demo@example.com`, mdp `password`) + 5 commandes (une par statut), via le vrai `OrderService`. Lancé seul (`db:seed --class=OrderDemoSeeder`, sans wipe) et branché dans `DatabaseSeeder`.
+- ✅ Phase 4 (livraison) : TERMINÉE (2026-10-14, journal `docs/progress/04-livraison.md`). Zones + frais figés au tunnel, suivi manuel admin (livreur/note), suivi client (stepper), contrat `DeliveryProvider` (manuel actif, Yango inactif sans clés — compte business cliente requis). Emails de file vidés via worker (2/2 OK).
+- ⏳ Phase 5 (Wave/Orange Money) : non commencée — requiert comptes marchands cliente.
 
 ## 4. Décisions actives d'Ahmed (ne pas remettre en cause sans lui)
 
@@ -51,6 +53,8 @@ API Sanctum `/api/v1`, spatie/laravel-permission.
 - Logos SVG officiels (`logo_horizontal.svg`, `logo_symbole_seul.svg`, `favicon.svg`) jamais transmis — symbole PNG provisoire, favicon PNG fallback en place. Interdit de redessiner (p.14).
 - Visuels de marques tierces en base + catégories sans image — à arbitrer avec elle.
 - Grille tarifaire démo (~16 000–72 000 FCFA après conversion) à valider.
+- Tarifs de livraison démo (Dakar 1000, Pikine 1500, Rufisque 2000, défaut 3500) à valider.
+- Compte Yango Delivery Business + clés API (`YANGO_CLIENT_ID`/`YANGO_KEY`) : action cliente, intégration codée en attente.
 
 ## 6. Environnement local
 
@@ -64,5 +68,5 @@ php artisan serve --no-reload --host=127.0.0.1 --port=8000  # --no-reload + PHP_
 
 ## 7. Dernière session (2026-10-14)
 
-Réparé `public/storage`, fini les 2 restes 2.1, pint vert, tests auth 13/13. Serveur relancé.
-**Suite : attaquer Phase 3** selon `docs/files/03-commande-paiement.md`.
+Phase 3 livrée + revue sécurité, Phase 4 livrée (zones, tunnel frais, manuel admin, suivi client, contrat Yango prêt, compte business cliente en attente).
+**Suite : Phase 2.2 (modules maquette) ou Phase 5 (e-paiements, requiert comptes marchands).**
