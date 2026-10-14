@@ -26,7 +26,12 @@ API Sanctum `/api/v1`, spatie/laravel-permission.
 - ✅ Phase 2 : terminée (catalogue, panier invité+compte, recherche/filtres AJAX, comptes/adresses, WebP/srcset/cache, accueil + vitrine éditable, avis, tiroir panier). Suite : 97 tests.
 - ✅ Phase 2.1 : restes terminés au commit `5703a3e` — migration `rebrand_site_settings_to_aissatou_store` (À propos au positionnement officiel p.2), `x-shop.signature` sur pages auth (`layouts/guest.blade.php`).
 - ⏳ Phase 2.2 : spécifiée, non commencée (Matière → Collections → Wishlist → Journal, dans cet ordre).
-- ⏳ Phase 3 (tunnel commande + paiement à la livraison) : NON COMMENCÉE — c'est la suite prévue, validée par Ahmed. Sans elle, pas de vente possible.
+- ⏳ Phase 3 (tunnel commande + paiement à la livraison) : EN COURS (2026-10-14).
+  - ✅ (A) Domaine : `orders`, `order_items` (prix figés), `payments`, `order_status_history` ; enums `OrderStatus`/`PaymentStatus` ; contrat `PaymentProvider` + `CodProvider` + `PaymentManager` ; `OrderService` atomique (recalcul serveur, verrous anti-survente, n° `AS-AAAA-XXXXXX`) — 9 tests verts.
+  - ✅ (B) Tunnel checkout (compte requis) : `GET/POST /commande` (récap + adresse + paiement), `GET /commande/merci/{n°}` (anti-IDOR) — 5 tests verts.
+  - ✅ (C) Notifications queued : `OrderPlaced` + `NewOrderForAdmin` à la création, `OrderStatusChanged` à chaque transition. Piège : ne JAMAIS nommer une prop de mailable `$to` (collision fatale avec `Mailable::$to`).
+  - ⏳ (D) Back-office Filament commandes + facture PDF (`barryvdh/laravel-dompdf` installé).
+  - ⏳ (E) Compte client : historique + détail commandes.
 
 ## 4. Décisions actives d'Ahmed (ne pas remettre en cause sans lui)
 

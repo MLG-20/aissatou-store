@@ -5,6 +5,9 @@ namespace Tests\Feature\Order;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
 use App\Exceptions\OrderException;
+use App\Mail\NewOrderForAdmin;
+use App\Mail\OrderPlaced;
+use App\Mail\OrderStatusChanged;
 use App\Models\Admin;
 use App\Models\Cart\Cart;
 use App\Models\Cart\CartItem;
@@ -15,6 +18,7 @@ use App\Models\Order\Order;
 use App\Models\User;
 use App\Services\OrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
@@ -147,6 +151,10 @@ class OrderServiceTest extends TestCase
 
     public function test_status_transitions_are_guarded_and_logged(): void
     {
+        // Sans fake, les emails partent en vraie file `database` et font
+        // planter le processus PHP en environnement de test.
+        Mail::fake();
+
         $user = User::factory()->create();
         $product = Product::factory()->create();
         $cart = Cart::create(['user_id' => $user->id]);
@@ -173,5 +181,39 @@ class OrderServiceTest extends TestCase
         $this->assertEquals(PaymentStatus::Confirmed, $order->payment->status);
         $this->assertCount(4, $order->history);
         $this->assertEquals($admin->id, $order->history->last()->author_id);
+    }
+
+    public function test_confirmation_and_admin_emails_are_queued_on_order_creation(): void
+    {
+        Mail::fake();
+
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+        $cart = Cart::create(['user_id' => $user->id]);
+        CartItem::create(['cart_id' => $cart->id, 'product_id' => $product->id, 'quantity' => 1]);
+        $address = Address::factory()->for($user)->create();
+
+        $order = $this->service()->createFromCart($user, $cart, $address, 'cod');
+
+        Mail::assertQueued(OrderPlaced::class, fn ($mail) => $mail->hasTo($user->email));
+        Mail::assertQueued(NewOrderForAdmin::class, function ($mail) use ($order): bool {
+            return $mail->order->is($order);
+        });
+    }
+
+    public function test_a_status_change_email_is_queued(): void
+    {
+        Mail::fake();
+
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+        $cart = Cart::create(['user_id' => $user->id]);
+        CartItem::create(['cart_id' => $cart->id, 'product_id' => $product->id, 'quantity' => 1]);
+        $address = Address::factory()->for($user)->create();
+        $order = $this->service()->createFromCart($user, $cart, $address, 'cod');
+
+        $this->service()->changeStatus($order, OrderStatus::Preparing);
+
+        Mail::assertQueued(OrderStatusChanged::class, fn ($mail) => $mail->hasTo($user->email));
     }
 }

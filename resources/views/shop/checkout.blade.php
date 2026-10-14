@@ -1,0 +1,89 @@
+<x-shop-layout :title="'Commande — '.config('app.name')">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-8">
+        <h1 class="font-display text-3xl mb-6">Votre commande</h1>
+
+        @if ($errors->any())
+            <p class="mb-6 text-sm text-brand-signature">{{ $errors->first() }}</p>
+        @endif
+
+        <form method="POST" action="{{ route('shop.checkout.store') }}" class="space-y-8">
+            @csrf
+
+            <section>
+                <h2 class="font-display text-xl mb-4">Récapitulatif</h2>
+                <div class="divide-y divide-brand-ink/10 border-y border-brand-ink/10">
+                    @foreach ($cart->items as $item)
+                        <div class="py-4 flex items-center gap-4">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-brand-ink">{{ $item->product->name }}</p>
+                                @if ($variantLabel = collect($item->variant?->attributes ?? [])->map(fn ($value, $key) => ucfirst($key).' : '.$value)->implode(', '))
+                                    <p class="text-xs text-brand-muted mt-0.5">{{ $variantLabel }}</p>
+                                @endif
+                                <p class="text-xs text-brand-muted mt-0.5">Quantité : {{ $item->quantity }}</p>
+                            </div>
+                            <p class="text-sm text-brand-ink whitespace-nowrap">
+                                {{ number_format($item->lineTotal(), 0, ',', ' ') }} FCFA
+                            </p>
+                        </div>
+                    @endforeach
+                </div>
+                <p class="mt-4 text-right font-display text-xl">
+                    Total : {{ number_format($cart->items->sum(fn ($item) => $item->lineTotal()), 0, ',', ' ') }} FCFA
+                </p>
+            </section>
+
+            <section>
+                <h2 class="font-display text-xl mb-4">Adresse de livraison</h2>
+                @if ($addresses->isEmpty())
+                    <p class="text-sm text-brand-muted">
+                        Ajoutez d'abord une adresse depuis
+                        <a href="{{ route('account.addresses.index') }}" class="underline hover:text-brand-signature">votre carnet d'adresses</a>.
+                    </p>
+                @else
+                    <div class="space-y-3">
+                        @foreach ($addresses as $address)
+                            <label class="flex items-start gap-3 rounded-sm border border-brand-ink/10 bg-white p-4 cursor-pointer has-checked:border-brand-signature">
+                                <input
+                                    type="radio"
+                                    name="address_id"
+                                    value="{{ $address->id }}"
+                                    @checked($address->is_default)
+                                    class="mt-1 accent-brand-signature"
+                                >
+                                <span>
+                                    <span class="block text-sm text-brand-ink">{{ $address->recipient_name }} — {{ $address->phone }}</span>
+                                    <span class="block text-sm text-brand-muted">{{ $address->address_line }}, {{ $address->city }}</span>
+                                    @if ($address->is_default)
+                                        <span class="mt-1 inline-block text-xs uppercase tracking-wide text-brand-signature">Par défaut</span>
+                                    @endif
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+                @endif
+            </section>
+
+            <section>
+                <h2 class="font-display text-xl mb-4">Paiement</h2>
+                <div class="space-y-3">
+                    @foreach ($providers as $provider)
+                        <label class="flex items-start gap-3 rounded-sm border border-brand-ink/10 bg-white p-4 cursor-pointer has-checked:border-brand-signature">
+                            <input
+                                type="radio"
+                                name="provider"
+                                value="{{ $provider->key() }}"
+                                @checked($loop->first)
+                                class="mt-1 accent-brand-signature"
+                            >
+                            <span class="text-sm text-brand-ink">{{ $provider->label() }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </section>
+
+            <x-shop.cta type="submit" variant="primary" class="w-full justify-center">
+                Confirmer la commande
+            </x-shop.cta>
+        </form>
+    </div>
+</x-shop-layout>

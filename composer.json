@@ -7,7 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
-        "barryvdh/laravel-dompdf": "*",
+        "barryvdh/laravel-dompdf": "^3.0",
         "filament/filament": "^3.3",
         "intervention/image": "^4.1",
         "laravel/framework": "^13.8",

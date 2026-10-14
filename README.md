@@ -49,7 +49,11 @@ GitHub Actions (`.github/workflows/ci.yml`) exécute à chaque push/PR sur `main
 ## Structure du projet
 
 - `app/Models/Catalogue/` — modèles du domaine catalogue (Catégorie, Produit, Variante, Image)
-- `app/Http/Controllers/Shop/` — contrôleurs du site public (catalogue navigable)
+- `app/Models/Order/` — modèles du domaine commande (Commande, Ligne, Paiement, Historique statuts)
+- `app/Services/OrderService.php` — création atomique de commande (recalcul serveur, anti-survente) + transitions gardées
+- `app/Services/Payment/` — contrat `PaymentProvider`, `CodProvider` (livraison), `PaymentManager`
+- `app/Mail/` — `OrderPlaced`, `OrderStatusChanged`, `NewOrderForAdmin` (queued ; worker requis : `php artisan queue:work`)
+- `app/Http/Controllers/Shop/` — contrôleurs du site public (catalogue, panier, tunnel `commande`)
 - `app/Http/Controllers/Api/V1/` — API publique (lecture catalogue) et authentification par token
 - `app/Filament/Resources/` — ressources du back-office admin
 - `routes/web.php`, `routes/shop.php`, `routes/auth.php` — routes du site public

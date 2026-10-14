@@ -5,13 +5,18 @@ namespace App\Services;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
 use App\Exceptions\OrderException;
+use App\Mail\NewOrderForAdmin;
+use App\Mail\OrderPlaced;
+use App\Mail\OrderStatusChanged;
 use App\Models\Cart\Cart;
 use App\Models\Catalogue\ProductVariant;
+use App\Models\Content\SiteSetting;
 use App\Models\Customer\Address;
 use App\Models\Order\Order;
 use App\Models\User;
 use App\Services\Payment\PaymentManager;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 /**
@@ -44,7 +49,7 @@ class OrderService
 
         throw_unless($provider && $provider->isAvailable(), OrderException::paymentUnavailable());
 
-        return DB::transaction(function () use ($user, $cart, $address, $provider) {
+        $order = DB::transaction(function () use ($user, $cart, $address, $provider) {
             $items = $cart->items()->with(['product', 'variant'])->get();
 
             throw_if($items->isEmpty(), OrderException::emptyCart());
@@ -119,8 +124,17 @@ class OrderService
 
             $cart->items()->delete();
 
-            return $order->fresh(['items', 'payment']);
+            $order = $order->fresh(['items', 'payment', 'user']);
+
+            return $order;
         });
+
+        // Après commit uniquement : un rollback ne doit jamais avoir envoyé
+        // d'email. File d'attente (phase 3) : le tunnel ne bloque pas dessus.
+        Mail::to($order->user)->queue(new OrderPlaced($order));
+        Mail::to($this->shopEmail())->queue(new NewOrderForAdmin($order));
+
+        return $order;
     }
 
     /**
@@ -133,7 +147,7 @@ class OrderService
     {
         throw_unless($order->status->canTransitionTo($to), OrderException::invalidTransition());
 
-        return DB::transaction(function () use ($order, $to, $authorId) {
+        $order = DB::transaction(function () use ($order, $to, $authorId) {
             $from = $order->status;
 
             $order->update(['status' => $to]);
@@ -151,8 +165,21 @@ class OrderService
                 'author_id' => $authorId,
             ]);
 
-            return $order->fresh(['payment', 'history']);
+            return $order->fresh(['payment', 'history', 'user', 'items']);
         });
+
+        Mail::to($order->user)->queue(new OrderStatusChanged($order, $to));
+
+        return $order;
+    }
+
+    /**
+     * Adresse opérationnelle de la boutique (réglée en admin, Contenu du site)
+     * : c'est là qu'arrivent les alertes de nouvelles commandes.
+     */
+    private function shopEmail(): string
+    {
+        return SiteSetting::current()->contact_email ?? config('mail.from.address');
     }
 
     /**

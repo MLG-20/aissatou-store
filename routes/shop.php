@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CategoryController;
+use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\ContactController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\ReviewController;
@@ -40,3 +41,10 @@ Route::get('panier', [CartController::class, 'index'])->name('shop.cart');
 Route::post('panier', [CartController::class, 'store'])->name('shop.cart.store');
 Route::patch('panier/{item}', [CartController::class, 'update'])->name('shop.cart.update');
 Route::delete('panier/{item}', [CartController::class, 'destroy'])->name('shop.cart.destroy');
+
+// Tunnel de commande (compte requis : il s'appuie sur le carnet d'adresses).
+Route::middleware('auth')->group(function (): void {
+    Route::get('commande', [CheckoutController::class, 'show'])->name('shop.checkout');
+    Route::post('commande', [CheckoutController::class, 'store'])->name('shop.checkout.store');
+    Route::get('commande/merci/{order:number}', [CheckoutController::class, 'success'])->name('shop.checkout.success');
+});
