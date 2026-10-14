@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             CatalogueSeeder::class,
             ReviewSeeder::class,
+            OrderDemoSeeder::class,
         ]);
 
         User::factory()->create([

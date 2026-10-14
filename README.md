@@ -32,6 +32,7 @@ php artisan serve
 
 - Site public : `http://localhost:8000`
 - Back-office admin : `http://localhost:8000/admin` (identifiants = `ADMIN_SEED_EMAIL` / `ADMIN_SEED_PASSWORD`)
+- Comptes clients de démo (commandes de tous statuts) : `aicha.demo@example.com` / `fatou.demo@example.com`, mot de passe `password` (créés par `OrderDemoSeeder`, inclus dans `migrate --seed`)
 
 ## Tests
 
