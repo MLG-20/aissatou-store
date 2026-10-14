@@ -54,7 +54,12 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-signature shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.362-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
                         </svg>
-                        WhatsApp : {{ $settings->contact_whatsapp }}
+                        {{-- Numéro cliquable vers WhatsApp : seuls les chiffres
+                             sont conservés (wa.me exige un format international
+                             sans « + » ni espaces). --}}
+                        <a href="https://wa.me/{{ preg_replace('/\D/', '', $settings->contact_whatsapp) }}" target="_blank" rel="noopener" class="underline hover:text-brand-signature">
+                            WhatsApp : {{ $settings->contact_whatsapp }}
+                        </a>
                     </li>
                     <li class="flex items-center gap-3">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-signature shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -78,6 +83,23 @@
                     {{ $settings->contact_hours }}
                 </p>
             </div>
+
+            @if ($settings->social_instagram || $settings->social_facebook || $settings->social_tiktok)
+                <div>
+                    <h2 class="font-display text-xl text-brand-ink mb-4">Suivez-nous</h2>
+                    <ul class="flex flex-wrap gap-4 text-sm">
+                        @foreach (['social_instagram' => 'Instagram', 'social_facebook' => 'Facebook', 'social_tiktok' => 'TikTok'] as $field => $label)
+                            @if ($settings->$field)
+                                <li>
+                                    <a href="{{ $settings->$field }}" target="_blank" rel="noopener" class="underline text-brand-ink hover:text-brand-signature">
+                                        {{ $label }} →
+                                    </a>
+                                </li>
+                            @endif
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
         </div>
     </div>
 </x-shop-layout>

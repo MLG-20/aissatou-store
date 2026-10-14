@@ -25,7 +25,7 @@ API Sanctum `/api/v1`, spatie/laravel-permission.
 - ✅ Phase 1 : terminée et validée.
 - ✅ Phase 2 : terminée (catalogue, panier invité+compte, recherche/filtres AJAX, comptes/adresses, WebP/srcset/cache, accueil + vitrine éditable, avis, tiroir panier). Suite : 97 tests.
 - ✅ Phase 2.1 : restes terminés au commit `5703a3e` — migration `rebrand_site_settings_to_aissatou_store` (À propos au positionnement officiel p.2), `x-shop.signature` sur pages auth (`layouts/guest.blade.php`).
-- ✅ Phase 2.2 (modules maquette) : EN COURS (journal `docs/progress/02.2-modules-maquette.md`). A Matière ✅, B Collections ✅ (bannières éditoriales, survol bordeaux validé), C Wishlist ✅, D Journal ✅. Reste : E Contact-admin + revue.
+- ✅ Phase 2.2 (modules maquette) : TERMINÉE (journal `docs/progress/02.2-modules-maquette.md`). A Matière, B Collections (survol bordeaux validé), C Wishlist, D Journal, E Messages + réseaux sociaux. Plus aucune page d'attente.
 - ⏳ Phase 5 (Wave/Orange Money) : non commencée — requiert comptes marchands cliente.
 - ✅ Phase 3 (tunnel commande + paiement à la livraison) : TERMINÉE (2026-10-14, revue sécurité incluse).
   - ✅ (A) Domaine : `orders`, `order_items` (prix figés), `payments`, `order_status_history` ; enums `OrderStatus`/`PaymentStatus` ; contrat `PaymentProvider` + `CodProvider` + `PaymentManager` ; `OrderService` atomique (recalcul serveur, verrous anti-survente, n° `AS-AAAA-XXXXXX`) — 9 tests verts.
