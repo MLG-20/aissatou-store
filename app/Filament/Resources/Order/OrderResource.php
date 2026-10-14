@@ -24,6 +24,18 @@ class OrderResource extends Resource
 
     protected static ?string $navigationGroup = 'Commandes';
 
+    protected static ?string $navigationLabel = 'Commandes';
+
+    public static function getModelLabel(): string
+    {
+        return 'commande';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'commandes';
+    }
+
     public static function table(Table $table): Table
     {
         return $table

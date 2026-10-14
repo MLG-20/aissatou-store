@@ -1,4 +1,4 @@
-@props(['action', 'categories' => null])
+@props(['action', 'categories' => null, 'materials' => null])
 
 {{-- Panneau de filtres latéral de la maquette p.12 : « Filtres structurés :
      prix, matière, collection et disponibilité » à gauche, grille à droite.
@@ -6,8 +6,7 @@
      Sur mobile, le rapport demande « filtres dans un panneau » : le bloc devient
      un <details> replié, pour que la grille reste immédiatement visible.
 
-     Les filtres Matière et Collection de la maquette arrivent en Phase 2.2 avec
-     les attributs correspondants — cf. docs/files/02.2-modules-maquette.md. --}}
+     Les filtres Matière (actif depuis la Phase 2.2A) et Collection (Phase 2.2B, à venir) de la maquette — cf. docs/files/02.2-modules-maquette.md. --}}
 @php
     // Tranches de prix en FCFA, proposées en raccourci. Elles pilotent les mêmes
     // champs min_price/max_price que la saisie libre : aucun paramètre nouveau
@@ -26,6 +25,7 @@
         initial: {
             q: @js(request('q', '')),
             category_id: @js((string) request('category_id', '')),
+            material_id: @js((string) request('material_id', '')),
             min_price: @js((string) request('min_price', '')),
             max_price: @js((string) request('max_price', '')),
             in_stock: @js(request()->boolean('in_stock')),
@@ -79,6 +79,24 @@
                             <label class="flex items-center gap-2.5 text-sm">
                                 <input type="radio" value="{{ $category->id }}" x-model="filters.category_id" @change="apply()" class="border-brand-ink/30 text-brand-accent focus:ring-brand-accent">
                                 {{ $category->name }}
+                            </label>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if ($materials)
+                    <div class="flex flex-col gap-3 border-t border-brand-ink/10 pt-6">
+                        <span class="text-[0.65rem] uppercase tracking-[0.18em] text-brand-muted">Matière</span>
+
+                        <label class="flex items-center gap-2.5 text-sm">
+                            <input type="radio" value="" x-model="filters.material_id" @change="apply()" class="border-brand-ink/30 text-brand-accent focus:ring-brand-accent">
+                            Toutes
+                        </label>
+
+                        @foreach ($materials as $material)
+                            <label class="flex items-center gap-2.5 text-sm">
+                                <input type="radio" value="{{ $material->id }}" x-model="filters.material_id" @change="apply()" class="border-brand-ink/30 text-brand-accent focus:ring-brand-accent">
+                                {{ $material->name }}
                             </label>
                         @endforeach
                     </div>

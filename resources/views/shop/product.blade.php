@@ -129,8 +129,15 @@
 
                 <h1 class="mt-2 font-display text-3xl">{{ $product->name }}</h1>
 
+                @if ($product->material_tagline)
+                    <p class="mt-2 text-brand-muted">{{ $product->material_tagline }}</p>
+                @endif
                 @if ($product->material)
-                    <p class="mt-2 text-brand-muted">{{ $product->material }}</p>
+                    <p class="mt-2">
+                        <a href="{{ route('shop.index', ['material_id' => $product->material_id]) }}" class="text-xs uppercase tracking-[0.18em] text-brand-signature underline hover:text-brand-ink">
+                            Voir tout : {{ $product->material->name }}
+                        </a>
+                    </p>
                 @endif
 
                 <p class="mt-3 text-xl text-brand-ink">

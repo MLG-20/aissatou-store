@@ -19,7 +19,7 @@
     </section>
 
     <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-8">
-        <x-shop.filter-bar :action="route('shop.index')" :categories="$categories">
+        <x-shop.filter-bar :action="route('shop.index')" :categories="$categories" :materials="$materials">
             @include('shop.partials.product-grid', ['products' => $products])
         </x-shop.filter-bar>
     </div>

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Shop;
 
 use App\Models\Catalogue\Category;
+use App\Models\Catalogue\Material;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -21,6 +22,7 @@ class FilterProductsRequest extends FormRequest
         return [
             'q' => ['nullable', 'string', 'max:100'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'material_id' => ['nullable', 'integer', 'exists:materials,id'],
             'min_price' => ['nullable', 'numeric', 'min:0'],
             // gte:min_price ne doit s'appliquer que si min_price est réellement fourni,
             // sinon la règle échoue en comparant max_price à un champ absent.
@@ -39,7 +41,7 @@ class FilterProductsRequest extends FormRequest
      * Valeurs prêtes à l'emploi pour Product::scopeFilter() — le contrôleur
      * n'a jamais à relire les paramètres bruts de la requête.
      *
-     * @return array{q: ?string, category_id: ?int, min_price: ?float, max_price: ?float, in_stock: bool, new_arrivals: bool}
+     * @return array{q: ?string, category_id: ?int, material_id: ?int, min_price: ?float, max_price: ?float, in_stock: bool, new_arrivals: bool}
      */
     public function filters(): array
     {
@@ -52,9 +54,17 @@ class FilterProductsRequest extends FormRequest
             $categoryId = null;
         }
 
+        // Une matière inactive ne doit pas pouvoir être utilisée pour filtrer,
+        // comme pour les catégories ci-dessus.
+        $materialId = $validated['material_id'] ?? null;
+        if ($materialId !== null && ! Material::query()->active()->whereKey($materialId)->exists()) {
+            $materialId = null;
+        }
+
         return [
             'q' => $validated['q'] ?? null,
             'category_id' => $categoryId,
+            'material_id' => $materialId,
             'min_price' => isset($validated['min_price']) ? (float) $validated['min_price'] : null,
             'max_price' => isset($validated['max_price']) ? (float) $validated['max_price'] : null,
             'in_stock' => $this->boolean('in_stock'),

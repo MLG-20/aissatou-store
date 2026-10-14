@@ -26,13 +26,13 @@ use Illuminate\Support\Str;
 class ColsCadeauxDemoSeeder extends Seeder
 {
     /**
-     * @var array<string, array<int, array{name: string, material: string, price: int, label: ?ProductLabel, description: string, variants: array<int, array{couleur: string}>}>>
+     * @var array<string, array<int, array{name: string, material_tagline: string, price: int, label: ?ProductLabel, description: string, variants: array<int, array{couleur: string}>}>>
      */
     private const CATALOGUE = [
         'cols' => [
             [
                 'name' => 'Col Claudine Brodé',
-                'material' => 'Coton piqué — bord festonné',
+                'material_tagline' => 'Coton piqué — bord festonné',
                 'price' => 12000,
                 'label' => null,
                 'description' => "Un col Claudine amovible qui structure une tenue en un geste. Se pose sur une robe, un pull fin ou une chemise pour rehausser l'encolure.",
@@ -40,7 +40,7 @@ class ColsCadeauxDemoSeeder extends Seeder
             ],
             [
                 'name' => 'Col Cravate Satin',
-                'material' => 'Satin de soie — tombé souple',
+                'material_tagline' => 'Satin de soie — tombé souple',
                 'price' => 15000,
                 'label' => ProductLabel::Selected,
                 'description' => 'Un col cravate qui se noue librement, entre le lavallière et le foulard. La touche qui achève une silhouette sobre.',
@@ -48,7 +48,7 @@ class ColsCadeauxDemoSeeder extends Seeder
             ],
             [
                 'name' => 'Col Perlé Cérémonie',
-                'material' => 'Tulle brodé — perles cousues main',
+                'material_tagline' => 'Tulle brodé — perles cousues main',
                 'price' => 22000,
                 'label' => ProductLabel::LimitedEdition,
                 'description' => 'Un col de cérémonie entièrement perlé, pensé pour les grandes occasions. Chaque perle est cousue à la main.',
@@ -58,7 +58,7 @@ class ColsCadeauxDemoSeeder extends Seeder
         'cadeaux' => [
             [
                 'name' => 'Coffret Découverte Parfum',
-                'material' => 'Trois eaux de parfum — 15 ml chacune',
+                'material_tagline' => 'Trois eaux de parfum — 15 ml chacune',
                 'price' => 28000,
                 'label' => ProductLabel::Selected,
                 'description' => "Un coffret de trois fragrances à découvrir ou à offrir, présenté dans un écrin sobre. L'entrée idéale dans l'univers olfactif de la maison.",
@@ -66,7 +66,7 @@ class ColsCadeauxDemoSeeder extends Seeder
             ],
             [
                 'name' => 'Écrin Foulard & Broche',
-                'material' => 'Foulard soie & broche assortie',
+                'material_tagline' => 'Foulard soie & broche assortie',
                 'price' => 35000,
                 'label' => null,
                 'description' => 'Un foulard de soie et sa broche, réunis dans un écrin prêt à offrir. Le duo se porte ensemble ou séparément.',
@@ -74,7 +74,7 @@ class ColsCadeauxDemoSeeder extends Seeder
             ],
             [
                 'name' => 'Carte Cadeau Aissatou',
-                'material' => 'Montant libre — validité un an',
+                'material_tagline' => 'Montant libre — validité un an',
                 'price' => 25000,
                 'label' => null,
                 'description' => 'Une carte cadeau à offrir, valable un an sur toute la sélection. Le choix revient à celle qui la reçoit.',
@@ -82,7 +82,7 @@ class ColsCadeauxDemoSeeder extends Seeder
             ],
             [
                 'name' => "Coffret L'Art d'Offrir",
-                'material' => 'Emballage soigné — mot personnalisé',
+                'material_tagline' => 'Emballage soigné — mot personnalisé',
                 'price' => 18000,
                 'label' => ProductLabel::New,
                 'description' => "Un service d'emballage cadeau : votre sélection présentée avec soin, accompagnée d'un mot personnalisé de votre part.",
@@ -119,7 +119,7 @@ class ColsCadeauxDemoSeeder extends Seeder
                     'category_id' => $category->id,
                     'name' => $attributes['name'],
                     'description' => $attributes['description'],
-                    'material' => $attributes['material'],
+                    'material_tagline' => $attributes['material_tagline'],
                     'price' => $attributes['price'],
                     'label' => $attributes['label'],
                     'is_active' => true,

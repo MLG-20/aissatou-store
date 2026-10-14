@@ -23,6 +23,18 @@ class DeliveryZoneResource extends Resource
 
     protected static ?string $navigationGroup = 'Livraison';
 
+    protected static ?string $navigationLabel = 'Zones de livraison';
+
+    public static function getModelLabel(): string
+    {
+        return 'zone de livraison';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'zones de livraison';
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\FilterProductsRequest;
 use App\Models\Catalogue\Category;
+use App\Models\Catalogue\Material;
 use App\Models\Catalogue\Product;
 use Illuminate\View\View;
 
@@ -15,7 +16,7 @@ class ProductController extends Controller
         $products = Product::query()
             ->active()
             ->filter($request->filters())
-            ->with(['category', 'images', 'variants' => fn ($query) => $query->active()])
+            ->with(['category', 'material', 'images', 'variants' => fn ($query) => $query->active()])
             ->latest()
             ->paginate(12)
             ->withQueryString();
@@ -30,6 +31,7 @@ class ProductController extends Controller
         return view('shop.index', [
             'products' => $products,
             'categories' => Category::query()->active()->orderBy('position')->get(),
+            'materials' => Material::query()->active()->orderBy('position')->get(),
             // L'onglet « Nouveautés » de la maquette mène ici, filtré. Sans ce
             // drapeau, la page s'annoncerait « Tout le catalogue » alors qu'elle
             // n'en montre qu'une partie — c'est exactement ce qui donnait
@@ -45,7 +47,7 @@ class ProductController extends Controller
         // l'énumération d'articles désactivés via leur slug.
         abort_unless($product->is_active, 404);
 
-        $product->load(['category', 'images', 'variants' => fn ($query) => $query->active()]);
+        $product->load(['category', 'material', 'images', 'variants' => fn ($query) => $query->active()]);
 
         return view('shop.product', [
             'product' => $product,

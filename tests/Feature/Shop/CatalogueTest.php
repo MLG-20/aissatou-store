@@ -123,7 +123,7 @@ class CatalogueTest extends TestCase
         $category = Category::factory()->create(['name' => 'Hijabs', 'is_active' => true]);
         $product = Product::factory()->for($category)->create([
             'name' => 'Hijab Modal Cassis',
-            'material' => 'Modal souple — tombé fluide',
+            'material_tagline' => 'Modal souple — tombé fluide',
             'price' => 42000,
             'label' => ProductLabel::Selected,
             'is_active' => true,
@@ -134,7 +134,7 @@ class CatalogueTest extends TestCase
         $response->assertOk();
         $response->assertSee('Hijabs');
         $response->assertSee($product->name);
-        $response->assertSee($product->material);
+        $response->assertSee($product->material_tagline);
         $response->assertSee('42 000 FCFA');
         $response->assertSee('Sélectionné');
     }
@@ -142,14 +142,14 @@ class CatalogueTest extends TestCase
     public function test_the_product_card_shows_the_material(): void
     {
         $product = Product::factory()->create([
-            'material' => 'Soie lavée — reflet mat',
+            'material_tagline' => 'Soie lavée — reflet mat',
             'is_active' => true,
             'label' => ProductLabel::New,
         ]);
 
-        $this->get('/catalogue')->assertOk()->assertSee($product->material);
+        $this->get('/catalogue')->assertOk()->assertSee($product->material_tagline);
         // La carte sert aussi la section Nouveautés de l'accueil.
-        $this->get('/')->assertOk()->assertSee($product->material);
+        $this->get('/')->assertOk()->assertSee($product->material_tagline);
     }
 
     public function test_a_variant_colour_resolves_to_a_swatch(): void

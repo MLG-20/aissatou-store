@@ -42,6 +42,18 @@ class ProductResource extends Resource
 
     protected static ?string $navigationGroup = 'Catalogue';
 
+    protected static ?string $navigationLabel = 'Produits';
+
+    public static function getModelLabel(): string
+    {
+        return 'produit';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'produits';
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -81,10 +93,17 @@ class ProductResource extends Resource
                     ->disabled()
                     ->dehydrated(false),
 
-                TextInput::make('material')
+                TextInput::make('material_tagline')
                     ->label('Matière / bénéfice')
                     ->helperText("Une phrase très courte, entre le nom et le prix : la matière, puis ce qu'elle apporte. Par exemple « Modal souple — tombé fluide » ou « Soie lavée — reflet mat ». C'est ce qui donne envie de toucher la pièce ; évitez la fiche technique.")
                     ->maxLength(120),
+
+                Select::make('material_id')
+                    ->label('Matière (filtre)')
+                    ->helperText("La valeur normalisée du filtre « Matière » côté boutique — gérée dans le menu Catalogue > Matières. C'est elle qui filtre, pas la phrase ci-dessus.")
+                    ->relationship('material', 'name')
+                    ->searchable()
+                    ->preload(),
 
                 TextInput::make('price')
                     ->label('Prix (FCFA)')

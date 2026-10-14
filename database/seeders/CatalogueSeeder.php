@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\Catalogue\ProductLabel;
 use App\Models\Catalogue\Category;
+use App\Models\Catalogue\Material;
 use App\Models\Catalogue\Product;
 use App\Models\Catalogue\ProductVariant;
 use Illuminate\Database\Seeder;
@@ -65,20 +66,20 @@ class CatalogueSeeder extends Seeder
         // ceux des maquettes convertis à ~656 FCFA/EUR — à faire confirmer par
         // la cliente, qui seule fixe sa grille tarifaire.
         $this->seedProducts($hijabs, [
-            ['name' => 'Hijab Soie Sable', 'description' => 'Soie naturelle au tombé fluide et à la brillance discrète, pour les grandes occasions.', 'price' => 44000, 'label' => ProductLabel::Selected],
-            ['name' => 'Hijab Modal Cassis', 'description' => 'Modal souple, tombé fluide et maintien fiable tout au long de la journée.', 'price' => 27500],
-            ['name' => 'Hijab Jersey Ivoire', 'description' => 'Jersey extensible, doux et facile à draper, le compagnon du quotidien.', 'price' => 16000],
+            ['name' => 'Hijab Soie Sable', 'description' => 'Soie naturelle au tombé fluide et à la brillance discrète, pour les grandes occasions.', 'price' => 44000, 'label' => ProductLabel::Selected, 'material' => 'Soie'],
+            ['name' => 'Hijab Modal Cassis', 'description' => 'Modal souple, tombé fluide et maintien fiable tout au long de la journée.', 'price' => 27500, 'material' => 'Modal'],
+            ['name' => 'Hijab Jersey Ivoire', 'description' => 'Jersey extensible, doux et facile à draper, le compagnon du quotidien.', 'price' => 16000, 'material' => 'Coton'],
         ], 'couleur');
 
         $this->seedProducts($foulards, [
-            ['name' => 'Foulard Atelier Nocturne', 'description' => "Pièce d'édition en soie, motif dérivé du pli textile de la maison.", 'price' => 62000, 'label' => ProductLabel::LimitedEdition],
-            ['name' => 'Foulard Sauge Fumée', 'description' => 'Un vert doux et minéral, en modal léger, qui accompagne sans surcharger.', 'price' => 49000],
-            ['name' => "Étole d'Hiver Encre", 'description' => 'Laine et cachemire, largeur généreuse et chaleur immédiate.', 'price' => 72000, 'label' => ProductLabel::New],
+            ['name' => 'Foulard Atelier Nocturne', 'description' => "Pièce d'édition en soie, motif dérivé du pli textile de la maison.", 'price' => 62000, 'label' => ProductLabel::LimitedEdition, 'material' => 'Soie'],
+            ['name' => 'Foulard Sauge Fumée', 'description' => 'Un vert doux et minéral, en modal léger, qui accompagne sans surcharger.', 'price' => 49000, 'material' => 'Modal'],
+            ['name' => "Étole d'Hiver Encre", 'description' => 'Laine et cachemire, largeur généreuse et chaleur immédiate.', 'price' => 72000, 'label' => ProductLabel::New, 'material' => 'Laine & cachemire'],
         ], 'couleur');
 
         $this->seedProducts($cols, [
-            ['name' => 'Col Cachemire Parchemin', 'description' => "Col court en cachemire, pensé pour structurer une silhouette sans l'alourdir.", 'price' => 38000],
-            ['name' => 'Col Coton Encre', 'description' => 'Coton dense et mat, une base sobre qui se porte toute l\'année.', 'price' => 21000],
+            ['name' => 'Col Cachemire Parchemin', 'description' => "Col court en cachemire, pensé pour structurer une silhouette sans l'alourdir.", 'price' => 38000, 'material' => 'Laine & cachemire'],
+            ['name' => 'Col Coton Encre', 'description' => 'Coton dense et mat, une base sobre qui se porte toute l\'année.', 'price' => 21000, 'material' => 'Coton'],
         ], 'couleur');
 
         $this->seedProducts($parfums, [
@@ -94,7 +95,7 @@ class CatalogueSeeder extends Seeder
     }
 
     /**
-     * @param  array<int, array{name: string, description: string, price: int, label?: ProductLabel}>  $products
+     * @param  array<int, array{name: string, description: string, price: int, label?: ProductLabel, material?: string}>  $products
      */
     private function seedProducts(Category $category, array $products, string $variantType): void
     {
@@ -105,6 +106,9 @@ class CatalogueSeeder extends Seeder
                 'description' => $data['description'],
                 'price' => $data['price'],
                 'label' => $data['label'] ?? null,
+                'material_id' => isset($data['material'])
+                    ? Material::query()->where('name', $data['material'])->first()?->id
+                    : null,
             ]);
 
             // Les déclinaisons suivent la nature du produit : une contenance pour

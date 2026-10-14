@@ -116,13 +116,13 @@ class ProductResourceTest extends TestCase
                 'slug' => 'hijab-modal-cassis',
                 'category_id' => $category->id,
                 'price' => 42000,
-                'material' => 'Modal souple — tombé fluide',
+                'material_tagline' => 'Modal souple — tombé fluide',
                 'is_active' => true,
             ])
             ->call('create')
             ->assertHasNoFormErrors();
 
-        $this->assertSame('Modal souple — tombé fluide', Product::firstOrFail()->material);
+        $this->assertSame('Modal souple — tombé fluide', Product::firstOrFail()->material_tagline);
     }
 
     public function test_uploading_a_non_image_file_disguised_as_a_product_image_is_rejected(): void

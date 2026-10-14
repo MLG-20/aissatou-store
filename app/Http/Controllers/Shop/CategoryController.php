@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\FilterProductsRequest;
 use App\Models\Catalogue\Category;
+use App\Models\Catalogue\Material;
 use Illuminate\View\View;
 
 class CategoryController extends Controller
@@ -24,7 +25,7 @@ class CategoryController extends Controller
         $products = $category->products()
             ->active()
             ->filter($filters)
-            ->with(['category', 'images', 'variants' => fn ($query) => $query->active()])
+            ->with(['category', 'material', 'images', 'variants' => fn ($query) => $query->active()])
             ->latest()
             ->paginate(12)
             ->withQueryString();
@@ -36,6 +37,7 @@ class CategoryController extends Controller
         return view('shop.category', [
             'category' => $category,
             'products' => $products,
+            'materials' => Material::query()->active()->orderBy('position')->get(),
         ]);
     }
 }

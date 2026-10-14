@@ -41,8 +41,8 @@
         <span class="text-[0.6rem] uppercase tracking-[0.18em] text-brand-muted">{{ $product->category->name }}</span>
         <h3 class="font-display text-lg leading-snug text-brand-ink">{{ $product->name }}</h3>
 
-        @if ($product->material)
-            <p class="text-xs leading-snug text-brand-muted">{{ $product->material }}</p>
+        @if ($product->material_tagline)
+            <p class="text-xs leading-snug text-brand-muted">{{ $product->material_tagline }}</p>
         @endif
 
         <p class="text-sm text-brand-ink">{{ number_format($product->price, 0, ',', ' ') }} FCFA</p>
