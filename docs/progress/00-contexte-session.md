@@ -33,7 +33,7 @@ API Sanctum `/api/v1`, spatie/laravel-permission.
   - ✅ (D) Back-office Filament `Commandes` + facture PDF (`barryvdh/laravel-dompdf`) — 4 tests verts.
   - ✅ (E) Compte client : historique paginé + détail (anti-IDOR) — 4 tests verts.
   - Suite complète : 130 tests verts (vérifié par Ahmed lui-même).
-  - ⏳ Reste : revue sécurité de fin de phase (rejoue XSS/CSRF/IDOR sur le tunnel + vérification email reçu + facture conforme).
+  - ✅ Revue sécurité de fin de phase (2026-10-14) : aucun `{!! !!}` dans les 8 vues commande/emails/facture ; `web`+`auth` sur le tunnel, `auth:admin` + contrôle en contrôleur sur la facture ; IDOR/total-serveur/transitions couverts par tests ; rendu des 3 emails testé (`MailRenderTest`, le fake ne rendant pas les vues).
 
 ## 4. Décisions actives d'Ahmed (ne pas remettre en cause sans lui)
 
