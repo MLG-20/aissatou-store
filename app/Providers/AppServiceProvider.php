@@ -6,12 +6,15 @@ use App\Models\Catalogue\Category;
 use App\Models\Catalogue\Collection;
 use App\Models\Catalogue\ProductImage;
 use App\Models\Content\HeroSlide;
+use App\Models\Content\Post;
 use App\Models\Content\SiteSetting;
 use App\Observers\CategoryObserver;
 use App\Observers\CollectionObserver;
 use App\Observers\HeroSlideObserver;
+use App\Observers\PostObserver;
 use App\Observers\ProductImageObserver;
 use App\Services\CartService;
+use App\Services\WishlistService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -35,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
         HeroSlide::observe(HeroSlideObserver::class);
         Category::observe(CategoryObserver::class);
         Collection::observe(CollectionObserver::class);
+        Post::observe(PostObserver::class);
 
         // Toutes les pages boutique partagent la même nav de catégories racines ;
         // ce composer évite de passer $navCategories manuellement depuis chaque
@@ -45,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('navCategories', $this->navCategories());
             $view->with('headerCart', $cart);
             $view->with('cartItemCount', $cart ? $cart->items->sum('quantity') : 0);
+            $view->with('wishlistCount', count(app(WishlistService::class)->currentProductIds(request())));
             $view->with('footerSettings', SiteSetting::current());
         });
     }

@@ -8,6 +8,8 @@ use App\Models\Catalogue\Category;
 use App\Models\Catalogue\Collection;
 use App\Models\Catalogue\Material;
 use App\Models\Catalogue\Product;
+use App\Services\WishlistService;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -42,7 +44,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function show(Product $product): View
+    public function show(Request $request, Product $product, WishlistService $wishlistService): View
     {
         // Les produits soft-supprimés sont déjà exclus par le scope par défaut ;
         // les produits inactifs doivent aussi renvoyer 404, pour empêcher
@@ -53,6 +55,7 @@ class ProductController extends Controller
 
         return view('shop.product', [
             'product' => $product,
+            'inWishlist' => in_array($product->id, $wishlistService->currentProductIds($request), true),
         ]);
     }
 }

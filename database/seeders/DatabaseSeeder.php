@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             MaterialSeeder::class,
             CatalogueSeeder::class,
             CollectionSeeder::class,
+            JournalSeeder::class,
             DeliveryZoneSeeder::class,
             ReviewSeeder::class,
             OrderDemoSeeder::class,

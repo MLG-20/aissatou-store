@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\CartService;
+use App\Services\WishlistService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,10 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    public function __construct(private readonly CartService $cartService) {}
+    public function __construct(
+        private readonly CartService $cartService,
+        private readonly WishlistService $wishlistService,
+    ) {}
 
     /**
      * Display the registration view.
@@ -53,6 +57,7 @@ class RegisteredUserController extends Controller
         Auth::login($user);
 
         $this->cartService->mergeGuestCartIntoUser($guestSessionId, $user);
+        $this->wishlistService->mergeGuestWishlistIntoUser($guestSessionId, $user);
 
         return redirect(route('dashboard', absolute: false));
     }

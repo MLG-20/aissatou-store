@@ -266,6 +266,20 @@
                         Ajouter au panier
                     </x-shop.cta>
                 </form>
+
+                {{-- Action secondaire (contour, jamais Garance) : mettre de côté. --}}
+                <form method="POST" action="{{ route('shop.wishlist.toggle', $product) }}" class="mt-3">
+                    @csrf
+                    <button
+                        type="submit"
+                        class="inline-flex items-center gap-2 rounded-sm border border-brand-ink/30 px-6 py-3 text-xs font-medium uppercase tracking-[0.15em] text-brand-ink transition duration-300 hover:border-brand-signature hover:text-brand-signature"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="{{ ($inWishlist ?? false) ? 'currentColor' : 'none' }}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                        </svg>
+                        {{ ($inWishlist ?? false) ? 'Dans votre liste' : 'Ajouter à ma liste' }}
+                    </button>
+                </form>
             </div>
         </div>
 
