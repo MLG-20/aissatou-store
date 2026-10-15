@@ -29,6 +29,17 @@ Route::post('liste-envies/{product}', [WishlistController::class, 'toggle'])->na
 Route::delete('liste-envies/{product}', [WishlistController::class, 'destroy'])->name('shop.wishlist.destroy');
 
 Route::get('a-propos', fn () => view('shop.about', ['settings' => SiteSetting::current()]))->name('shop.about');
+
+// Redirection interne vers WhatsApp : un lien direct `wa.me` est masqué par
+// les bloqueurs de pub/filtres scolaires, qui ciblent ce domaine. Ici, le
+// HTML ne contient que `/whatsapp` — rien à filtrer côté client.
+Route::get('whatsapp', function () {
+    $digits = preg_replace('/\D/', '', (string) SiteSetting::current()->contact_whatsapp);
+
+    abort_unless(filled($digits), 404);
+
+    return redirect()->away('https://wa.me/'.$digits);
+})->name('shop.whatsapp');
 Route::get('contact', [ContactController::class, 'show'])->name('shop.contact');
 Route::post('contact', [ContactController::class, 'store'])->name('shop.contact.store');
 

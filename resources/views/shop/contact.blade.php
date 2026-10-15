@@ -57,7 +57,7 @@
                         {{-- Numéro cliquable vers WhatsApp : seuls les chiffres
                              sont conservés (wa.me exige un format international
                              sans « + » ni espaces). --}}
-                        <a href="https://wa.me/{{ preg_replace('/\D/', '', $settings->contact_whatsapp) }}" target="_blank" rel="noopener" class="underline hover:text-brand-signature">
+                        <a href="{{ route('shop.whatsapp') }}" target="_blank" rel="noopener" class="underline hover:text-brand-signature">
                             WhatsApp : {{ $settings->contact_whatsapp }}
                         </a>
                     </li>
