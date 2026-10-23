@@ -161,6 +161,16 @@ class SiteSettings extends Page implements HasForms
                         TextInput::make('social_tiktok')->label('TikTok (URL)')->url()->maxLength(255),
                     ])
                     ->columns(2),
+
+                Section::make('Stock')
+                    ->schema([
+                        TextInput::make('low_stock_threshold')
+                            ->label('Seuil d\'alerte de stock faible')
+                            ->helperText('Alerte (email + badge Inventaire) quand une déclinaison descend à ce nombre ou moins. Modifiable déclinaison par déclinaison dans la fiche produit.')
+                            ->numeric()
+                            ->minValue(0)
+                            ->required(),
+                    ]),
             ])
             ->statePath('data');
     }

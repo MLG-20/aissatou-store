@@ -8,6 +8,7 @@ use App\Exceptions\OrderException;
 use App\Mail\NewOrderForAdmin;
 use App\Mail\OrderPlaced;
 use App\Mail\OrderStatusChanged;
+use App\Models\Admin;
 use App\Models\Cart\Cart;
 use App\Models\Catalogue\ProductVariant;
 use App\Models\Content\SiteSetting;
@@ -35,7 +36,10 @@ use Illuminate\Support\Str;
  */
 class OrderService
 {
-    public function __construct(private readonly PaymentManager $payments) {}
+    public function __construct(
+        private readonly PaymentManager $payments,
+        private readonly StockService $stock,
+    ) {}
 
     /**
      * Crée la commande depuis le panier du client, puis vide le panier.
@@ -56,6 +60,7 @@ class OrderService
             throw_if($items->isEmpty(), OrderException::emptyCart());
 
             $lines = [];
+            $reserved = [];
 
             foreach ($items as $item) {
                 $product = $item->product;
@@ -77,9 +82,20 @@ class OrderService
                 if ($variant) {
                     $locked = ProductVariant::whereKey($variant->id)->lockForUpdate()->first();
 
-                    throw_if(! $locked || $locked->stock < $item->quantity, OrderException::insufficientStock());
+                    // Décrément après création de la commande (le mouvement
+                    // de stock la référence) ; le verrou est tenu d'ici là. Les
+                    // quantités déjà réservées dans CE panier sont déduites,
+                    // au cas où une déclinaison y figurerait deux fois.
+                    $alreadyReserved = collect($reserved)
+                        ->filter(fn (array $entry) => $entry[0]->id === $variant->id)
+                        ->sum(fn (array $entry) => $entry[1]);
 
-                    $locked->decrement('stock', $item->quantity);
+                    throw_if(
+                        ! $locked || $locked->stock - $alreadyReserved < $item->quantity,
+                        OrderException::insufficientStock()
+                    );
+
+                    $reserved[] = [$locked, $item->quantity];
                 }
 
                 // Prix figé DEPUIS LA BASE, pas depuis le panier (qui ne stocke
@@ -121,6 +137,10 @@ class OrderService
             ]);
 
             $order->items()->createMany($lines);
+
+            foreach ($reserved as [$locked, $quantity]) {
+                $this->stock->removeForOrder($locked, $quantity, $order);
+            }
 
             $order->update(['payment_status' => $provider->initiate($order)]);
 
@@ -173,12 +193,9 @@ class OrderService
 
             // Annulation (admin ou délai de paiement dépassé) : les articles
             // réservés à la création sont remis en vente (décision Ahmed,
-            // 2026-10-23). Verrou, comme à la décrémentation.
+            // 2026-10-23), mouvement journalisé (Phase 6B).
             if ($to === OrderStatus::Cancelled) {
-                foreach ($order->items()->whereNotNull('product_variant_id')->get() as $item) {
-                    ProductVariant::whereKey($item->product_variant_id)->lockForUpdate()->first()
-                        ?->increment('stock', $item->quantity);
-                }
+                $this->stock->restoreForOrder($order, $authorId ? Admin::find($authorId) : null);
             }
 
             $order->history()->create([

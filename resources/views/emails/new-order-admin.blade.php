@@ -4,7 +4,7 @@
     <h1 style="font-size: 22px;">Nouvelle commande {{ $order->number }}</h1>
     <p>
         Montant : <strong>{{ number_format($order->total, 0, ',', ' ') }} FCFA</strong>
-        (paiement à la livraison).<br>
+        ({{ $order->payment?->method ?? $order->payment?->providerLabel() }} — {{ $order->payment?->status->label() }}).<br>
         Client : {{ $order->user->name }} ({{ $order->user->email }})<br>
         Livraison : {{ $order->recipient_name }}, {{ $order->address_line }}, {{ $order->city }} — {{ $order->phone }}
     </p>

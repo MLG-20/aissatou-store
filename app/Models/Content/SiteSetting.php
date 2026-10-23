@@ -10,14 +10,24 @@ use Illuminate\Database\Eloquent\Model;
     'contact_whatsapp', 'contact_email', 'contact_address', 'contact_hours',
     'footer_tagline', 'social_instagram', 'social_facebook', 'social_tiktok',
     'auth_title', 'auth_subtitle', 'auth_image_path',
+    'low_stock_threshold',
 ])]
 class SiteSetting extends Model
 {
+    /**
+     * Miroir des défauts SQL : un modèle tout juste créé par current() ne
+     * relit pas la base, il doit donc connaître lui-même ces valeurs.
+     */
+    protected $attributes = [
+        'low_stock_threshold' => 3,
+    ];
+
     protected function casts(): array
     {
         return [
             'trust_items' => 'array',
             'about_values' => 'array',
+            'low_stock_threshold' => 'integer',
         ];
     }
 

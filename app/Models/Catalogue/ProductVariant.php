@@ -2,14 +2,18 @@
 
 namespace App\Models\Catalogue;
 
+use App\Models\Content\SiteSetting;
+use App\Services\StockService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use LogicException;
 
-#[Fillable(['product_id', 'sku', 'attributes', 'price_override', 'stock', 'is_active'])]
+#[Fillable(['product_id', 'sku', 'attributes', 'price_override', 'stock', 'low_stock_threshold', 'is_active'])]
 class ProductVariant extends Model
 {
     use HasFactory;
@@ -20,12 +24,30 @@ class ProductVariant extends Model
             'attributes' => 'array',
             'price_override' => 'decimal:2',
             'stock' => 'integer',
+            'low_stock_threshold' => 'integer',
+            'low_stock_notified_at' => 'datetime',
             'is_active' => 'boolean',
         ];
     }
 
     protected static function booted(): void
     {
+        // Stock initial saisi à la création : premier mouvement du journal.
+        static::created(function (ProductVariant $variant): void {
+            if ($variant->stock > 0) {
+                app(StockService::class)->recordInitial($variant);
+            }
+        });
+
+        // Phase 6B : une fois créé, le stock ne change QUE par StockService
+        // (vente, annulation, ajustement motivé) — toute autre écriture serait
+        // une variation sans trace, donc on la refuse net.
+        static::updating(function (ProductVariant $variant): void {
+            if ($variant->isDirty('stock') && ! StockService::isWriting()) {
+                throw new LogicException('Le stock ne se modifie que via StockService (mouvement journalisé).');
+            }
+        });
+
         // Référence de déclinaison attribuée automatiquement, sur le modèle de
         // la référence article : HIJ-001-01, HIJ-001-02… L'admin ne la saisit
         // jamais (cf. Product::generateSku pour la même logique côté produit).
@@ -61,6 +83,44 @@ class ProductVariant extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public function movements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class)->orderByDesc('id');
+    }
+
+    /** Seuil d'alerte effectif : celui de la déclinaison, sinon le global. */
+    public function lowStockThreshold(): int
+    {
+        return $this->low_stock_threshold ?? SiteSetting::current()->low_stock_threshold;
+    }
+
+    public function isLowStock(): bool
+    {
+        return $this->stock <= $this->lowStockThreshold();
+    }
+
+    /**
+     * Déclinaisons au seuil ou en dessous (seuil propre ou global), pour le
+     * badge et le filtre de l'inventaire — calculé en SQL, pas en PHP.
+     */
+    public function scopeLowStock(Builder $query): Builder
+    {
+        return $query->whereRaw(
+            'stock <= COALESCE(low_stock_threshold, ?)',
+            [SiteSetting::current()->low_stock_threshold]
+        );
+    }
+
+    /** « Col Claudine Brodé — Couleur : Bleu » pour journaux et alertes. */
+    public function label(): string
+    {
+        $attributes = collect($this->getAttribute('attributes') ?? [])
+            ->map(fn ($value, $key) => "{$key} : {$value}")
+            ->implode(', ');
+
+        return trim(($this->product?->name ?? 'Produit supprimé').($attributes ? ' — '.$attributes : ''));
     }
 
     /**

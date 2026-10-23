@@ -11,6 +11,7 @@ use App\Models\Customer\Address;
 use App\Models\Order\Order;
 use App\Models\User;
 use App\Services\OrderService;
+use App\Services\StockService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -84,11 +85,20 @@ class OrderDemoSeeder extends Seeder
         return $user;
     }
 
+    /** Auteur des ajustements de démo : AdminSeeder doit être passé avant. */
+    private function demoAdmin(): Admin
+    {
+        return Admin::firstOrFail();
+    }
+
     private function orderFor(User $client): Order
     {
         $product = Product::active()->whereHas('variants')->inRandomOrder()->firstOrFail();
         $variant = $product->variants()->active()->inRandomOrder()->firstOrFail();
-        $variant->update(['stock' => max($variant->stock, 20)]);
+        // Réassort de démo via le vrai chemin (mouvement journalisé, Phase 6B).
+        if ($variant->stock < 20) {
+            app(StockService::class)->adjust($variant, 20, 'Réassort de démonstration (seeder)', $this->demoAdmin());
+        }
 
         $cart = Cart::firstOrCreate(['user_id' => $client->id]);
 

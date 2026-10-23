@@ -8,6 +8,7 @@ use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\ProductResource\Pages;
 use App\Models\Catalogue\Category;
 use App\Models\Catalogue\Product;
+use App\Models\Catalogue\ProductVariant;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\KeyValue;
@@ -245,11 +246,25 @@ class ProductResource extends Resource
                             ->label('Prix spécifique (FCFA)')
                             ->helperText('Laissez vide pour utiliser le prix du produit. À remplir seulement si cette déclinaison coûte un prix différent.')
                             ->numeric(),
+                        // Phase 6B : saisi à la création seulement (stock
+                        // initial journalisé) ; ensuite il ne change que par
+                        // Inventaire → « Ajuster le stock » (motif + auteur).
                         TextInput::make('stock')
-                            ->label('Quantité en stock')
+                            ->label(fn (?ProductVariant $record): string => $record?->exists ? 'Quantité en stock (lecture seule)' : 'Stock initial')
+                            ->helperText(fn (?ProductVariant $record): ?string => $record?->exists
+                                ? 'Pour corriger : Stock → Inventaire → « Ajuster le stock » (motif obligatoire, tracé).'
+                                : null)
                             ->numeric()
+                            ->minValue(0)
                             ->default(0)
-                            ->required(),
+                            ->required()
+                            ->disabled(fn (?ProductVariant $record): bool => (bool) $record?->exists)
+                            ->dehydrated(fn (?ProductVariant $record): bool => ! $record?->exists),
+                        TextInput::make('low_stock_threshold')
+                            ->label('Seuil d\'alerte (optionnel)')
+                            ->helperText('Vide = seuil global des réglages du site.')
+                            ->numeric()
+                            ->minValue(0),
                         Toggle::make('is_active')
                             ->label('Disponible')
                             ->helperText('Décochez si cette déclinaison n\'est plus vendue.')
