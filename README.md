@@ -18,6 +18,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - Paiements : statut réel, référence de transaction, journal immuable (y compris les notifications suspectes), vérification auprès du fournisseur
 - **Codes promo** : pourcentage ou montant fixe, validité, minimum d'achat, ciblage produits/catégories, plafond d'utilisations (compteur atomique, revalidation complète à la validation de la commande), utilisation rendue si la commande est annulée
 - **Stock** : inventaire par catégorie, ajustement manuel avec motif obligatoire, journal immuable des mouvements, alertes email de stock faible (seuil global ou par déclinaison)
+- **Clients** : segmentation (régulières, panier abandonné, inactives), historique complet des achats, lecture seule et consultation tracée
 - **Comptes admin et rôles** : admin complet ou gestionnaire (catalogue, stock, commandes), permissions revérifiées côté serveur sur chaque page et action, journal d'activité (connexions, comptes, commandes, réglages)
 
 **API** : Laravel Sanctum, endpoints versionnés sous `/api/v1` (lecture du catalogue, authentification par jeton), en prévision d'une app mobile.
@@ -31,7 +32,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 | 3 | Tunnel de commande + paiement à la livraison | ✅ |
 | 4 | Livraison (zones, suivi manuel ; Yango prêt, inactif sans clés) | ✅ |
 | 5 | Paiement en ligne PayTech (Wave, Orange Money, carte) | ✅ |
-| 6 | Back-office avancé : rôles ✅, stock ✅, codes promo ✅, statistiques ✅, segmentation clients | 🚧 |
+| 6 | Back-office avancé : rôles, stock, codes promo, statistiques, segmentation clients | ✅ |
 | 7 | Finalisation et mise en production | ⏳ |
 
 ## Stack technique

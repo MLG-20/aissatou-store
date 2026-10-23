@@ -28,6 +28,7 @@ class AdminActivity extends Model
         'settings.updated' => 'Réglages du site modifiés',
         'promo.created' => 'Code promo créé',
         'promo.updated' => 'Code promo modifié',
+        'customer.viewed' => 'Fiche client consultée',
     ];
 
     protected function casts(): array
