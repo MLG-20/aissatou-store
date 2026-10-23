@@ -89,10 +89,15 @@
                 @endforeach
             </div>
 
-            <div class="mt-6 flex justify-end">
+            <div class="mt-6 flex flex-col items-end gap-4">
                 <p class="text-lg font-display">
                     Total : {{ number_format($cart->total(), 0, ',', ' ') }} FCFA
                 </p>
+                {{-- Invitée : le middleware `auth` renvoie à la connexion puis
+                     ramène ici au tunnel (redirection « intended »). --}}
+                <x-shop.cta href="{{ route('shop.checkout') }}" variant="primary" class="w-full sm:w-auto text-center">
+                    Passer commande
+                </x-shop.cta>
             </div>
         @endif
     </div>

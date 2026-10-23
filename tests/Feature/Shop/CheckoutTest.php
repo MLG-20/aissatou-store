@@ -22,6 +22,19 @@ class CheckoutTest extends TestCase
         $this->post(route('shop.checkout.store'))->assertRedirect(route('login'));
     }
 
+    public function test_the_cart_page_leads_to_the_checkout(): void
+    {
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+        $cart = Cart::create(['user_id' => $user->id]);
+        CartItem::create(['cart_id' => $cart->id, 'product_id' => $product->id, 'quantity' => 1]);
+
+        $this->actingAs($user)->get(route('shop.cart'))
+            ->assertOk()
+            ->assertSee(route('shop.checkout'), false)
+            ->assertSee('Passer commande');
+    }
+
     public function test_an_empty_cart_redirects_back_to_the_cart(): void
     {
         $user = User::factory()->create();

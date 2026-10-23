@@ -55,7 +55,10 @@ class ContactMessageAdminTest extends TestCase
         $response = $this->get('/contact');
 
         $response->assertOk();
-        $response->assertSee('https://wa.me/221770000000', false);
+        // Lien interne `/whatsapp` (wa.me direct masqué par les bloqueurs).
+        $response->assertSee(route('shop.whatsapp'), false);
         $response->assertSee('https://instagram.com/aissatoustore');
+
+        $this->get(route('shop.whatsapp'))->assertRedirect('https://wa.me/221770000000');
     }
 }
