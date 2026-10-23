@@ -32,14 +32,21 @@ class DeliveryZone extends Model
         static::deleted(fn (): bool => Cache::forget('delivery_zones.active'));
     }
 
-    /** Zones actives ordonnées, en cache 1h (données publiques). */
+    /**
+     * Zones actives ordonnées, en cache 1h (données publiques). On cache les
+     * attributs bruts puis on réhydrate : `cache.serializable_classes` vaut
+     * `false`, un modèle désérialisé deviendrait `__PHP_Incomplete_Class`
+     * (même piège que la nav, cf. AppServiceProvider::navCategories).
+     */
     public static function activeOrdered(): Collection
     {
-        return Cache::remember(
+        return static::hydrate(Cache::remember(
             'delivery_zones.active',
             3600,
             fn () => static::active()->orderBy('position')->get()
-        );
+                ->map(fn (self $zone) => $zone->getAttributes())
+                ->all()
+        ));
     }
 
     public function scopeActive(Builder $query): Builder

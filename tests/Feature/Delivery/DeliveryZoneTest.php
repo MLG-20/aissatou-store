@@ -23,6 +23,25 @@ class DeliveryZoneTest extends TestCase
         $this->assertEquals(1500, (float) DeliveryZone::forCity('  DAKAR  ')->fee);
     }
 
+    public function test_zones_survive_a_real_serialized_cache_store(): void
+    {
+        // Le store `array` des tests ne sérialise pas : on force un store qui
+        // le fait, comme `database` en local (régression 2026-10-23).
+        config(['cache.default' => 'file']);
+        cache()->forget('delivery_zones.active');
+        DeliveryZone::create([
+            'name' => 'Dakar', 'city' => 'Dakar', 'fee' => 1500, 'is_active' => true,
+        ]);
+
+        DeliveryZone::forCity('Dakar');
+        $zone = DeliveryZone::forCity('Dakar');
+
+        $this->assertInstanceOf(DeliveryZone::class, $zone);
+        $this->assertEquals(1500, (float) $zone->fee);
+
+        cache()->forget('delivery_zones.active');
+    }
+
     public function test_an_unknown_city_falls_back_to_the_default_zone(): void
     {
         DeliveryZone::create([
