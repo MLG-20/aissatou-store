@@ -59,7 +59,12 @@ class PayTechIpnController extends Controller
                 'sale_complete' => $this->service->confirm(
                     $payment, $details, (string) $ipn['ref_command'], $ipn['payment_method'] ?? null
                 ),
-                'sale_canceled' => $this->service->fail($payment, $details),
+                // Une annulation ne vaut que pour la tentative EN COURS : celle
+                // d'une tentative précédente (rejouée ou tardive) ne doit pas
+                // faire échouer le paiement que le client est en train de faire.
+                'sale_canceled' => ($ipn['token'] ?? null) === $payment->token
+                    ? $this->service->fail($payment, $details)
+                    : null,
                 default => null,
             };
         } elseif (in_array($event, ['sale_complete', 'sale_canceled'], strict: true)) {

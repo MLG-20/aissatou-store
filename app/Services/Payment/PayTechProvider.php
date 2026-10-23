@@ -84,7 +84,11 @@ class PayTechProvider implements PaymentProvider
         $token = $response->json('token');
         $url = $response->json('redirect_url');
 
-        if (! $response->successful() || (int) $response->json('success') !== 1 || ! $token || ! $url) {
+        // On redirige le client vers cette URL : uniquement le domaine PayTech
+        // en HTTPS (défense en profondeur contre une réponse altérée).
+        $trusted = is_string($url) && str_starts_with($url, 'https://paytech.sn/');
+
+        if (! $response->successful() || (int) $response->json('success') !== 1 || ! $token || ! $trusted) {
             $payment->log(PaymentEventType::InitiationFailed, [
                 'ref_command' => $reference,
                 'http' => $response->status(),

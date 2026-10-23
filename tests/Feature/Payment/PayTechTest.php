@@ -255,6 +255,40 @@ class PayTechTest extends TestCase
         $this->assertEquals(PaymentStatus::Confirmed, $order->payment->fresh()->status);
     }
 
+    public function test_a_late_cancellation_of_a_previous_attempt_does_not_fail_the_current_one(): void
+    {
+        $this->fakePayTech();
+        [$user, $order] = $this->placeOrder();
+        $this->post(route('payment.paytech.ipn'), $this->ipn($order, ['type_event' => 'sale_canceled']))->assertOk();
+        $this->actingAs($user)->post(route('shop.checkout.payment.retry', $order->number));
+        $this->assertEquals('tok-2', $order->payment->fresh()->token);
+
+        // Annulation authentique mais de la tentative 1 (jeton tok-1), rejouée.
+        $this->post(route('payment.paytech.ipn'), $this->ipn($order, ['type_event' => 'sale_canceled']))->assertOk();
+
+        $this->assertEquals(PaymentStatus::Processing, $order->payment->fresh()->status);
+    }
+
+    public function test_a_redirect_outside_paytech_is_refused(): void
+    {
+        Http::fake([
+            'paytech.sn/api/payment/request-payment' => Http::response(['success' => 1, 'token' => 'tok-1', 'redirect_url' => 'https://evil.example/phish']),
+        ]);
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+        $cart = Cart::create(['user_id' => $user->id]);
+        CartItem::create(['cart_id' => $cart->id, 'product_id' => $product->id, 'quantity' => 1]);
+        $address = Address::factory()->for($user)->create();
+
+        $response = $this->actingAs($user)->post(route('shop.checkout.store'), [
+            'address_id' => $address->id,
+            'provider' => 'paytech',
+        ]);
+
+        $response->assertRedirect(route('shop.checkout.payment', Order::firstOrFail()->number));
+        $response->assertSessionHasErrors('payment');
+    }
+
     public function test_someone_elses_payment_page_is_forbidden(): void
     {
         $this->fakePayTech();

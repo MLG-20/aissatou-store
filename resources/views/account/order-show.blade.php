@@ -70,7 +70,30 @@
             <p class="font-display text-xl">Total : {{ number_format($order->total, 0, ',', ' ') }} FCFA</p>
         </div>
 
-        <div class="mt-8 rounded-sm border border-brand-ink/10 bg-white p-5">
+        @if ($order->payment)
+            @php
+                $payment = $order->payment;
+                $awaitingOnline = $payment->isOnline()
+                    && $order->status === \App\Enums\Order\OrderStatus::New
+                    && ! in_array($payment->status, [\App\Enums\Order\PaymentStatus::Confirmed, \App\Enums\Order\PaymentStatus::Refunded], true);
+            @endphp
+            <div class="mt-8 rounded-sm border border-brand-ink/10 bg-white p-5">
+                <h2 class="font-display text-lg">Paiement</h2>
+                <p class="mt-2 text-sm text-brand-ink">
+                    {{ $payment->method ?? $payment->providerLabel() }} — {{ $payment->status->label() }}
+                    @if ($payment->confirmed_at)
+                        <span class="text-brand-muted">(le {{ $payment->confirmed_at->format('d/m/Y à H:i') }})</span>
+                    @endif
+                </p>
+                @if ($awaitingOnline)
+                    <a href="{{ route('shop.checkout.payment', $order->number) }}" class="mt-3 inline-block text-sm underline text-brand-signature hover:text-brand-accent">
+                        Finaliser le paiement
+                    </a>
+                @endif
+            </div>
+        @endif
+
+        <div class="mt-4 rounded-sm border border-brand-ink/10 bg-white p-5">
             <h2 class="font-display text-lg">Livraison</h2>
             <p class="mt-2 text-sm text-brand-ink">
                 {{ $order->recipient_name }} — {{ $order->phone }}<br>

@@ -46,6 +46,12 @@ class Payment extends Model
         return app(PaymentManager::class)->find($this->provider)?->label() ?? $this->provider;
     }
 
+    /** Payé en ligne (PayTech…) plutôt qu'à la remise. */
+    public function isOnline(): bool
+    {
+        return (bool) app(PaymentManager::class)->find($this->provider)?->isOnline();
+    }
+
     /** Ajoute une ligne au journal financier de ce paiement. */
     public function log(PaymentEventType $type, array $payload = [], ?string $ip = null): PaymentEvent
     {
