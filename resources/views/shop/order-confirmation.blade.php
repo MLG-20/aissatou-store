@@ -35,6 +35,9 @@
 
         <div class="mt-4 space-y-1 text-right">
             <p class="text-sm text-brand-muted">Sous-total : {{ number_format($order->subtotal, 0, ',', ' ') }} FCFA</p>
+            @if ($order->discount_total > 0)
+                <p class="text-sm text-brand-signature">Remise ({{ $order->promo_code }}) : -{{ number_format($order->discount_total, 0, ',', ' ') }} FCFA</p>
+            @endif
             <p class="text-sm text-brand-muted">Livraison{{ $order->shipping_zone ? ' ('.$order->shipping_zone.')' : '' }} : {{ number_format($order->shipping_total, 0, ',', ' ') }} FCFA</p>
             <p class="font-display text-xl">Total : {{ number_format($order->total, 0, ',', ' ') }} FCFA</p>
         </div>

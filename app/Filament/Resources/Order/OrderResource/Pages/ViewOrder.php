@@ -42,6 +42,10 @@ class ViewOrder extends ViewRecord
                             ->formatStateUsing(fn (OrderStatus $state): string => $state->label()),
                         TextEntry::make('created_at')->label('Passée le')->dateTime('d/m/Y à H:i'),
                         TextEntry::make('total')->label('Total')->money('XOF'),
+                        TextEntry::make('discount_total')
+                            ->label('Remise')
+                            ->formatStateUsing(fn (Order $record): string => '-'.number_format((float) $record->discount_total, 0, ',', ' ').' FCFA (code '.$record->promo_code.')')
+                            ->visible(fn (Order $record): bool => (float) $record->discount_total > 0),
                     ])
                     ->columns(2),
 

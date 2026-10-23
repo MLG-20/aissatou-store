@@ -38,6 +38,12 @@
                     <td>{{ number_format($item->lineTotal(), 0, ',', ' ') }} FCFA</td>
                 </tr>
             @endforeach
+            @if ($order->discount_total > 0)
+                <tr>
+                    <td colspan="4">Remise (code {{ $order->promo_code }})</td>
+                    <td>-{{ number_format($order->discount_total, 0, ',', ' ') }} FCFA</td>
+                </tr>
+            @endif
             <tr>
                 <td colspan="4">Livraison{{ $order->shipping_zone ? ' ('.$order->shipping_zone.')' : '' }}</td>
                 <td>{{ number_format($order->shipping_total, 0, ',', ' ') }} FCFA</td>

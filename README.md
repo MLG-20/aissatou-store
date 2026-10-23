@@ -8,13 +8,14 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - Catalogue avec catégories, collections, matières, recherche et filtres AJAX, images WebP responsives
 - Panier invité et compte (fusion à la connexion), liste d'envies, avis clients, journal (articles)
 - Compte client : carnet d'adresses, historique et suivi des commandes (étapes, livreur, statut du paiement)
-- Tunnel de commande : récapitulatif, frais de livraison par zone calculés côté serveur, choix du paiement
+- Tunnel de commande : récapitulatif, code promo, frais de livraison par zone calculés côté serveur, choix du paiement
 - **Paiement en ligne PayTech** : redirection, page d'attente qui revérifie le statut côté serveur, nouvel essai en cas d'échec, annulation automatique (et remise en stock) des commandes impayées après 30 min
 
 **Back-office (`/admin`, Filament)**
 - Catalogue, contenu éditorial, réglages du site, zones de livraison, messages reçus
 - Commandes : statuts avec transitions contrôlées et historique, facture PDF, organisation de la livraison
 - Paiements : statut réel, référence de transaction, journal immuable (y compris les notifications suspectes), vérification auprès du fournisseur
+- **Codes promo** : pourcentage ou montant fixe, validité, minimum d'achat, ciblage produits/catégories, plafond d'utilisations (compteur atomique, revalidation complète à la validation de la commande), utilisation rendue si la commande est annulée
 - **Stock** : inventaire par catégorie, ajustement manuel avec motif obligatoire, journal immuable des mouvements, alertes email de stock faible (seuil global ou par déclinaison)
 - **Comptes admin et rôles** : admin complet ou gestionnaire (catalogue, stock, commandes), permissions revérifiées côté serveur sur chaque page et action, journal d'activité (connexions, comptes, commandes, réglages)
 
@@ -29,7 +30,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 | 3 | Tunnel de commande + paiement à la livraison | ✅ |
 | 4 | Livraison (zones, suivi manuel ; Yango prêt, inactif sans clés) | ✅ |
 | 5 | Paiement en ligne PayTech (Wave, Orange Money, carte) | ✅ |
-| 6 | Back-office avancé : rôles ✅, stock ✅, codes promo, statistiques, segmentation clients | 🚧 |
+| 6 | Back-office avancé : rôles ✅, stock ✅, codes promo ✅, statistiques, segmentation clients | 🚧 |
 | 7 | Finalisation et mise en production | ⏳ |
 
 ## Stack technique
@@ -125,6 +126,7 @@ GitHub Actions (`.github/workflows/ci.yml`) exécute à chaque push et PR sur `m
 - `app/Services/` — logique métier :
   - `OrderService` : création atomique de commande (recalcul serveur, verrous anti-survente), transitions de statut
   - `StockService` : seul chemin de variation du stock (journalisé), alertes de stock faible
+  - `PromoService` : aperçu et décision finale des codes promo (verrou + incrément conditionnel)
   - `Payment/` : contrat `PaymentProvider`, `CodProvider` (livraison), `PayTechProvider`, `PaymentService` (confirmation idempotente)
   - `Delivery/` : contrat `DeliveryProvider`, livraison manuelle, Yango
   - `AdminAccountService`, `AdminAudit` : comptes admin et journal d'activité

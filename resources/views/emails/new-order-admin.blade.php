@@ -4,6 +4,9 @@
     <h1 style="font-size: 22px;">Nouvelle commande {{ $order->number }}</h1>
     <p>
         Montant : <strong>{{ number_format($order->total, 0, ',', ' ') }} FCFA</strong>
+        @if ($order->discount_total > 0)
+            (dont remise {{ $order->promo_code }} : -{{ number_format($order->discount_total, 0, ',', ' ') }} FCFA)
+        @endif
         ({{ $order->payment?->method ?? $order->payment?->providerLabel() }} — {{ $order->payment?->status->label() }}).<br>
         Client : {{ $order->user->name }} ({{ $order->user->email }})<br>
         Livraison : {{ $order->recipient_name }}, {{ $order->address_line }}, {{ $order->city }} — {{ $order->phone }}

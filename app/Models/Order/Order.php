@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'user_id', 'number', 'status', 'payment_status',
-    'subtotal', 'shipping_total', 'shipping_zone', 'total',
+    'subtotal', 'discount_total', 'promo_code', 'shipping_total', 'shipping_zone', 'total',
     'delivery_assignee', 'delivery_note',
     'recipient_name', 'phone', 'city', 'address_line', 'landmark',
 ])]
@@ -28,6 +28,7 @@ class Order extends Model
             'status' => OrderStatus::class,
             'payment_status' => PaymentStatus::class,
             'subtotal' => 'decimal:2',
+            'discount_total' => 'decimal:2',
             'shipping_total' => 'decimal:2',
             'total' => 'decimal:2',
         ];

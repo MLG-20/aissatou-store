@@ -55,6 +55,10 @@ Route::delete('panier/{item}', [CartController::class, 'destroy'])->name('shop.c
 Route::middleware('auth')->group(function (): void {
     Route::get('commande', [CheckoutController::class, 'show'])->name('shop.checkout');
     Route::post('commande', [CheckoutController::class, 'store'])->name('shop.checkout.store');
+    // Code promo : limite de débit contre l'essai de codes en rafale.
+    Route::post('commande/code-promo', [CheckoutController::class, 'applyPromo'])
+        ->middleware('throttle:10,1')->name('shop.checkout.promo.apply');
+    Route::delete('commande/code-promo', [CheckoutController::class, 'removePromo'])->name('shop.checkout.promo.remove');
     Route::get('commande/merci/{order:number}', [CheckoutController::class, 'success'])->name('shop.checkout.success');
 
     // Retour de PayTech (succès ET annulation) : page d'attente qui vérifie

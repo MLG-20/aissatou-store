@@ -26,6 +26,8 @@ class AdminActivity extends Model
         'order.delivery_assigned' => 'Livraison organisée',
         'payment.verified' => 'Paiement vérifié auprès du fournisseur',
         'settings.updated' => 'Réglages du site modifiés',
+        'promo.created' => 'Code promo créé',
+        'promo.updated' => 'Code promo modifié',
     ];
 
     protected function casts(): array

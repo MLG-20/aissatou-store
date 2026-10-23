@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Shop;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
 use App\Exceptions\OrderException;
+use App\Exceptions\PromoCodeException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\CheckoutStoreRequest;
 use App\Models\Customer\Address;
@@ -15,17 +16,21 @@ use App\Services\OrderService;
 use App\Services\Payment\PaymentException;
 use App\Services\Payment\PaymentManager;
 use App\Services\Payment\PaymentService;
+use App\Services\PromoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CheckoutController extends Controller
 {
+    private const PROMO_SESSION_KEY = 'checkout.promo_code';
+
     public function __construct(
         private readonly CartService $cartService,
         private readonly OrderService $orderService,
         private readonly PaymentManager $payments,
         private readonly PaymentService $paymentService,
+        private readonly PromoService $promos,
     ) {}
 
     /**
@@ -57,11 +62,25 @@ class CheckoutController extends Controller
             ]];
         })->all();
 
+        // Code promo mémorisé : réévalué à chaque affichage sur le panier
+        // actuel (aperçu seulement — la décision se prend à la validation).
+        $promo = null;
+
+        if ($code = $request->session()->get(self::PROMO_SESSION_KEY)) {
+            try {
+                $promo = $this->promos->quote($code, $request->user(), PromoService::linesFromCart($cart));
+            } catch (PromoCodeException $exception) {
+                $request->session()->forget(self::PROMO_SESSION_KEY);
+                session()->now('promo_error', $exception->getMessage());
+            }
+        }
+
         return view('shop.checkout', [
             'cart' => $cart,
             'addresses' => $addresses,
             'fees' => $fees,
             'providers' => $this->payments->available(),
+            'promo' => $promo,
         ]);
     }
 
@@ -72,13 +91,51 @@ class CheckoutController extends Controller
 
         try {
             $order = $this->orderService->createFromCart(
-                $request->user(), $cart, $address, $request->string('provider')->toString()
+                $request->user(),
+                $cart,
+                $address,
+                $request->string('provider')->toString(),
+                $request->session()->get(self::PROMO_SESSION_KEY),
             );
+        } catch (PromoCodeException $exception) {
+            // Code devenu invalide entre la saisie et la validation : rien
+            // n'est créé, le code est retiré, le client voit pourquoi.
+            $request->session()->forget(self::PROMO_SESSION_KEY);
+
+            return back()->withErrors(['promo_code' => $exception->getMessage()]);
         } catch (OrderException $exception) {
             return back()->withErrors(['cart' => $exception->getMessage()]);
         }
 
+        $request->session()->forget(self::PROMO_SESSION_KEY);
+
         return $this->startPayment($order);
+    }
+
+    /** Saisie d'un code promo : aperçu de la remise, mémorisé en session. */
+    public function applyPromo(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['promo_code' => ['required', 'string', 'max:40']]);
+        $cart = $this->cartService->currentCart($request);
+
+        try {
+            $quote = $this->promos->quote($data['promo_code'], $request->user(), PromoService::linesFromCart($cart));
+        } catch (PromoCodeException $exception) {
+            $request->session()->forget(self::PROMO_SESSION_KEY);
+
+            return back()->withErrors(['promo_code' => $exception->getMessage()])->withInput();
+        }
+
+        $request->session()->put(self::PROMO_SESSION_KEY, $quote->code->code);
+
+        return back()->with('promo_status', 'Code '.$quote->code->code.' appliqué.');
+    }
+
+    public function removePromo(Request $request): RedirectResponse
+    {
+        $request->session()->forget(self::PROMO_SESSION_KEY);
+
+        return back();
     }
 
     /**

@@ -39,14 +39,19 @@ class OrderService
     public function __construct(
         private readonly PaymentManager $payments,
         private readonly StockService $stock,
+        private readonly PromoService $promos,
     ) {}
 
     /**
      * Crée la commande depuis le panier du client, puis vide le panier.
      *
+     * Code promo (Phase 6C) : revalidé ICI sur le panier final, sous verrou —
+     * un code accepté à la saisie puis rendu invalide (panier modifié sous le
+     * minimum, code expiré ou épuisé entre-temps) fait échouer la commande.
+     *
      * @throws OrderException
      */
-    public function createFromCart(User $user, Cart $cart, Address $address, string $providerKey): Order
+    public function createFromCart(User $user, Cart $cart, Address $address, string $providerKey, ?string $promoCode = null): Order
     {
         abort_unless($address->user_id === $user->id, 403);
 
@@ -54,12 +59,13 @@ class OrderService
 
         throw_unless($provider && $provider->isAvailable(), OrderException::paymentUnavailable());
 
-        $order = DB::transaction(function () use ($user, $cart, $address, $provider) {
+        $order = DB::transaction(function () use ($user, $cart, $address, $provider, $promoCode) {
             $items = $cart->items()->with(['product', 'variant'])->get();
 
             throw_if($items->isEmpty(), OrderException::emptyCart());
 
             $lines = [];
+            $promoLines = [];
             $reserved = [];
 
             foreach ($items as $item) {
@@ -111,9 +117,19 @@ class OrderService
                     'unit_price' => $unitPrice,
                     'quantity' => $item->quantity,
                 ];
+
+                $promoLines[] = [
+                    'product_id' => $product->id,
+                    'category_id' => $product->category_id,
+                    'amount' => $unitPrice * $item->quantity,
+                ];
             }
 
             $subtotal = collect($lines)->sum(fn (array $line) => $line['unit_price'] * $line['quantity']);
+
+            // Remise sur les articles uniquement, jamais sur la livraison.
+            $promo = filled($promoCode) ? $this->promos->reserve($promoCode, $user, $promoLines) : null;
+            $discount = $promo?->discount ?? 0.0;
 
             // Frais de livraison recalculés côté serveur depuis la ville de
             // l'adresse (jamais depuis le client) et figés avec le reste.
@@ -126,9 +142,11 @@ class OrderService
                 'status' => OrderStatus::New,
                 'payment_status' => PaymentStatus::Pending,
                 'subtotal' => $subtotal,
+                'discount_total' => $discount,
+                'promo_code' => $promo?->code->code,
                 'shipping_total' => $shipping,
                 'shipping_zone' => $zone?->name,
-                'total' => $subtotal + $shipping,
+                'total' => $subtotal - $discount + $shipping,
                 'recipient_name' => $address->recipient_name,
                 'phone' => $address->phone,
                 'city' => $address->city,
@@ -137,6 +155,10 @@ class OrderService
             ]);
 
             $order->items()->createMany($lines);
+
+            if ($promo) {
+                $this->promos->recordRedemption($promo, $order, $user);
+            }
 
             foreach ($reserved as [$locked, $quantity]) {
                 $this->stock->removeForOrder($locked, $quantity, $order);
@@ -196,6 +218,8 @@ class OrderService
             // 2026-10-23), mouvement journalisé (Phase 6B).
             if ($to === OrderStatus::Cancelled) {
                 $this->stock->restoreForOrder($order, $authorId ? Admin::find($authorId) : null);
+                // Code promo : l'utilisation est rendue (décision Ahmed, 6C).
+                $this->promos->release($order);
             }
 
             $order->history()->create([

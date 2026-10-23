@@ -2,9 +2,52 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-8">
         <h1 class="font-display text-3xl mb-6">Votre commande</h1>
 
-        @if ($errors->any())
-            <p class="mb-6 text-sm text-brand-signature">{{ $errors->first() }}</p>
+        @if ($message = collect($errors->getMessages())->except('promo_code')->flatten()->first())
+            <p class="mb-6 text-sm text-brand-signature">{{ $message }}</p>
         @endif
+
+        {{-- Code promo : formulaire distinct (pas de formulaires imbriqués).
+             Aperçu seulement : la remise est recalculée et revalidée côté
+             serveur à la validation de la commande. --}}
+        <section class="mb-8 rounded-sm border border-brand-ink/10 bg-white p-4">
+            @if ($promo)
+                <div class="flex items-center justify-between gap-4">
+                    <p class="text-sm text-brand-ink">
+                        Code <span class="font-medium">{{ $promo->code->code }}</span> appliqué :
+                        <span class="font-medium">-{{ number_format($promo->discount, 0, ',', ' ') }} FCFA</span>
+                    </p>
+                    <form method="POST" action="{{ route('shop.checkout.promo.remove') }}">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-sm underline text-brand-muted hover:text-brand-signature">Retirer</button>
+                    </form>
+                </div>
+            @else
+                <form method="POST" action="{{ route('shop.checkout.promo.apply') }}" class="flex flex-col sm:flex-row gap-3 sm:items-end">
+                    @csrf
+                    <label class="flex-1">
+                        <span class="block text-sm text-brand-ink mb-1">Code promo</span>
+                        <input
+                            type="text"
+                            name="promo_code"
+                            value="{{ old('promo_code') }}"
+                            maxlength="40"
+                            autocomplete="off"
+                            class="w-full rounded-sm border-brand-ink/20 uppercase focus:border-brand-signature focus:ring-brand-signature"
+                        >
+                    </label>
+                    <button type="submit" class="px-6 py-2.5 text-sm uppercase tracking-wide border border-brand-ink/30 rounded-sm hover:border-brand-ink">
+                        Appliquer
+                    </button>
+                </form>
+            @endif
+            @error('promo_code')
+                <p class="mt-2 text-sm text-brand-signature">{{ $message }}</p>
+            @enderror
+            @if (session('promo_error'))
+                <p class="mt-2 text-sm text-brand-signature">{{ session('promo_error') }}</p>
+            @endif
+        </section>
 
         <form
             method="POST"
@@ -12,6 +55,7 @@
             class="space-y-8"
             x-data="{
                 subtotal: {{ $cart->items->sum(fn ($item) => $item->lineTotal()) }},
+                discount: {{ $promo?->discount ?? 0 }},
                 fee: {{ ($fees[$addresses->firstWhere('is_default', true)?->id ?? $addresses->first()?->id] ?? ['fee' => 0])['fee'] }},
                 zone: '{{ addslashes(($fees[$addresses->firstWhere('is_default', true)?->id ?? $addresses->first()?->id] ?? ['label' => ''])['label']) }}',
                 fmt(n) { return new Intl.NumberFormat('fr-FR', {maximumFractionDigits: 0}).format(n) + ' FCFA'; }
@@ -39,8 +83,11 @@
                 </div>
                 <div class="mt-4 space-y-1 text-right">
                     <p class="text-sm text-brand-muted">Sous-total : <span x-text="fmt(subtotal)"></span></p>
+                    @if ($promo)
+                        <p class="text-sm text-brand-signature">Remise ({{ $promo->code->code }}) : -<span x-text="fmt(discount)"></span></p>
+                    @endif
                     <p class="text-sm text-brand-muted">Livraison (<span x-text="zone"></span>) : <span x-text="fmt(fee)"></span></p>
-                    <p class="font-display text-xl">Total : <span x-text="fmt(subtotal + fee)"></span></p>
+                    <p class="font-display text-xl">Total : <span x-text="fmt(subtotal - discount + fee)"></span></p>
                 </div>
             </section>
 
