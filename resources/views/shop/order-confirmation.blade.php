@@ -5,7 +5,11 @@
         <p class="mt-4 text-brand-muted">
             Votre commande <span class="text-brand-ink font-medium">{{ $order->number }}</span>
             d'un montant de <span class="text-brand-ink font-medium">{{ number_format($order->total, 0, ',', ' ') }} FCFA</span>
-            est bien enregistrée. Vous la payerez à la livraison, à l'adresse suivante :
+            @if ($paidOnline)
+                est bien payée{{ $order->payment->method ? ' ('.$order->payment->method.')' : '' }}. Elle sera livrée à l'adresse suivante :
+            @else
+                est bien enregistrée. Vous la payerez à la livraison, à l'adresse suivante :
+            @endif
         </p>
         <p class="mt-2 text-sm text-brand-ink">
             {{ $order->recipient_name }} — {{ $order->phone }}<br>

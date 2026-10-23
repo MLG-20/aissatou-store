@@ -2,13 +2,18 @@
 
 namespace App\Models\Order;
 
+use App\Enums\Order\PaymentEventType;
 use App\Enums\Order\PaymentStatus;
 use App\Services\Payment\PaymentManager;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['order_id', 'provider', 'status', 'reference', 'amount'])]
+#[Fillable([
+    'order_id', 'provider', 'status', 'reference', 'amount',
+    'token', 'method', 'confirmed_at', 'expires_at',
+])]
 class Payment extends Model
 {
     protected function casts(): array
@@ -16,12 +21,19 @@ class Payment extends Model
         return [
             'status' => PaymentStatus::class,
             'amount' => 'decimal:2',
+            'confirmed_at' => 'datetime',
+            'expires_at' => 'datetime',
         ];
     }
 
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(PaymentEvent::class)->orderBy('id');
     }
 
     /**
@@ -32,5 +44,17 @@ class Payment extends Model
     public function providerLabel(): string
     {
         return app(PaymentManager::class)->find($this->provider)?->label() ?? $this->provider;
+    }
+
+    /** Ajoute une ligne au journal financier de ce paiement. */
+    public function log(PaymentEventType $type, array $payload = [], ?string $ip = null): PaymentEvent
+    {
+        return $this->events()->create([
+            'provider' => $this->provider,
+            'type' => $type,
+            'status' => $this->status->value,
+            'payload' => $payload ?: null,
+            'ip' => $ip,
+        ]);
     }
 }

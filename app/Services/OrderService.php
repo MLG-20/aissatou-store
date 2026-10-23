@@ -139,7 +139,12 @@ class OrderService
         // Après commit uniquement : un rollback ne doit jamais avoir envoyé
         // d'email. File d'attente (phase 3) : le tunnel ne bloque pas dessus.
         Mail::to($order->user)->queue(new OrderPlaced($order));
-        Mail::to($this->shopEmail())->queue(new NewOrderForAdmin($order));
+
+        // Paiement en ligne : la boutique sera alertée à la confirmation
+        // (PaymentService::confirm), pas pour un panier qui peut être abandonné.
+        if (! $provider->isOnline()) {
+            Mail::to($this->shopEmail())->queue(new NewOrderForAdmin($order));
+        }
 
         return $order;
     }
@@ -166,6 +171,16 @@ class OrderService
                 $order->update(['payment_status' => PaymentStatus::Confirmed]);
             }
 
+            // Annulation (admin ou délai de paiement dépassé) : les articles
+            // réservés à la création sont remis en vente (décision Ahmed,
+            // 2026-10-23). Verrou, comme à la décrémentation.
+            if ($to === OrderStatus::Cancelled) {
+                foreach ($order->items()->whereNotNull('product_variant_id')->get() as $item) {
+                    ProductVariant::whereKey($item->product_variant_id)->lockForUpdate()->first()
+                        ?->increment('stock', $item->quantity);
+                }
+            }
+
             $order->history()->create([
                 'from_status' => $from->value,
                 'to_status' => $to->value,
@@ -184,7 +199,7 @@ class OrderService
      * Adresse opérationnelle de la boutique (réglée en admin, Contenu du site)
      * : c'est là qu'arrivent les alertes de nouvelles commandes.
      */
-    private function shopEmail(): string
+    public function shopEmail(): string
     {
         return SiteSetting::current()->contact_email ?? config('mail.from.address');
     }

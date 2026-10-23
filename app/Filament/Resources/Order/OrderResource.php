@@ -67,6 +67,7 @@ class OrderResource extends Resource
                         PaymentStatus::Failed => 'danger',
                         PaymentStatus::Refunded => 'warning',
                         PaymentStatus::Pending => 'gray',
+                        PaymentStatus::Processing => 'info',
                     }),
                 TextColumn::make('total')
                     ->label('Total')

@@ -28,6 +28,7 @@ class PaymentManager
     {
         return [
             app(CodProvider::class),
+            app(PayTechProvider::class),
         ];
     }
 }

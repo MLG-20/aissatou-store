@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Shop;
 
+use App\Enums\Order\OrderStatus;
+use App\Enums\Order\PaymentStatus;
 use App\Exceptions\OrderException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Shop\CheckoutStoreRequest;
@@ -10,7 +12,9 @@ use App\Models\Delivery\DeliveryZone;
 use App\Models\Order\Order;
 use App\Services\CartService;
 use App\Services\OrderService;
+use App\Services\Payment\PaymentException;
 use App\Services\Payment\PaymentManager;
+use App\Services\Payment\PaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -21,6 +25,7 @@ class CheckoutController extends Controller
         private readonly CartService $cartService,
         private readonly OrderService $orderService,
         private readonly PaymentManager $payments,
+        private readonly PaymentService $paymentService,
     ) {}
 
     /**
@@ -73,7 +78,87 @@ class CheckoutController extends Controller
             return back()->withErrors(['cart' => $exception->getMessage()]);
         }
 
-        return redirect()->route('shop.checkout.success', $order->number);
+        return $this->startPayment($order);
+    }
+
+    /**
+     * Retour de PayTech (succès comme annulation) puis page d'attente qui se
+     * rafraîchit. Le statut affiché vient TOUJOURS du serveur : IPN signé ou
+     * vérification active auprès de PayTech — un `?status=success` ajouté à
+     * la main ne change rien.
+     */
+    public function payment(Request $request, Order $order): View|RedirectResponse
+    {
+        abort_unless($order->user_id === $request->user()->id, 403);
+
+        $payment = $order->payment;
+
+        if (! $this->payments->find($payment->provider)?->isOnline()) {
+            return redirect()->route('shop.checkout.success', $order->number);
+        }
+
+        if ($payment->status === PaymentStatus::Processing) {
+            $this->paymentService->reconcile($payment, $request->ip());
+            $payment->refresh();
+        }
+
+        if ($payment->status === PaymentStatus::Confirmed) {
+            return redirect()->route('shop.checkout.success', $order->number);
+        }
+
+        return view('shop.checkout-payment', [
+            'order' => $order->fresh(),
+            'payment' => $payment,
+            'canRetry' => $this->canRetry($order),
+        ]);
+    }
+
+    /** Nouvelle tentative après échec ou abandon, tant que le délai court. */
+    public function retry(Request $request, Order $order): RedirectResponse
+    {
+        abort_unless($order->user_id === $request->user()->id, 403);
+
+        // Un paiement de la tentative précédente a pu aboutir entre-temps :
+        // on vérifie avant de proposer de payer une seconde fois.
+        if ($order->payment->status === PaymentStatus::Processing) {
+            $this->paymentService->reconcile($order->payment, $request->ip());
+        }
+
+        if ($order->payment->fresh()->status === PaymentStatus::Confirmed) {
+            return redirect()->route('shop.checkout.success', $order->number);
+        }
+
+        abort_unless($this->canRetry($order), 409);
+
+        return $this->startPayment($order->fresh());
+    }
+
+    /**
+     * Après commit de la commande : envoi chez le fournisseur en ligne, ou
+     * confirmation directe (paiement à la livraison).
+     */
+    private function startPayment(Order $order): RedirectResponse
+    {
+        $payment = $order->payment;
+        $provider = $this->payments->find($payment->provider);
+
+        try {
+            $url = $provider?->checkout($payment);
+        } catch (PaymentException $exception) {
+            return redirect()->route('shop.checkout.payment', $order->number)
+                ->withErrors(['payment' => $exception->getMessage()]);
+        }
+
+        return $url
+            ? redirect()->away($url)
+            : redirect()->route('shop.checkout.success', $order->number);
+    }
+
+    private function canRetry(Order $order): bool
+    {
+        return $order->status === OrderStatus::New
+            && $order->payment->status !== PaymentStatus::Confirmed
+            && $order->payment->expires_at?->isFuture() === true;
     }
 
     /**
@@ -81,12 +166,20 @@ class CheckoutController extends Controller
      * Anti-IDOR : le numéro n'est pas séquentiel mais la vérification
      * d'appartenance reste obligatoire (même pattern que les adresses).
      */
-    public function success(Request $request, Order $order): View
+    public function success(Request $request, Order $order): View|RedirectResponse
     {
         abort_unless($order->user_id === $request->user()->id, 403);
 
         $order->load(['items', 'payment']);
 
-        return view('shop.order-confirmation', ['order' => $order]);
+        // Pas de « Merci » pour un paiement en ligne non confirmé, même en
+        // tapant l'URL : retour à la page d'attente.
+        $online = $this->payments->find($order->payment->provider)?->isOnline();
+
+        if ($online && $order->payment->status !== PaymentStatus::Confirmed) {
+            return redirect()->route('shop.checkout.payment', $order->number);
+        }
+
+        return view('shop.order-confirmation', ['order' => $order, 'paidOnline' => (bool) $online]);
     }
 }

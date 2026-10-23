@@ -69,6 +69,21 @@ class OrderServiceTest extends TestCase
         $this->assertCount(1, $order->history);
     }
 
+    public function test_cancelling_an_order_releases_its_stock(): void
+    {
+        Mail::fake();
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+        $variant = ProductVariant::factory()->for($product)->create(['stock' => 5]);
+        $address = Address::factory()->for($user)->create();
+        $order = $this->service()->createFromCart($user, $this->cartWithVariant($user, $product, $variant, 2), $address, 'cod');
+        $this->assertEquals(3, $variant->fresh()->stock);
+
+        $this->service()->changeStatus($order, OrderStatus::Cancelled);
+
+        $this->assertEquals(5, $variant->fresh()->stock);
+    }
+
     public function test_the_total_is_recalculated_from_the_catalog_not_from_client_data(): void
     {
         $user = User::factory()->create();

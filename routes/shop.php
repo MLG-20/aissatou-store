@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Payment\PayTechIpnController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CategoryController;
 use App\Http\Controllers\Shop\CheckoutController;
@@ -55,4 +56,14 @@ Route::middleware('auth')->group(function (): void {
     Route::get('commande', [CheckoutController::class, 'show'])->name('shop.checkout');
     Route::post('commande', [CheckoutController::class, 'store'])->name('shop.checkout.store');
     Route::get('commande/merci/{order:number}', [CheckoutController::class, 'success'])->name('shop.checkout.success');
+
+    // Retour de PayTech (succès ET annulation) : page d'attente qui vérifie
+    // auprès de PayTech — aucun paramètre d'URL n'est cru.
+    Route::get('commande/paiement/{order:number}', [CheckoutController::class, 'payment'])->name('shop.checkout.payment');
+    Route::post('commande/paiement/{order:number}', [CheckoutController::class, 'retry'])
+        ->middleware('throttle:10,1')->name('shop.checkout.payment.retry');
 });
+
+// IPN PayTech : sans session ni CSRF (cf. bootstrap/app.php), signé.
+Route::post('paiement/paytech/ipn', PayTechIpnController::class)
+    ->middleware('throttle:60,1')->name('payment.paytech.ipn');
