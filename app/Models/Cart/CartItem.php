@@ -14,6 +14,21 @@ class CartItem extends Model
 {
     use HasFactory;
 
+    /**
+     * Toute modification d'une ligne date le panier ET le sort de l'état
+     * « abandonné » (Phase 6D) : c'est `carts.updated_at` qui dit depuis
+     * quand un panier est inactif. (Pas `$touches` : Laravel y fait une
+     * mise à jour brute, sans remettre `abandoned_at` à null.)
+     */
+    protected static function booted(): void
+    {
+        $refresh = fn (CartItem $item) => Cart::whereKey($item->cart_id)
+            ->update(['updated_at' => now(), 'abandoned_at' => null]);
+
+        static::saved($refresh);
+        static::deleted($refresh);
+    }
+
     public function cart(): BelongsTo
     {
         return $this->belongsTo(Cart::class);

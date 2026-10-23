@@ -209,7 +209,9 @@ class OrderService
             // À la livraison en paiement à la livraison, l'argent est encaissé :
             // les deux statuts avancent ensemble, mais restent distincts.
             if ($to === OrderStatus::Delivered && $order->payment?->provider === 'cod') {
-                $order->payment->update(['status' => PaymentStatus::Confirmed]);
+                // confirmed_at = date d'encaissement, base du chiffre
+                // d'affaires (Phase 6D).
+                $order->payment->update(['status' => PaymentStatus::Confirmed, 'confirmed_at' => now()]);
                 $order->update(['payment_status' => PaymentStatus::Confirmed]);
             }
 

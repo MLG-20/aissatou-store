@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\TrackVisit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,6 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Appel serveur-à-serveur de PayTech (pas de session ni de jeton
         // CSRF) : l'authenticité est vérifiée par signature dans le contrôleur.
         $middleware->validateCsrfTokens(except: ['paiement/paytech/ipn']);
+
+        // Visiteurs uniques anonymes, pour le taux de conversion (Phase 6D).
+        $middleware->web(append: [TrackVisit::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

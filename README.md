@@ -12,6 +12,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - **Paiement en ligne PayTech** : redirection, page d'attente qui revérifie le statut côté serveur, nouvel essai en cas d'échec, annulation automatique (et remise en stock) des commandes impayées après 30 min
 
 **Back-office (`/admin`, Filament)**
+- **Tableau de bord** : chiffre d'affaires encaissé, commandes payées, panier moyen, taux de conversion (compteur de visites maison et anonyme, sans cookie ni IP stockée), paniers abandonnés, meilleures ventes, comparaison à la période précédente ; agrégats quotidiens pour rester rapide quel que soit l'historique
 - Catalogue, contenu éditorial, réglages du site, zones de livraison, messages reçus
 - Commandes : statuts avec transitions contrôlées et historique, facture PDF, organisation de la livraison
 - Paiements : statut réel, référence de transaction, journal immuable (y compris les notifications suspectes), vérification auprès du fournisseur
@@ -30,7 +31,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 | 3 | Tunnel de commande + paiement à la livraison | ✅ |
 | 4 | Livraison (zones, suivi manuel ; Yango prêt, inactif sans clés) | ✅ |
 | 5 | Paiement en ligne PayTech (Wave, Orange Money, carte) | ✅ |
-| 6 | Back-office avancé : rôles ✅, stock ✅, codes promo ✅, statistiques, segmentation clients | 🚧 |
+| 6 | Back-office avancé : rôles ✅, stock ✅, codes promo ✅, statistiques ✅, segmentation clients | 🚧 |
 | 7 | Finalisation et mise en production | ⏳ |
 
 ## Stack technique
@@ -64,7 +65,7 @@ Processus d'arrière-plan à lancer à côté du serveur :
 
 ```bash
 php artisan queue:work            # emails (commandes, statuts, alertes de stock)
-php artisan schedule:work         # tâches planifiées (annulation des commandes PayTech impayées)
+php artisan schedule:work         # tâches planifiées (impayés PayTech, agrégats statistiques, paniers abandonnés)
 ```
 
 - Site client : `http://localhost:8000`
@@ -127,13 +128,14 @@ GitHub Actions (`.github/workflows/ci.yml`) exécute à chaque push et PR sur `m
   - `OrderService` : création atomique de commande (recalcul serveur, verrous anti-survente), transitions de statut
   - `StockService` : seul chemin de variation du stock (journalisé), alertes de stock faible
   - `PromoService` : aperçu et décision finale des codes promo (verrou + incrément conditionnel)
+  - `StatisticsService`, `VisitTracker` : statistiques du tableau de bord et compteur de visites anonyme
   - `Payment/` : contrat `PaymentProvider`, `CodProvider` (livraison), `PayTechProvider`, `PaymentService` (confirmation idempotente)
   - `Delivery/` : contrat `DeliveryProvider`, livraison manuelle, Yango
   - `AdminAccountService`, `AdminAudit` : comptes admin et journal d'activité
 - `app/Support/AdminRoles.php`, `app/Enums/Admin/AdminPermission.php` — rôles et permissions du back-office (le code fait foi)
 - `app/Filament/` — back-office ; `Concerns/` contient les traits de contrôle d'accès par permission
 - `app/Http/Controllers/` — `Shop` (site et tunnel), `Account` (espace client), `Payment` (IPN PayTech), `Admin` (facture PDF), `Api/V1`
-- `app/Console/Commands/` — `payments:expire` (planifiée toutes les 5 min)
+- `app/Console/Commands/` — `payments:expire` (toutes les 5 min), `stats:aggregate` (chaque nuit ; `--from=AAAA-MM-JJ` pour rattraper), `carts:detect-abandoned` (toutes les heures)
 - `app/Mail/` — emails en file d'attente (commande, statut, alerte boutique, stock faible)
 - `routes/` — `web.php`, `shop.php`, `account.php`, `auth.php`, `api.php`, `console.php` (planification)
 
