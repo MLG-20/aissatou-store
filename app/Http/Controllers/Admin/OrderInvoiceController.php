@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Admin\AdminPermission;
 use App\Http\Controllers\Controller;
 use App\Models\Order\Order;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -16,7 +17,9 @@ class OrderInvoiceController extends Controller
 {
     public function __invoke(Request $request, Order $order): BinaryFileResponse
     {
-        abort_unless($request->user('admin'), 403);
+        // Route hors Filament : la permission est revérifiée ici (Phase 6A),
+        // pas seulement par la présence du bouton sur la fiche commande.
+        abort_unless($request->user('admin')?->hasAdminPermission(AdminPermission::Orders), 403);
 
         $order->load(['items', 'payment', 'user']);
 

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Catalogue;
 
+use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\MaterialResource\Pages;
 use App\Models\Catalogue\Material;
 use Filament\Forms\Components\TextInput;
@@ -22,6 +24,13 @@ use Filament\Tables\Table;
  */
 class MaterialResource extends Resource
 {
+    use RequiresAdminPermission;
+
+    protected static function requiredPermission(): AdminPermission
+    {
+        return AdminPermission::Catalogue;
+    }
+
     protected static ?string $model = Material::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-swatch';

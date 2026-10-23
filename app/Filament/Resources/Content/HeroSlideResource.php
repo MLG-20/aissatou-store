@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Content;
 
+use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Content\HeroSlideResource\Pages;
 use App\Models\Content\HeroSlide;
 use Filament\Forms\Components\FileUpload;
@@ -21,6 +23,13 @@ use Illuminate\Support\HtmlString;
 
 class HeroSlideResource extends Resource
 {
+    use RequiresAdminPermission;
+
+    protected static function requiredPermission(): AdminPermission
+    {
+        return AdminPermission::Content;
+    }
+
     protected static ?string $model = HeroSlide::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';

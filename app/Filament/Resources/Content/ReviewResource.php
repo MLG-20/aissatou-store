@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Content;
 
+use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Content\ReviewResource\Pages;
 use App\Models\Content\Review;
 use Filament\Forms\Components\Select;
@@ -17,6 +19,13 @@ use Filament\Tables\Table;
 
 class ReviewResource extends Resource
 {
+    use RequiresAdminPermission;
+
+    protected static function requiredPermission(): AdminPermission
+    {
+        return AdminPermission::Content;
+    }
+
     protected static ?string $model = Review::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-right';

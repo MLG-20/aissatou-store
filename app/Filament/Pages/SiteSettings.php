@@ -2,7 +2,10 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\PageRequiresAdminPermission;
 use App\Models\Content\SiteSetting;
+use App\Services\AdminAudit;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -20,6 +23,12 @@ use Illuminate\Support\HtmlString;
 class SiteSettings extends Page implements HasForms
 {
     use InteractsWithForms;
+    use PageRequiresAdminPermission;
+
+    protected static function requiredPermission(): AdminPermission
+    {
+        return AdminPermission::Settings;
+    }
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
@@ -172,7 +181,14 @@ class SiteSettings extends Page implements HasForms
             unset($state['auth_image_path']);
         }
 
-        SiteSetting::current()->update($state);
+        $settings = SiteSetting::current();
+        $settings->fill($state);
+        $changed = array_keys($settings->getDirty());
+        $settings->save();
+
+        if ($changed) {
+            AdminAudit::record('settings.updated', $settings, ['champs' => $changed], label: 'Réglages du site');
+        }
 
         Notification::make()->title('Réglages enregistrés')->success()->send();
     }

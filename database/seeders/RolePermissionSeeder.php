@@ -2,14 +2,17 @@
 
 namespace Database\Seeders;
 
+use App\Support\AdminRoles;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 
+/**
+ * Rôles + permissions du back-office (Phase 6A). Idempotent : à rejouer à
+ * chaque déploiement (`db:seed --class=RolePermissionSeeder --force`).
+ */
 class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        Role::findOrCreate('admin', 'admin');
-        Role::findOrCreate('employee', 'admin');
+        AdminRoles::sync();
     }
 }

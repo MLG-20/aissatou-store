@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Catalogue;
 
+use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\CollectionResource\Pages;
 use App\Models\Catalogue\Collection;
 use Filament\Forms\Components\FileUpload;
@@ -25,6 +27,13 @@ use Filament\Tables\Table;
  */
 class CollectionResource extends Resource
 {
+    use RequiresAdminPermission;
+
+    protected static function requiredPermission(): AdminPermission
+    {
+        return AdminPermission::Catalogue;
+    }
+
     protected static ?string $model = Collection::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';

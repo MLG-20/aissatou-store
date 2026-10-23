@@ -2,16 +2,19 @@
 
 namespace App\Filament\Resources\Order\OrderResource\Pages;
 
+use App\Enums\Admin\AdminPermission;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentEventType;
 use App\Enums\Order\PaymentStatus;
 use App\Exceptions\OrderException;
 use App\Filament\Resources\Order\OrderResource;
-use App\Filament\Resources\Order\PaymentEventResource;
+use App\Models\Admin;
 use App\Models\Order\Order;
 use App\Models\Order\PaymentEvent;
+use App\Services\AdminAudit;
 use App\Services\OrderService;
 use App\Services\Payment\PaymentService;
+use App\Support\KeyValueSummary;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -101,7 +104,8 @@ class ViewOrder extends ViewRecord
                 // Journal financier immuable (phase 5) : de quoi trancher un
                 // litige sans ambiguïté — qui a dit quoi, quand, depuis où.
                 Section::make('Journal du paiement')
-                    ->visible(fn (Order $record): bool => $record->payment?->events()->exists() ?? false)
+                    ->visible(fn (Order $record): bool => self::canSeePayments()
+                        && ($record->payment?->events()->exists() ?? false))
                     ->collapsible()
                     ->schema([
                         RepeatableEntry::make('payment.events')
@@ -121,7 +125,7 @@ class ViewOrder extends ViewRecord
                                 TextEntry::make('ip')->label('IP')->placeholder('serveur'),
                                 TextEntry::make('details')
                                     ->label('Détails')
-                                    ->getStateUsing(fn (PaymentEvent $record): ?string => PaymentEventResource::summarize($record->payload))
+                                    ->getStateUsing(fn (PaymentEvent $record): ?string => KeyValueSummary::of($record->payload))
                                     ->placeholder('—'),
                             ])
                             ->columns(4),
@@ -151,6 +155,14 @@ class ViewOrder extends ViewRecord
             ]);
     }
 
+    /** Journal + vérification des paiements : admin complet (décision 6A). */
+    private static function canSeePayments(): bool
+    {
+        $admin = filament()->auth()->user();
+
+        return $admin instanceof Admin && $admin->hasAdminPermission(AdminPermission::Payments);
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -169,6 +181,8 @@ class ViewOrder extends ViewRecord
                         ->required(),
                 ])
                 ->action(function (Order $record, array $data): void {
+                    $from = $record->status;
+
                     try {
                         app(OrderService::class)->changeStatus(
                             $record,
@@ -181,6 +195,8 @@ class ViewOrder extends ViewRecord
                         return;
                     }
 
+                    AdminAudit::record('order.status_changed', $record, ['de' => $from->value, 'vers' => $data['status']]);
+
                     Notification::make()->success()->title('Statut mis à jour.')->send();
                 }),
 
@@ -190,10 +206,15 @@ class ViewOrder extends ViewRecord
             Action::make('verifyPayment')
                 ->label('Vérifier le paiement')
                 ->icon('heroicon-o-shield-check')
-                ->visible(fn (Order $record): bool => (bool) $record->payment?->isOnline())
+                ->visible(fn (Order $record): bool => self::canSeePayments() && (bool) $record->payment?->isOnline())
                 ->action(function (Order $record): void {
+                    // Revérifié à l'exécution : une action masquée peut quand
+                    // même être appelée en forgeant la requête Livewire.
+                    abort_unless(self::canSeePayments(), 403);
+
                     $before = $record->payment->status;
                     $after = app(PaymentService::class)->reconcile($record->payment, request()->ip());
+                    AdminAudit::record('payment.verified', $record, ['avant' => $before->value, 'apres' => $after->value]);
 
                     Notification::make()
                         ->title($after === $before
@@ -234,6 +255,7 @@ class ViewOrder extends ViewRecord
                         'delivery_assignee' => $data['delivery_assignee'] ?: null,
                         'delivery_note' => $data['delivery_note'] ?: null,
                     ]);
+                    AdminAudit::record('order.delivery_assigned', $record, ['livreur' => $record->delivery_assignee]);
 
                     Notification::make()->success()->title('Livraison organisée.')->send();
                 }),

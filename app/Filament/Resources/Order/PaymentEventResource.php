@@ -2,10 +2,13 @@
 
 namespace App\Filament\Resources\Order;
 
+use App\Enums\Admin\AdminPermission;
 use App\Enums\Order\PaymentEventType;
 use App\Enums\Order\PaymentStatus;
+use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Order\PaymentEventResource\Pages;
 use App\Models\Order\PaymentEvent;
+use App\Support\KeyValueSummary;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -20,6 +23,13 @@ use Illuminate\Database\Eloquent\Model;
  */
 class PaymentEventResource extends Resource
 {
+    use RequiresAdminPermission;
+
+    protected static function requiredPermission(): AdminPermission
+    {
+        return AdminPermission::Payments;
+    }
+
     protected static ?string $model = PaymentEvent::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-magnifying-glass';
@@ -103,7 +113,9 @@ class PaymentEventResource extends Resource
                 TextColumn::make('ip')->label('IP')->placeholder('serveur'),
                 TextColumn::make('details')
                     ->label('Détails')
-                    ->getStateUsing(fn (PaymentEvent $record): ?string => self::summarize($record->payload))
+                    // Payload déjà expurgé à l'écriture (ni empreintes de clés,
+                    // ni numéro complet du payeur).
+                    ->getStateUsing(fn (PaymentEvent $record): ?string => KeyValueSummary::of($record->payload))
                     ->wrap()
                     ->placeholder('—'),
             ])
@@ -115,26 +127,6 @@ class PaymentEventResource extends Resource
                         ->mapWithKeys(fn (PaymentEventType $type) => [$type->value => $type->label()])
                         ->all()),
             ]);
-    }
-
-    /**
-     * Payload lisible sur une ligne (`clé : valeur · …`). Le payload est déjà
-     * expurgé à l'écriture (ni empreintes de clés, ni numéro complet).
-     */
-    public static function summarize(?array $payload): ?string
-    {
-        if (! $payload) {
-            return null;
-        }
-
-        return collect($payload)
-            ->map(fn ($value, $key) => $key.' : '.match (true) {
-                $value === null => '—',
-                is_bool($value) => $value ? 'oui' : 'non',
-                is_scalar($value) => (string) $value,
-                default => json_encode($value, JSON_UNESCAPED_UNICODE),
-            })
-            ->implode(' · ');
     }
 
     public static function getPages(): array

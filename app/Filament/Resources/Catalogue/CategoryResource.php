@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Catalogue;
 
+use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\CategoryResource\Pages;
 use App\Models\Catalogue\Category;
 use Filament\Forms\Components\FileUpload;
@@ -25,6 +27,13 @@ use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
 {
+    use RequiresAdminPermission;
+
+    protected static function requiredPermission(): AdminPermission
+    {
+        return AdminPermission::Catalogue;
+    }
+
     protected static ?string $model = Category::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';

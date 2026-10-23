@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Admin;
 use App\Models\Catalogue\Category;
 use App\Models\Catalogue\Collection;
 use App\Models\Catalogue\ProductImage;
@@ -13,9 +14,13 @@ use App\Observers\CollectionObserver;
 use App\Observers\HeroSlideObserver;
 use App\Observers\PostObserver;
 use App\Observers\ProductImageObserver;
+use App\Services\AdminAudit;
 use App\Services\CartService;
 use App\Services\WishlistService;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -39,6 +44,19 @@ class AppServiceProvider extends ServiceProvider
         Category::observe(CategoryObserver::class);
         Collection::observe(CollectionObserver::class);
         Post::observe(PostObserver::class);
+
+        // Journal d'activité admin (Phase 6A) : connexions au back-office,
+        // réussies ou non (un échec ne connaît que l'email tenté).
+        Event::listen(function (Login $event): void {
+            if ($event->guard === 'admin' && $event->user instanceof Admin) {
+                AdminAudit::record('admin.login', $event->user, admin: $event->user);
+            }
+        });
+        Event::listen(function (Failed $event): void {
+            if ($event->guard === 'admin') {
+                AdminAudit::record('admin.login_failed', details: ['email' => $event->credentials['email'] ?? null]);
+            }
+        });
 
         // Toutes les pages boutique partagent la même nav de catégories racines ;
         // ce composer évite de passer $navCategories manuellement depuis chaque

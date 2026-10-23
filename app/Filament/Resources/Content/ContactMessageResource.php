@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Content;
 
+use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Content\ContactMessageResource\Pages;
 use App\Models\Contact\ContactMessage;
 use Filament\Forms\Form;
@@ -25,6 +27,13 @@ use Filament\Tables\Table;
  */
 class ContactMessageResource extends Resource
 {
+    use RequiresAdminPermission;
+
+    protected static function requiredPermission(): AdminPermission
+    {
+        return AdminPermission::Content;
+    }
+
     protected static ?string $model = ContactMessage::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope';

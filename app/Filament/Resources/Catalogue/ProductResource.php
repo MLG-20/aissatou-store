@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Catalogue;
 
+use App\Enums\Admin\AdminPermission;
 use App\Enums\Catalogue\ProductLabel;
+use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\ProductResource\Pages;
 use App\Models\Catalogue\Category;
 use App\Models\Catalogue\Product;
@@ -36,6 +38,13 @@ use Illuminate\Support\Str;
 
 class ProductResource extends Resource
 {
+    use RequiresAdminPermission;
+
+    protected static function requiredPermission(): AdminPermission
+    {
+        return AdminPermission::Catalogue;
+    }
+
     protected static ?string $model = Product::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';

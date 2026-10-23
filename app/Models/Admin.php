@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\Admin\AdminPermission;
+use App\Support\AdminRoles;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -26,6 +28,21 @@ class Admin extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->is_active && $this->hasVerifiedEmail();
+    }
+
+    /**
+     * Point unique de contrôle des droits du back-office (Phase 6A).
+     * `checkPermissionTo` renvoie false (sans exception) pour une permission
+     * inconnue : en cas de doute, l'accès est refusé.
+     */
+    public function hasAdminPermission(AdminPermission $permission): bool
+    {
+        return $this->is_active && $this->checkPermissionTo($permission->value, 'admin');
+    }
+
+    public function isFullAdmin(): bool
+    {
+        return $this->hasRole(AdminRoles::ADMIN, 'admin');
     }
 
     protected function casts(): array
