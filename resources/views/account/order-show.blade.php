@@ -1,5 +1,5 @@
-<x-shop-layout :title="'Commande '.$order->number.' — '.config('app.name')">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+<x-account-layout :title="'Commande '.$order->number">
+    <div class="max-w-3xl">
         <a href="{{ route('account.orders.index') }}" class="text-sm underline text-brand-muted hover:text-brand-signature">
             ← Retour à mes commandes
         </a>
@@ -107,4 +107,4 @@
             </p>
         </div>
     </div>
-</x-shop-layout>
+</x-account-layout>

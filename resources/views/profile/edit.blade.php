@@ -1,22 +1,18 @@
-<x-shop-layout :title="'Mon compte — '.config('app.name')">
-    <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-8">
-        <h1 class="font-display text-3xl mb-6">Mon compte</h1>
+<x-account-layout title="Mes informations">
+    <h2 class="mb-6 font-display text-3xl text-brand-ink">Mes informations</h2>
 
-        @include('account.partials.nav')
+    <div class="space-y-6 max-w-xl">
+        <div class="p-6 sm:p-8 bg-white border border-brand-ink/10 rounded-sm">
+            @include('profile.partials.update-profile-information-form')
+        </div>
 
-        <div class="space-y-6 max-w-xl">
-            <div class="p-6 sm:p-8 bg-white border border-brand-ink/10 rounded-sm">
-                @include('profile.partials.update-profile-information-form')
-            </div>
+        <div class="p-6 sm:p-8 bg-white border border-brand-ink/10 rounded-sm">
+            @include('profile.partials.update-password-form')
+        </div>
 
-            <div class="p-6 sm:p-8 bg-white border border-brand-ink/10 rounded-sm">
-                @include('profile.partials.update-password-form')
-            </div>
-
-            {{-- Zone sensible : léger fond rouge pour signaler la suppression. --}}
-            <div class="p-6 sm:p-8 bg-red-50/40 border border-red-200/60 rounded-sm">
-                @include('profile.partials.delete-user-form')
-            </div>
+        {{-- Zone sensible : léger fond rouge pour signaler la suppression. --}}
+        <div class="p-6 sm:p-8 bg-red-50/40 border border-red-200/60 rounded-sm">
+            @include('profile.partials.delete-user-form')
         </div>
     </div>
-</x-shop-layout>
+</x-account-layout>

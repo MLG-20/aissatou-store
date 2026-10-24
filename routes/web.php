@@ -5,6 +5,7 @@ use App\Filament\Resources\Catalogue\InventoryResource;
 use App\Filament\Resources\Catalogue\StockMovementResource;
 use App\Filament\Resources\Order\PaymentEventResource;
 use App\Filament\Resources\Order\PaymentResource;
+use App\Http\Controllers\Account\DashboardController;
 use App\Http\Controllers\Admin\OrderInvoiceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Shop\HomeController;
@@ -13,9 +14,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-Route::get('/dashboard', function () {
-    return view('account.dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

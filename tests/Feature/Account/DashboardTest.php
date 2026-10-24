@@ -22,11 +22,14 @@ class DashboardTest extends TestCase
             'email' => 'aminata@example.com',
         ]);
 
+        // La salutation suit l'heure : on se place en matinée.
+        $this->travelTo(today()->setTime(10, 0));
+
         $response = $this->actingAs($user)->get(route('dashboard'));
 
         $response->assertOk();
         // Accueil personnalisé (prénom) au lieu du « You're logged in » Breeze.
-        $response->assertSee('Bonjour Aminata');
+        $response->assertSeeText('Bonjour Aminata');
         $response->assertDontSee("You're logged in");
         // Tuiles d'accès rapide.
         $response->assertSee('Mes commandes');
