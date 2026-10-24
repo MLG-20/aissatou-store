@@ -1,6 +1,9 @@
 @props([
     'variant' => 'vertical',
     'withSlogan' => true,
+    // `lg` : panneau de marque des pages de connexion/inscription, où la
+    // signature est seule sur une photo et doit se lire de loin.
+    'size' => 'md',
 ])
 
 {{-- SIGNATURE DE LA MARQUE.
@@ -29,6 +32,7 @@
      À remplacer par le SVG dès réception — seule la classe CSS changera. --}}
 @php
     $vertical = $variant === 'vertical';
+    $large = $size === 'lg';
 @endphp
 
 <a
@@ -41,22 +45,22 @@
 >
     <span
         aria-hidden="true"
-        class="brand-symbol shrink-0 {{ $vertical ? 'w-7' : 'w-9' }}"
+        class="brand-symbol shrink-0 {{ $large ? 'w-14' : ($vertical ? 'w-7' : 'w-9') }}"
         style="--brand-symbol: url('{{ asset('brand/symbole-128.png') }}')"
     ></span>
 
     <span class="flex flex-col leading-none {{ $vertical ? 'items-center' : '' }}">
-        <span class="font-display text-sm sm:text-base tracking-[0.22em]">AISSATOU</span>
+        <span class="font-display {{ $large ? 'text-2xl' : 'text-sm sm:text-base' }} tracking-[0.22em]">AISSATOU</span>
 
         {{-- Les deux filets encadrant STORE font partie du verrouillage officiel. --}}
-        <span class="mt-1 flex items-center gap-1.5">
-            <span class="h-px w-3 bg-brand-accent"></span>
-            <span class="text-[0.5rem] uppercase tracking-[0.35em]">Store</span>
-            <span class="h-px w-3 bg-brand-accent"></span>
+        <span class="{{ $large ? 'mt-2 gap-2.5' : 'mt-1 gap-1.5' }} flex items-center">
+            <span class="h-px {{ $large ? 'w-6' : 'w-3' }} bg-brand-accent"></span>
+            <span class="{{ $large ? 'text-xs' : 'text-[0.5rem]' }} uppercase tracking-[0.35em]">Store</span>
+            <span class="h-px {{ $large ? 'w-6' : 'w-3' }} bg-brand-accent"></span>
         </span>
 
         @if ($withSlogan)
-            <span class="mt-1 text-[0.4rem] uppercase tracking-[0.18em] opacity-70 whitespace-nowrap">L'élégance dans la pudeur</span>
+            <span class="{{ $large ? 'mt-2 text-[0.65rem] opacity-80' : 'mt-1 text-[0.4rem] opacity-70' }} uppercase tracking-[0.18em] whitespace-nowrap">L'élégance dans la pudeur</span>
         @endif
     </span>
 </a>

@@ -42,7 +42,8 @@
                     <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_85%_85%,rgba(74,24,51,0.5),transparent_55%)]"></div>
                 @endif
 
-                <x-shop.signature variant="horizontal" class="-ml-3 text-brand-surface" />
+                {{-- `relative` : au-dessus du voile sombre, comme le titre. --}}
+                <x-shop.signature variant="horizontal" size="lg" class="relative self-start -ml-3 text-brand-surface" />
 
                 <div class="relative">
                     <p class="font-display text-3xl xl:text-4xl leading-snug max-w-md">
