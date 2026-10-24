@@ -5,11 +5,14 @@ namespace Tests\Feature\Catalogue;
 use App\Enums\Catalogue\StockMovementType;
 use App\Enums\Order\OrderStatus;
 use App\Exceptions\OrderException;
+use App\Filament\Clusters\Stock;
 use App\Filament\Resources\Catalogue\InventoryResource;
 use App\Filament\Resources\Catalogue\InventoryResource\Pages\ListInventory;
+use App\Filament\Resources\Catalogue\InventoryResource\Pages\ViewInventory;
 use App\Filament\Resources\Catalogue\InventoryResource\Widgets\StockByCategory;
 use App\Filament\Resources\Catalogue\ProductResource\Pages\EditProduct;
 use App\Filament\Resources\Catalogue\StockMovementResource;
+use App\Filament\Resources\Catalogue\StockMovementResource\Pages\ListStockMovements;
 use App\Mail\LowStockAlert;
 use App\Models\Admin;
 use App\Models\Cart\Cart;
@@ -314,5 +317,64 @@ class StockTest extends TestCase
         $this->get(InventoryResource::getUrl('index'))->assertForbidden();
         $this->get(StockMovementResource::getUrl('index'))->assertForbidden();
         $this->assertFalse(StockByCategory::canView());
+    }
+
+    public function test_each_variant_has_a_sheet_with_its_stock_history(): void
+    {
+        $variant = $this->variant(10, threshold: 4);
+        $order = $this->buy($variant, 2);
+        $this->actingAs(Admin::factory()->manager()->create(), 'admin');
+
+        Livewire::test(ListInventory::class)
+            ->assertCanSeeTableRecords([$variant])
+            ->assertTableActionExists('view')
+            ->assertTableActionDoesNotExist('history');
+
+        Livewire::test(ViewInventory::class, ['record' => $variant->getRouteKey()])
+            // Relue en base, comme la page (la base réordonne les clés JSON).
+            ->assertSee($variant->fresh()->label())
+            ->assertSee($variant->sku)
+            ->assertSee('4 (propre à cet article)')
+            ->assertSee('Historique du stock')
+            ->assertSee('Stock initial')
+            ->assertSee('Vente')
+            ->assertSee($order->number);
+    }
+
+    public function test_the_stock_can_be_adjusted_from_the_variant_sheet(): void
+    {
+        $variant = $this->variant(10);
+        $manager = Admin::factory()->manager()->create();
+        $this->actingAs($manager, 'admin');
+
+        Livewire::test(ViewInventory::class, ['record' => $variant->getRouteKey()])
+            ->callAction('adjust', data: ['stock' => 12, 'reason' => 'Réassort fournisseur'])
+            ->assertHasNoActionErrors();
+
+        $movement = StockMovement::where('type', StockMovementType::Adjustment)->sole();
+        $this->assertEquals($manager->id, $movement->admin_id);
+        $this->assertEquals(12, $variant->fresh()->stock);
+    }
+
+    public function test_a_movement_line_opens_the_variant_sheet(): void
+    {
+        $variant = $this->variant(10);
+        $this->actingAs(Admin::factory()->manager()->create(), 'admin');
+
+        Livewire::test(ListStockMovements::class)
+            ->assertCanSeeTableRecords($variant->movements)
+            ->assertSee(InventoryResource::getUrl('view', ['record' => $variant]), false);
+    }
+
+    public function test_old_stock_links_and_the_alert_email_lead_to_the_new_pages(): void
+    {
+        $variant = $this->variant(2);
+        $this->actingAs(Admin::factory()->manager()->create(), 'admin');
+
+        $this->get('/admin/inventaire')->assertRedirect(InventoryResource::getUrl('index'));
+        $this->get('/admin/mouvements-de-stock')->assertRedirect(StockMovementResource::getUrl('index'));
+
+        (new LowStockAlert($variant))->assertSeeInHtml(InventoryResource::getUrl('view', ['record' => $variant], panel: 'admin'));
+        $this->assertEquals(InventoryResource::getNavigationBadge(), Stock::getNavigationBadge());
     }
 }

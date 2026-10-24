@@ -20,6 +20,17 @@ enum StockMovementType: string
         };
     }
 
+    /** Couleur du badge dans le back-office. */
+    public function color(): string
+    {
+        return match ($this) {
+            self::Sale => 'gray',
+            self::Cancellation => 'info',
+            self::Adjustment => 'warning',
+            self::Initial => 'success',
+        };
+    }
+
     /** @return array<string, string> */
     public static function options(): array
     {

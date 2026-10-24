@@ -90,6 +90,12 @@ class ProductVariant extends Model
         return $this->hasMany(StockMovement::class)->orderByDesc('id');
     }
 
+    /** Derniers mouvements, pour l'historique de la fiche inventaire. */
+    public function latestMovements(): HasMany
+    {
+        return $this->movements()->limit(50);
+    }
+
     /** Seuil d'alerte effectif : celui de la déclinaison, sinon le global. */
     public function lowStockThreshold(): int
     {

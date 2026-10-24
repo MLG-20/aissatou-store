@@ -4,13 +4,12 @@ namespace App\Filament\Resources\Catalogue;
 
 use App\Enums\Admin\AdminPermission;
 use App\Enums\Catalogue\StockMovementType;
+use App\Filament\Clusters\Stock;
 use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\StockMovementResource\Pages;
-use App\Filament\Resources\Order\OrderResource;
-use App\Models\Admin;
 use App\Models\Catalogue\StockMovement;
-use Filament\Facades\Filament;
+use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -18,8 +17,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Historique des mouvements de stock (Phase 6B) : qui, quand, combien,
- * pourquoi, stock résultant. Lecture seule — journal immuable.
+ * Onglet « Mouvements » du stock (Phase 6B) : tout ce qui a bougé, en bref ;
+ * le détail (motif, auteur, commande) est sur la fiche de la déclinaison.
+ * Lecture seule — journal immuable.
  */
 class StockMovementResource extends Resource
 {
@@ -33,13 +33,15 @@ class StockMovementResource extends Resource
 
     protected static ?string $model = StockMovement::class;
 
-    protected static ?string $slug = 'mouvements-de-stock';
+    protected static ?string $cluster = Stock::class;
+
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+
+    protected static ?string $slug = 'mouvements';
 
     protected static ?string $navigationIcon = 'heroicon-o-arrows-right-left';
 
-    protected static ?string $navigationGroup = 'Stock';
-
-    protected static ?string $navigationLabel = 'Mouvements de stock';
+    protected static ?string $navigationLabel = 'Mouvements';
 
     protected static ?int $navigationSort = 2;
 
@@ -74,34 +76,24 @@ class StockMovementResource extends Resource
             ->columns([
                 TextColumn::make('created_at')->label('Date')->dateTime('d/m/Y H:i')->sortable(),
                 TextColumn::make('label')->label('Article')->searchable()->wrap(),
-                TextColumn::make('sku')->label('Réf.')->searchable()->toggleable(),
                 TextColumn::make('type')
                     ->label('Mouvement')
                     ->badge()
                     ->formatStateUsing(fn (StockMovementType $state): string => $state->label())
-                    ->color(fn (StockMovementType $state): string => match ($state) {
-                        StockMovementType::Sale => 'gray',
-                        StockMovementType::Cancellation => 'info',
-                        StockMovementType::Adjustment => 'warning',
-                        StockMovementType::Initial => 'success',
-                    }),
+                    ->color(fn (StockMovementType $state): string => $state->color()),
                 TextColumn::make('quantity')
                     ->label('Quantité')
                     ->formatStateUsing(fn (int $state): string => ($state > 0 ? '+' : '').$state)
                     ->color(fn (int $state): string => $state < 0 ? 'danger' : 'success'),
+                // Motif, auteur et commande : sur la fiche de la déclinaison,
+                // ouverte au clic sur la ligne.
                 TextColumn::make('stock_after')->label('Stock après'),
-                TextColumn::make('reason')->label('Motif')->placeholder('—')->wrap(),
-                TextColumn::make('admin_name')->label('Par')->placeholder('client / système'),
-                // Le gestionnaire a accès aux commandes : lien direct si la
-                // permission est là, simple numéro sinon.
-                TextColumn::make('order.number')
-                    ->label('Commande')
-                    ->placeholder('—')
-                    ->url(fn (StockMovement $record): ?string => $record->order && self::canSeeOrders()
-                        ? OrderResource::getUrl('view', ['record' => $record->order])
-                        : null),
             ])
             ->defaultSort('id', 'desc')
+            // Article supprimé depuis : pas de fiche, la ligne reste lisible.
+            ->recordUrl(fn (StockMovement $record): ?string => $record->product_variant_id
+                ? InventoryResource::getUrl('view', ['record' => $record->product_variant_id])
+                : null)
             ->filters([
                 SelectFilter::make('type')->label('Mouvement')->options(StockMovementType::options()),
                 SelectFilter::make('variant')
@@ -111,13 +103,6 @@ class StockMovementResource extends Resource
                     ->searchable(),
                 SelectFilter::make('admin_id')->label('Par')->relationship('admin', 'name'),
             ]);
-    }
-
-    private static function canSeeOrders(): bool
-    {
-        $admin = Filament::auth()->user();
-
-        return $admin instanceof Admin && $admin->hasAdminPermission(AdminPermission::Orders);
     }
 
     public static function getPages(): array

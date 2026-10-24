@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\Order\PaymentEventType;
+use App\Filament\Resources\Catalogue\InventoryResource;
+use App\Filament\Resources\Catalogue\StockMovementResource;
 use App\Filament\Resources\Order\PaymentEventResource;
 use App\Filament\Resources\Order\PaymentResource;
 use App\Http\Controllers\Admin\OrderInvoiceController;
@@ -40,4 +42,7 @@ Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function
             : PaymentResource::getUrl('view', ['record' => $event->payment_id], panel: 'admin')
     ));
 
+    // Anciennes pages Stock, regroupées depuis sous « Suivi du stock ».
+    Route::get('inventaire', fn () => redirect(InventoryResource::getUrl('index', panel: 'admin')));
+    Route::get('mouvements-de-stock', fn () => redirect(StockMovementResource::getUrl('index', panel: 'admin')));
 });

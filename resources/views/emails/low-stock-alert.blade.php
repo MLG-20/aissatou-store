@@ -8,7 +8,10 @@
         <strong>{{ $variant->label() }}</strong> (réf. {{ $variant->sku }})<br>
         Stock restant : <strong>{{ $variant->stock }}</strong> — seuil d'alerte : {{ $variant->lowStockThreshold() }}
     </p>
-    <p>Pensez au réassort. Inventaire : {{ url('/admin') }}</p>
+    <p>
+        Pensez au réassort :
+        <a href="{{ \App\Filament\Resources\Catalogue\InventoryResource::getUrl('view', ['record' => $variant], panel: 'admin') }}">ouvrir la fiche de l'article</a>
+    </p>
     <p style="color: #6B6670; font-size: 13px;">
         Vous ne recevrez pas d'autre alerte pour cette déclinaison tant que son stock ne sera pas remonté au-dessus du seuil.
     </p>
