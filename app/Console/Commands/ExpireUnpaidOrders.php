@@ -42,9 +42,12 @@ class ExpireUnpaidOrders extends Command
                 continue;
             }
 
-            $payments->fail($payment, ['source' => 'expiration']);
+            // Une seule ligne « Délai dépassé » au journal ; si le paiement
+            // était déjà marqué échoué, fail() ne journalise rien.
+            if (! $payments->fail($payment, [], PaymentEventType::Expired)) {
+                $payment->fresh()->log(PaymentEventType::Expired);
+            }
             $orders->changeStatus($payment->order, OrderStatus::Cancelled);
-            $payment->fresh()->log(PaymentEventType::Expired);
             $cancelled++;
         }
 

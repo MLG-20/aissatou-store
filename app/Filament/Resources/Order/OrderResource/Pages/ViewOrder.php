@@ -210,7 +210,11 @@ class ViewOrder extends ViewRecord
             Action::make('verifyPayment')
                 ->label('Vérifier le paiement')
                 ->icon('heroicon-o-shield-check')
-                ->visible(fn (Order $record): bool => self::canSeePayments() && (bool) $record->payment?->isOnline())
+                // Inutile une fois payé (ou remboursé) : le fournisseur a
+                // déjà tranché, une vérification n'ajouterait qu'une ligne.
+                ->visible(fn (Order $record): bool => self::canSeePayments()
+                    && (bool) $record->payment?->isOnline()
+                    && ! in_array($record->payment->status, [PaymentStatus::Confirmed, PaymentStatus::Refunded], strict: true))
                 ->action(function (Order $record): void {
                     // Revérifié à l'exécution : une action masquée peut quand
                     // même être appelée en forgeant la requête Livewire.

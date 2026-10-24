@@ -312,7 +312,10 @@ class PayTechTest extends TestCase
         $this->assertEquals(OrderStatus::Cancelled, $order->fresh()->status);
         $this->assertEquals(PaymentStatus::Failed, $order->payment->fresh()->status);
         $this->assertEquals(4, $variant->fresh()->stock);
-        $this->assertTrue($order->payment->events->contains('type', PaymentEventType::Expired));
+        // Une seule ligne au journal pour l'expiration, pas « échoué » en plus.
+        $events = $order->payment->fresh()->events;
+        $this->assertEquals(1, $events->where('type', PaymentEventType::Expired)->count());
+        $this->assertFalse($events->contains('type', PaymentEventType::Failed));
 
         $this->actingAs($user)->get(route('shop.checkout.payment', $order->number))
             ->assertOk()

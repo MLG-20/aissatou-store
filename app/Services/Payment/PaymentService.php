@@ -64,12 +64,13 @@ class PaymentService
     /**
      * Marque l'échec (annulation chez PayTech). Un paiement confirmé n'est
      * jamais rétrogradé par ce chemin. Renvoie false si rien n'a changé.
+     * `$type` : l'expiration se journalise comme telle, en une seule ligne.
      *
      * @param  array<string, mixed>  $details
      */
-    public function fail(Payment $payment, array $details = []): bool
+    public function fail(Payment $payment, array $details = [], PaymentEventType $type = PaymentEventType::Failed): bool
     {
-        return DB::transaction(function () use ($payment, $details): bool {
+        return DB::transaction(function () use ($payment, $details, $type): bool {
             $locked = Payment::whereKey($payment->id)->lockForUpdate()->first();
 
             if (in_array($locked->status, [PaymentStatus::Confirmed, PaymentStatus::Refunded, PaymentStatus::Failed], strict: true)) {
@@ -78,7 +79,7 @@ class PaymentService
 
             $locked->update(['status' => PaymentStatus::Failed]);
             $locked->order->update(['payment_status' => PaymentStatus::Failed]);
-            $locked->log(PaymentEventType::Failed, $details);
+            $locked->log($type, $details);
 
             return true;
         });

@@ -17,6 +17,7 @@ use App\Models\Order\PaymentEvent;
 use App\Models\User;
 use App\Services\OrderService;
 use App\Services\Payment\PaymentManager;
+use App\Services\Payment\PaymentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -106,6 +107,16 @@ class PaymentAdminTest extends TestCase
         $cart = Cart::create(['user_id' => $user->id]);
         CartItem::create(['cart_id' => $cart->id, 'product_id' => $product->id, 'quantity' => 1]);
         $order = app(OrderService::class)->createFromCart($user, $cart, Address::factory()->for($user)->create(), 'cod');
+        $this->actingAs(Admin::factory()->create(), 'admin');
+
+        Livewire::test(ViewOrder::class, ['record' => $order->getRouteKey()])
+            ->assertActionHidden('verifyPayment');
+    }
+
+    public function test_the_verify_button_disappears_once_the_payment_is_received(): void
+    {
+        $order = $this->paytechOrder();
+        app(PaymentService::class)->confirm($order->payment);
         $this->actingAs(Admin::factory()->create(), 'admin');
 
         Livewire::test(ViewOrder::class, ['record' => $order->getRouteKey()])
