@@ -1,8 +1,16 @@
-@props(['review'])
+@props([
+    'review',
+    // Carte posée sur une section Encre (avis de l'accueil).
+    'dark' => false,
+])
 
-<div class="flex h-full flex-col gap-4 rounded-sm border border-brand-ink/10 bg-white/60 p-6 whitespace-normal">
+<div @class([
+    'flex h-full flex-col gap-4 rounded-sm border p-6 sm:p-8 whitespace-normal transition duration-500',
+    'border-brand-ink/10 bg-white/60' => ! $dark,
+    'border-brand-surface/10 bg-brand-surface/[0.04] backdrop-blur-sm hover:border-brand-surface/25 hover:bg-brand-surface/[0.07]' => $dark,
+])>
     @if ($review->rating)
-        <div class="flex gap-0.5 text-brand-signature">
+        <div @class(['flex gap-0.5', 'text-brand-signature' => ! $dark, 'text-brand-parchment' => $dark])>
             @for ($i = 1; $i <= 5; $i++)
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24"
                      fill="{{ $i <= $review->rating ? 'currentColor' : 'none' }}"
@@ -13,16 +21,24 @@
         </div>
     @endif
 
-    <p class="text-sm leading-relaxed text-brand-ink/80 italic">« {{ $review->comment }} »</p>
+    <p @class([
+        'leading-relaxed italic',
+        'text-sm text-brand-ink/80' => ! $dark,
+        'font-display text-lg text-brand-surface/90' => $dark,
+    ])>« {{ $review->comment }} »</p>
 
-    <div class="mt-auto flex items-center gap-3 pt-2">
-        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-accent/15 font-display text-brand-signature">
+    <div @class(['mt-auto flex items-center gap-3 pt-2', 'border-t border-brand-surface/10 pt-5' => $dark])>
+        <div @class([
+            'flex h-9 w-9 items-center justify-center rounded-full font-display',
+            'bg-brand-accent/15 text-brand-signature' => ! $dark,
+            'bg-brand-signature text-brand-surface' => $dark,
+        ])>
             {{ mb_strtoupper(mb_substr($review->author_name, 0, 1)) }}
         </div>
         <div>
-            <p class="text-sm font-medium text-brand-ink">{{ $review->author_name }}</p>
+            <p @class(['text-sm font-medium', 'text-brand-ink' => ! $dark, 'text-brand-surface' => $dark])>{{ $review->author_name }}</p>
             @if ($review->location)
-                <p class="text-xs text-brand-muted">{{ $review->location }}</p>
+                <p @class(['text-xs', 'text-brand-muted' => ! $dark, 'text-brand-surface/50' => $dark])>{{ $review->location }}</p>
             @endif
         </div>
     </div>

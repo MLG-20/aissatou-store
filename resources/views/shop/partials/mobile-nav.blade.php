@@ -47,7 +47,7 @@
         x-transition:leave-end="-translate-x-full"
         class="absolute left-0 top-0 flex h-full w-[86%] max-w-sm flex-col overflow-hidden bg-brand-ink text-brand-surface shadow-2xl"
     >
-        <x-shop.fold-backdrop />
+        <x-shop.fold-backdrop :cut="false" />
 
         {{-- Filet Garance sur l'arête du tiroir : l'« Edit Cut » du langage
              graphique (p.9), qui marque l'incision plutôt qu'un bord neutre. --}}
@@ -82,7 +82,8 @@
                     @if ($link['children'])
                         <div x-data="{ open: false }">
                             <div class="flex items-center">
-                                <a href="{{ $link['url'] }}" class="flex-1 py-4 font-display text-2xl text-brand-surface transition hover:text-brand-accent">
+                                {{-- Onglet actif : Garance, comme le filet de l'en-tête. --}}
+                                <a href="{{ $link['url'] }}" @class(['flex-1 py-4 font-display text-2xl transition hover:text-brand-accent', 'text-brand-accent' => $link['active'], 'text-brand-surface' => ! $link['active']]) @if ($link['active']) aria-current="page" @endif>
                                     {{ $link['label'] }}
                                 </a>
 
@@ -112,7 +113,7 @@
                             </div>
                         </div>
                     @else
-                        <a href="{{ $link['url'] }}" class="block py-4 font-display text-2xl text-brand-surface transition hover:text-brand-accent">
+                        <a href="{{ $link['url'] }}" @class(['block py-4 font-display text-2xl transition hover:text-brand-accent', 'italic' => $link['editorial'], 'text-brand-accent' => $link['active'], 'text-brand-surface' => ! $link['active']]) @if ($link['active']) aria-current="page" @endif>
                             {{ $link['label'] }}
                         </a>
                     @endif
@@ -129,6 +130,8 @@
                 <a href="{{ route('shop.about') }}" class="transition hover:text-brand-surface">À propos</a>
                 <a href="{{ route('shop.contact') }}" class="transition hover:text-brand-surface">Contact</a>
                 <a href="{{ route('shop.wishlist') }}" class="transition hover:text-brand-surface">Liste d'envies</a>
+                {{-- Relais de la loupe, masquée dans la barre sous 360 px. --}}
+                <a href="{{ route('shop.index') }}#recherche" class="min-[360px]:hidden transition hover:text-brand-surface">Rechercher</a>
             </div>
         </nav>
 

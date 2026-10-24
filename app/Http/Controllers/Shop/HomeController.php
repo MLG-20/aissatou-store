@@ -8,15 +8,24 @@ use App\Models\Catalogue\Product;
 use App\Models\Content\HeroSlide;
 use App\Models\Content\Review;
 use App\Models\Content\SiteSetting;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
     public function index(): View
     {
+        $slides = HeroSlide::query()->active()->orderBy('position')->get();
+        $settings = SiteSetting::current();
+        $reviews = Review::query()
+            ->published()
+            ->orderBy('position')
+            ->latest()
+            ->get();
+
         return view('shop.home', [
-            'slides' => HeroSlide::query()->active()->orderBy('position')->get(),
-            'settings' => SiteSetting::current(),
+            'slides' => $slides,
+            'settings' => $settings,
             'collections' => Category::query()
                 ->active()
                 ->whereNull('parent_id')
@@ -36,11 +45,16 @@ class HomeController extends Controller
                 ->latest()
                 ->take(8)
                 ->get(),
-            'reviews' => Review::query()
-                ->published()
-                ->orderBy('position')
-                ->latest()
-                ->get(),
+            'reviews' => $reviews,
+            // Note moyenne des avis notés (la note est facultative).
+            'reviewsAverage' => $reviews->whereNotNull('rating')->avg('rating'),
+            'reviewsRated' => $reviews->whereNotNull('rating')->count(),
+            // Photo de « Notre histoire » : pas de réglage dédié, on reprend
+            // la photo de marque du panneau de connexion, sinon la première
+            // image du hero.
+            'storyImage' => $settings->auth_image_path
+                ? Storage::disk('public')->url($settings->auth_image_path)
+                : $slides->first(fn (HeroSlide $slide) => $slide->image_path)?->sizedUrl('large'),
         ]);
     }
 }

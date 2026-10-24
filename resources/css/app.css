@@ -6,6 +6,12 @@
     display: none !important;
 }
 
+/* Œil natif d'Edge : doublon du bouton de <x-password-input>. */
+input::-ms-reveal,
+input::-ms-clear {
+    display: none;
+}
+
 /* Défilement continu de la section "Nouveautés" (accueil) : le contenu est
    dupliqué une fois dans le Blade pour boucler sans à-coup à -50%. */
 @keyframes marquee {
@@ -21,13 +27,33 @@
     animation: marquee 35s linear infinite;
 }
 
-.marquee-track:hover {
-    animation-play-state: paused;
+/* Pause au survol pour la souris seulement : sur tactile, un simple appui
+   laisse le « survol » collé et figeait le défilement pour de bon. */
+@media (hover: hover) {
+    .marquee-track:hover {
+        animation-play-state: paused;
+    }
 }
 
+/* Animations réduites (réglage du téléphone, économiseur de batterie) : plus
+   de défilement automatique, mais la piste devient défilable au doigt, et la
+   copie qui sert à boucler disparaît. */
 @media (prefers-reduced-motion: reduce) {
     .marquee-track {
         animation: none;
+    }
+
+    .marquee-viewport {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+    }
+
+    .marquee-track > * {
+        scroll-snap-align: start;
+    }
+
+    .marquee-copy {
+        display: none;
     }
 }
 
@@ -39,8 +65,8 @@
    Deux équerres fines en Cassis marquent les angles opposés sans refermer la
    carte — c'est le principe du cadre ouvert. Rien ne tourne, rien ne brille :
    le mouvement est réservé à l'interaction (survol). */
-.trust-card::before,
-.trust-card::after {
+.passage-frame::before,
+.passage-frame::after {
     content: '';
     position: absolute;
     width: 1.75rem;
@@ -55,32 +81,105 @@
     pointer-events: none;
 }
 
-.trust-card::before {
+.passage-frame::before {
     top: -1px;
     left: -1px;
     border-width: 1px 0 0 1px;
     border-top-left-radius: inherit;
 }
 
-.trust-card::after {
+.passage-frame::after {
     right: -1px;
     bottom: -1px;
     border-width: 0 1px 1px 0;
     border-bottom-right-radius: inherit;
 }
 
-/* Au survol, les équerres s'allongent : le cadre « accueille » sans se fermer. */
-.trust-card:hover::before,
-.trust-card:hover::after {
+/* Au survol, les équerres s'allongent : le cadre « accueille » sans se fermer.
+   Posé dans un parent `.group` (tuiles d'univers), il réagit au survol du
+   lien entier. */
+.group:hover > .passage-frame::before,
+.group:hover > .passage-frame::after,
+.passage-frame:hover::before,
+.passage-frame:hover::after {
     width: 3.25rem;
     height: 3.25rem;
     opacity: 0.75;
 }
 
+/* Variante claire, pour poser le cadre sur une photo. */
+.passage-frame--light::before,
+.passage-frame--light::after {
+    border-color: theme('colors.brand.surface');
+    opacity: 0.6;
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .trust-card::before,
-    .trust-card::after {
+    .passage-frame::before,
+    .passage-frame::after {
         transition: none;
+    }
+}
+
+/* Apparition douce au défilement (resources/js/reveal.js). Le masquage n'existe
+   que si le script tourne (`.js-reveal`) et que l'utilisatrice n'a pas demandé
+   moins d'animations : sinon, tout est visible d'emblée. */
+@media (prefers-reduced-motion: no-preference) {
+    .js-reveal [data-reveal] {
+        opacity: 0;
+        transform: translateY(1.75rem);
+        transition:
+            opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+            transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+        transition-delay: var(--reveal-delay, 0ms);
+    }
+
+    .js-reveal [data-reveal].is-revealed {
+        opacity: 1;
+        transform: none;
+    }
+
+    /* « L'expérience Aissatou » : le fil se dessine (au lieu d'apparaître)... */
+    .js-reveal [data-reveal].journey-line {
+        opacity: 1;
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform 1.8s cubic-bezier(0.65, 0, 0.35, 1) 0.2s;
+    }
+
+    .js-reveal [data-reveal].journey-line--y {
+        transform: scaleY(0);
+        transform-origin: center top;
+    }
+
+    .js-reveal [data-reveal].journey-line.is-revealed {
+        transform: none;
+    }
+
+    /* ... et chaque pastille s'allume en Cassis quand il l'atteint. */
+    .js-reveal .journey-step .journey-dot {
+        transition:
+            background-color 0.6s ease,
+            color 0.6s ease,
+            border-color 0.6s ease,
+            transform 0.5s ease,
+            box-shadow 0.5s ease;
+    }
+
+    .js-reveal .journey-step.is-revealed .journey-dot {
+        background-color: theme('colors.brand.signature');
+        border-color: theme('colors.brand.signature');
+        color: theme('colors.brand.surface');
+        transition-delay: calc(var(--reveal-delay, 0ms) + 350ms), calc(var(--reveal-delay, 0ms) + 350ms), calc(var(--reveal-delay, 0ms) + 350ms), 0ms, 0ms;
+    }
+}
+
+/* Sans animation (ou sans JavaScript) : pastilles allumées d'emblée. */
+@media (prefers-reduced-motion: reduce) {
+    .journey-dot {
+        background-color: theme('colors.brand.signature');
+        border-color: theme('colors.brand.signature');
+        color: theme('colors.brand.surface');
     }
 }
 

@@ -11,6 +11,12 @@
      Les courbes sont des bandes translucides qui se recouvrent : elles évoquent la
      matière et le tombé (principe non négociable n°3) sans devenir un « motif trop
      dense », que la p.9 proscrit. --}}
+@props([
+    // L'incision Garance n'a de sens que sur une grande surface (hero) : sur
+    // une liste de liens (menu mobile), elle passe pour un trait parasite.
+    'cut' => true,
+])
+
 <div {{ $attributes->merge(['class' => 'absolute inset-0 overflow-hidden bg-brand-ink']) }} aria-hidden="true">
     <svg class="h-full w-full" viewBox="0 0 1440 720" preserveAspectRatio="xMidYMid slice" fill="none">
         <defs>
@@ -43,6 +49,8 @@
 
         {{-- « Edit Cut » : l'incision Garance, brève, qui signale le choix (p.9).
              Un seul trait, jamais un aplat. --}}
-        <path d="M-40 566 C 420 500, 1000 626, 1480 548" stroke="#9F2D40" stroke-width="1.5" stroke-opacity="0.55" />
+        @if ($cut)
+            <path d="M-40 566 C 420 500, 1000 626, 1480 548" stroke="#9F2D40" stroke-width="1.5" stroke-opacity="0.55" />
+        @endif
     </svg>
 </div>

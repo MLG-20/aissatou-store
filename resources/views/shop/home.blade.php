@@ -97,182 +97,404 @@
         @endif
     </section>
 
-    {{-- ARCHITECTURE DE L'OFFRE (rapport d'identité p.3) — une tuile par
-         catégorie racine.
+    {{-- NOS UNIVERS — une tuile par catégorie racine (architecture de l'offre,
+         rapport d'identité p.3), en mosaïque éditoriale : la première tuile
+         occupe deux rangées, le nom est posé sur la photo, et le cadre ouvert
+         « Passage Frame » (p.9) s'allonge au survol.
 
-         Cette section s'intitulait « Collections », ce qui entrait en collision
-         frontale avec l'onglet « Collections » de la navigation : dans le
-         rapport, Collections est un univers À PART (« le récit éditorial »,
-         p.3), pas le nom du sommaire des catégories. Deux entrées portant le
-         même mot vers deux destinations différentes, c'est l'inverse du
-         « contenu choisi plutôt qu'accumulé » exigé p.16.
+         Le descripteur court de la p.3 (« Le geste quotidien », « La matière et
+         le mouvement »…) vient de la description de la catégorie, éditable en
+         admin : on n'en garde que la première proposition.
 
-         La p.3 fait aussi suivre chaque univers d'un descripteur court — « Le
-         geste quotidien », « La matière et le mouvement »… — repris ici depuis
-         la description de la catégorie, qui est éditable en admin. --}}
+         La mosaïque suppose au moins 5 univers ; en dessous, grille régulière. --}}
     @if ($collections->isNotEmpty())
-        <section class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-16">
-            <span class="text-xs uppercase tracking-[0.2em] text-brand-signature">Architecture de l'offre</span>
-            <h2 class="font-display text-3xl text-brand-ink mt-1 mb-8">Nos univers</h2>
+        @php
+            $count = $collections->count();
+            $mosaic = $count >= 5;
+            // Après la grande tuile et les 4 tuiles qui l'encadrent, les
+            // suivantes vont par 3 : la dernière s'élargit pour finir la rangée.
+            $tail = $mosaic ? ($count - 5) % 3 : 0;
+        @endphp
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                @foreach ($collections as $collection)
+        <section class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-20 sm:py-28">
+            <div class="mb-10 sm:mb-14 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between" data-reveal>
+                <div>
+                    <span class="text-xs uppercase tracking-[0.3em] text-brand-signature">Explorer</span>
+                    <h2 class="mt-3 font-display text-4xl sm:text-5xl text-brand-ink leading-[1.05]">Nos univers</h2>
+                </div>
+                <p class="max-w-sm text-brand-muted lg:text-right">Une même exigence pour chaque univers : moins d'objets, mieux choisis, mieux présentés.</p>
+            </div>
+
+            <div @class([
+                'grid gap-3 sm:gap-4',
+                'grid-cols-2 lg:grid-cols-3 auto-rows-[230px] sm:auto-rows-[300px] lg:auto-rows-[310px]' => $mosaic,
+                'grid-cols-2 sm:grid-cols-3 auto-rows-[260px] sm:auto-rows-[340px]' => ! $mosaic,
+            ])>
+                @foreach ($collections as $index => $collection)
                     @php
-                        // On ne garde que la PREMIÈRE PROPOSITION de la description —
-                        // « Le geste quotidien », « La matière et le mouvement » —
-                        // c'est exactement la forme des descripteurs de la p.3. La
-                        // coupe se fait au premier deux-points ou à la première
-                        // virgule, les deux tournures présentes en base ; une
-                        // description libre saisie en admin est simplement tronquée.
                         $descriptor = $collection->description
                             ? Str::limit(rtrim(trim(Str::before(Str::before($collection->description, ' :'), ',')), '.'), 60)
                             : null;
+                        $isLead = $mosaic && $index === 0;
+                        $isLast = $index === $count - 1;
+                        // Mobile (2 colonnes) : la grande tuile prend toute la
+                        // largeur ; si le reste est impair, la dernière aussi.
+                        $mobileWide = $isLead || ($isLast && ($count - ($mosaic ? 1 : 0)) % 2 === 1);
                     @endphp
 
-                    <a href="{{ route('shop.category', $collection->slug) }}" class="group block">
-                        <div class="aspect-[4/5] w-full overflow-hidden rounded-sm border border-brand-ink/10 group-hover:border-brand-signature transition">
-                            <x-shop.image-placeholder :category="$collection" :image="$collection->sizedUrl('medium')" />
-                        </div>
-
-                        <div class="mt-3 flex items-baseline justify-between gap-2">
-                            <span class="font-display text-lg sm:text-xl text-brand-ink group-hover:text-brand-signature transition">
-                                {{ $collection->name }}
-                            </span>
-                            <span class="text-xs uppercase tracking-wide text-brand-ink/60 whitespace-nowrap">
-                                Voir →
-                            </span>
-                        </div>
-
-                        @if ($descriptor)
-                            <p class="mt-1 text-sm text-brand-muted">{{ $descriptor }}</p>
+                    <a
+                        href="{{ route('shop.category', $collection->slug) }}"
+                        @class([
+                            'group relative block overflow-hidden bg-brand-ink',
+                            'col-span-2' => $mobileWide,
+                            'lg:col-span-1 lg:row-span-2' => $isLead,
+                            'lg:col-span-3' => $mosaic && $isLast && $tail === 1,
+                            'lg:col-span-2' => $mosaic && $isLast && $tail === 2,
+                            'lg:col-span-1' => $mosaic && $mobileWide && ! $isLead && ! ($isLast && $tail > 0),
+                            'sm:col-span-1' => ! $mosaic && $mobileWide,
+                        ])
+                        data-reveal
+                        style="--reveal-delay: {{ min($index, 5) * 90 }}ms"
+                    >
+                        {{-- Grande version pour les tuiles qui s'étirent (la première, la dernière élargie). --}}
+                        @if ($image = $collection->sizedUrl($isLead || $mobileWide ? 'large' : 'medium'))
+                            <img
+                                src="{{ $image }}"
+                                alt=""
+                                loading="lazy"
+                                class="absolute inset-0 h-full w-full object-cover object-center transition duration-[1400ms] ease-out group-hover:scale-[1.06]"
+                            >
+                        @else
+                            <x-shop.fold-backdrop :cut="false" />
                         @endif
+
+                        {{-- Voile : Encre en bas pour lire le nom, qui vire au Cassis au survol. --}}
+                        <div class="absolute inset-0 bg-gradient-to-t from-brand-ink/90 via-brand-ink/25 to-transparent"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-brand-signature/80 via-brand-signature/10 to-transparent opacity-0 transition duration-700 group-hover:opacity-100"></div>
+
+                        <div class="passage-frame passage-frame--light absolute inset-3 sm:inset-5"></div>
+
+                        <div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 text-brand-surface">
+                            <span class="text-[0.6rem] uppercase tracking-[0.35em] text-brand-surface/60">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
+                            <h3 @class([
+                                'mt-2 font-display leading-[1.05]',
+                                'text-3xl sm:text-4xl lg:text-5xl' => $isLead,
+                                'text-2xl sm:text-3xl' => ! $isLead,
+                            ])>{{ $collection->name }}</h3>
+
+                            @if ($descriptor)
+                                {{-- Toujours visible au doigt ; révélé au survol sur grand écran. --}}
+                                <p class="mt-2 max-w-xs text-sm text-brand-surface/80 transition-all duration-500 lg:max-h-0 lg:overflow-hidden lg:opacity-0 lg:group-hover:max-h-16 lg:group-hover:opacity-100">{{ $descriptor }}</p>
+                            @endif
+
+                            <span class="mt-4 inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.25em]">
+                                Découvrir
+                                <svg class="h-3.5 w-3.5 transition-transform duration-500 group-hover:translate-x-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                </svg>
+                            </span>
+                        </div>
                     </a>
                 @endforeach
             </div>
         </section>
     @endif
 
-    {{-- NOUVEAUTÉS — les produits marqués « Nouveauté » en admin.
+    {{-- NOUVEAUTÉS — les produits marqués « Nouveauté » en admin, sur un bandeau
+         Parchemin qui rompt le fond de page.
 
          La section disparaît si rien n'est marqué : mieux vaut ne rien annoncer
-         qu'annoncer de fausses nouveautés, ce que faisait la version précédente
-         en affichant les dernières lignes créées. --}}
+         qu'annoncer de fausses nouveautés. --}}
     @if ($newProducts->isNotEmpty())
-        <section class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-16">
-            <div class="mb-8 flex items-baseline justify-between gap-4">
-                <div>
-                    <span class="text-xs uppercase tracking-[0.2em] text-brand-signature">À découvrir</span>
-                    <h2 class="font-display text-3xl text-brand-ink mt-1">Nouveautés</h2>
+        <section class="border-y border-brand-ink/5 bg-brand-parchment/60">
+            <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-20 sm:py-24">
+                <div class="mb-10 flex items-end justify-between gap-4" data-reveal>
+                    <div>
+                        <span class="text-xs uppercase tracking-[0.3em] text-brand-signature">À découvrir</span>
+                        <h2 class="mt-3 font-display text-4xl sm:text-5xl text-brand-ink leading-[1.05]">Nouveautés</h2>
+                    </div>
+
+                    <a href="{{ route('shop.index', ['nouveautes' => 1]) }}" class="group inline-flex items-center gap-2 whitespace-nowrap text-xs uppercase tracking-[0.2em] text-brand-ink">
+                        <span class="border-b border-brand-ink/30 pb-1 transition group-hover:border-brand-accent">Tout voir</span>
+                        <svg class="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                        </svg>
+                    </a>
                 </div>
 
-                <a href="{{ route('shop.index', ['nouveautes' => 1]) }}" class="whitespace-nowrap text-xs uppercase tracking-[0.15em] text-brand-ink/60 transition hover:text-brand-signature">
-                    Tout voir →
-                </a>
-            </div>
-
-            {{-- Le défilement continu suppose assez de cartes pour que la boucle
-                 ne se voie pas : en dessous, la piste dupliquée laisserait des
-                 trous et répéterait visiblement les mêmes produits. On retombe
-                 alors sur une grille fixe, qui reste juste avec une seule pièce. --}}
-            @if ($newProducts->count() >= 5)
-                <div class="overflow-hidden">
-                    <div class="flex gap-6 w-max marquee-track">
-                        @foreach ([1, 2] as $repeat)
-                            @foreach ($newProducts as $product)
-                                <div class="w-40 sm:w-56 flex-shrink-0">
-                                    <x-shop.product-card :product="$product" />
-                                </div>
+                {{-- Le défilement continu suppose assez de cartes pour que la boucle
+                     ne se voie pas : en dessous, grille fixe. --}}
+                @if ($newProducts->count() >= 5)
+                    <div class="overflow-hidden marquee-viewport" data-reveal>
+                        <div class="flex gap-6 w-max marquee-track">
+                            @foreach ([1, 2] as $repeat)
+                                @foreach ($newProducts as $product)
+                                    {{-- 2e passage = copie de boucle : ignorée par les
+                                         lecteurs d'écran et la touche Tab. --}}
+                                    <div @class(['w-40 sm:w-56 flex-shrink-0', 'marquee-copy' => $repeat === 2]) @if ($repeat === 2) aria-hidden="true" inert @endif>
+                                        <x-shop.product-card :product="$product" />
+                                    </div>
+                                @endforeach
                             @endforeach
+                        </div>
+                    </div>
+                @else
+                    <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4" data-reveal>
+                        @foreach ($newProducts as $product)
+                            <x-shop.product-card :product="$product" />
                         @endforeach
                     </div>
-                </div>
-            @else
-                <div class="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
-                    @foreach ($newProducts as $product)
-                        <x-shop.product-card :product="$product" />
-                    @endforeach
-                </div>
-            @endif
+                @endif
+            </div>
         </section>
     @endif
 
-    {{-- Indicateurs de confiance — texte éditable depuis l'admin (Filament >
-    Contenu du site > Réglages du site), icônes fixes assignées par ordre. --}}
+    {{-- NOTRE HISTOIRE — le récit de la maison (page À propos), en version courte :
+         citation en grand, premier paragraphe, les trois valeurs. Tout vient des
+         réglages du site (Filament > Contenu du site > Réglages du site). --}}
+    @if ($settings->about_quote || $settings->about_story)
+        @php
+            $storyExcerpt = $settings->about_story
+                ? Str::limit(trim(Str::before($settings->about_story, "\n\n")), 340)
+                : null;
+        @endphp
+
+        <section class="overflow-hidden">
+            <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-20 sm:py-28 grid items-center gap-16 lg:grid-cols-2 lg:gap-24">
+                <div class="relative mx-3 sm:mx-5" data-reveal>
+                    <div class="relative aspect-[4/5] overflow-hidden bg-brand-ink">
+                        @if ($storyImage)
+                            <img src="{{ $storyImage }}" alt="" loading="lazy" class="h-full w-full object-cover object-center">
+                        @else
+                            <x-shop.fold-backdrop :cut="false" />
+                        @endif
+                    </div>
+
+                    {{-- Cadre ouvert décalé autour de la photo (Passage Frame, p.9). --}}
+                    <div class="passage-frame pointer-events-none absolute -inset-3 sm:-inset-5"></div>
+
+                    {{-- Cartouche Cassis : la promesse de la marque (p.2). --}}
+                    <div class="absolute -bottom-8 right-0 sm:-right-6 max-w-[15rem] bg-brand-signature px-6 py-5 text-brand-surface shadow-2xl">
+                        <span class="font-display text-4xl leading-none text-brand-surface/40" aria-hidden="true">«</span>
+                        <p class="-mt-2 font-display text-lg leading-snug">L'élégance dans la pudeur.</p>
+                    </div>
+                </div>
+
+                <div data-reveal style="--reveal-delay: 150ms">
+                    <span class="text-xs uppercase tracking-[0.3em] text-brand-signature">La maison</span>
+
+                    @if ($settings->about_quote)
+                        <blockquote class="mt-5 font-display text-3xl sm:text-4xl lg:text-5xl leading-[1.1] text-brand-ink">
+                            « {{ $settings->about_quote }} »
+                        </blockquote>
+                    @endif
+
+                    @if ($storyExcerpt)
+                        <p class="mt-6 max-w-xl leading-relaxed text-brand-muted">{{ $storyExcerpt }}</p>
+                    @endif
+
+                    @if (! empty($settings->about_values))
+                        <dl class="mt-10 grid gap-6 border-t border-brand-ink/10 pt-8 sm:grid-cols-3">
+                            @foreach ($settings->about_values as $valueIndex => $value)
+                                <div>
+                                    <dt class="flex items-baseline gap-2">
+                                        <span class="text-xs font-medium text-brand-accent">{{ str_pad((string) ($valueIndex + 1), 2, '0', STR_PAD_LEFT) }}</span>
+                                        <span class="font-display text-xl text-brand-ink">{{ $value['title'] ?? '' }}</span>
+                                    </dt>
+                                    <dd class="mt-2 text-sm leading-relaxed text-brand-muted">{{ $value['text'] ?? '' }}</dd>
+                                </div>
+                            @endforeach
+                        </dl>
+                    @endif
+
+                    <a href="{{ route('shop.about') }}" class="group mt-10 inline-flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-brand-ink">
+                        <span class="border-b border-brand-ink/30 pb-1 transition group-hover:border-brand-accent">Découvrir la maison</span>
+                        <svg class="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+    @endif
+
+    {{-- L'EXPÉRIENCE AISSATOU — les indicateurs de confiance (texte éditable :
+         Filament > Contenu du site > Réglages du site), présentés comme un
+         parcours : un fil Cassis se dessine au défilement et allume chaque
+         promesse à son passage. Icônes fixes, assignées par ordre.
+
+         Le symbole de la marque, géant et presque transparent, signe le fond.
+         Le bandeau final ouvre une conversation (WhatsApp si le numéro est
+         réglé, sinon la page Contact) : un bouton Encre, le Garance restant
+         réservé au CTA du hero (règle p.13). --}}
     @php
         $trustIcons = [
             'M2.25 8.25h19.5M2.25 8.25v10.5a1.5 1.5 0 001.5 1.5h16.5a1.5 1.5 0 001.5-1.5V8.25M2.25 8.25l1.72-3.44A1.5 1.5 0 015.31 4h13.38a1.5 1.5 0 011.34.81l1.72 3.44M6 15.75h3',
             'M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v11.177m0-11.177L12 4.5m2.25 3.073L18 4.5m-3.75 3.073v11.177',
             'M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z',
         ];
+        $trustItems = array_values($settings->trust_items ?? []);
     @endphp
 
-    @if (! empty($settings->trust_items))
-        {{-- Révélation au scroll (IntersectionObserver via Alpine, sans plugin) :
-             `shown` bascule à true quand la section entre dans le viewport, ce
-             qui déclenche l'apparition en cascade des cartes. --}}
-        <section
-            class="relative border-y border-brand-ink/10 bg-gradient-to-b from-brand-parchment to-brand-surface overflow-hidden"
-            x-data="{ shown: false }"
-            x-init="new IntersectionObserver((entries, obs) => entries.forEach(e => { if (e.isIntersecting) { shown = true; obs.disconnect(); } }), { threshold: 0.2 }).observe($el)"
-        >
-            {{-- Filet doré décoratif en haut de section. --}}
-            <div class="absolute inset-x-0 top-0 h-px bg-brand-signature/15"></div>
+    @if (! empty($trustItems))
+        <section class="relative overflow-hidden border-y border-brand-ink/10 bg-gradient-to-b from-brand-parchment via-brand-parchment/70 to-brand-surface">
+            {{-- Symbole de la marque en filigrane. --}}
+            <span
+                aria-hidden="true"
+                class="brand-symbol pointer-events-none absolute -right-24 top-1/2 w-[34rem] -translate-y-1/2 text-brand-signature/[0.045] sm:-right-10"
+                style="--brand-symbol: url('{{ asset('brand/symbole-128.png') }}')"
+            ></span>
 
-            <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-16 sm:py-24">
-                <div
-                    class="text-center max-w-2xl mx-auto mb-14"
-                    style="opacity:0; transform:translateY(1.5rem); transition: opacity .7s ease, transform .7s ease;"
-                    :style="shown && 'opacity:1; transform:translateY(0)'"
-                >
+            <div class="relative max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-20 sm:py-28">
+                <div class="mx-auto max-w-2xl text-center" data-reveal>
                     <span class="text-xs uppercase tracking-[0.3em] text-brand-signature">L'expérience Aissatou</span>
-                    <h2 class="mt-4 font-display text-3xl sm:text-4xl text-brand-ink leading-tight">Commandez l'esprit tranquille</h2>
-                    <p class="mt-4 text-brand-muted">De la commande à votre porte, chaque détail est pensé pour vous simplifier la vie — et vous faire sentir choyée.</p>
+                    <h2 class="mt-4 font-display text-4xl sm:text-5xl text-brand-ink leading-[1.05]">Commandez l'esprit tranquille</h2>
+                    <p class="mt-5 text-brand-muted">De la commande à votre porte, chaque détail est pensé pour vous simplifier la vie — et vous faire sentir choyée.</p>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
-                    @foreach ($settings->trust_items as $index => $text)
-                        <div
-                            class="trust-card group relative flex flex-col items-center text-center gap-5 rounded-sm border border-brand-ink/10 bg-white/50 backdrop-blur-sm px-6 py-12 transition duration-500 hover:-translate-y-2 hover:shadow-2xl"
-                            style="opacity:0; transform:translateY(2rem); transition: opacity .7s ease, transform .7s ease, box-shadow .5s ease, border-color .5s ease; transition-delay: {{ $index * 140 }}ms;"
-                            :style="shown && 'opacity:1; transform:translateY(0)'"
+                <ol @class([
+                    'relative mt-16 sm:mt-20 grid gap-14 lg:gap-10',
+                    'lg:grid-cols-3' => count($trustItems) >= 3,
+                    'lg:grid-cols-2' => count($trustItems) === 2,
+                ])>
+                    {{-- Le fil : horizontal sur grand écran (d'une pastille à
+                         l'autre), vertical sur mobile. Il se dessine au défilement. --}}
+                    @if (count($trustItems) > 1)
+                        @php $edge = count($trustItems) >= 3 ? '16.666%' : '25%'; @endphp
+                        <div aria-hidden="true" data-reveal class="journey-line pointer-events-none absolute top-10 hidden h-px bg-brand-signature/35 lg:block" style="left: {{ $edge }}; right: {{ $edge }}"></div>
+                        <div aria-hidden="true" data-reveal class="journey-line journey-line--y pointer-events-none absolute bottom-10 left-10 top-10 w-px bg-brand-signature/35 lg:hidden"></div>
+                    @endif
+
+                    @foreach ($trustItems as $index => $text)
+                        <li
+                            class="journey-step group relative flex items-start gap-6 lg:flex-col lg:items-center lg:gap-0 lg:text-center"
+                            data-reveal
+                            style="--reveal-delay: {{ 250 + $index * 380 }}ms"
                         >
-                            <div class="flex items-center justify-center h-16 w-16 rounded-full border border-brand-signature/40 bg-brand-accent/5 text-brand-signature transition duration-500 group-hover:bg-brand-accent group-hover:text-brand-surface group-hover:scale-110 group-hover:shadow-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <div class="journey-dot relative z-10 flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-brand-signature/40 bg-brand-surface text-brand-signature shadow-sm transition duration-500 group-hover:scale-105 group-hover:shadow-xl">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $trustIcons[$index % count($trustIcons)] }}" />
                                 </svg>
                             </div>
 
-                            <p class="font-display text-lg sm:text-xl text-brand-ink leading-snug">{{ $text }}</p>
+                            <div class="relative pt-3 lg:pt-10">
+                                {{-- Grand numéro en filigrane, centré derrière la promesse
+                                     (et non derrière l'étiquette, qu'il brouillait). --}}
+                                <span aria-hidden="true" class="pointer-events-none select-none absolute right-0 top-1/2 -translate-y-1/2 font-display text-[7rem] leading-none text-brand-signature/[0.06] lg:left-1/2 lg:right-auto lg:top-[60%] lg:-translate-x-1/2 lg:text-[10rem]">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
 
-                            <span class="block h-px w-10 bg-brand-accent/50 transition-all duration-500 group-hover:w-20"></span>
-                        </div>
+                                <span class="relative text-[0.6rem] uppercase tracking-[0.35em] text-brand-accent">Promesse {{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
+                                <p class="relative mt-3 max-w-xs font-display text-2xl leading-snug text-brand-ink lg:mx-auto">{{ $text }}</p>
+                                <span class="relative mt-5 block h-px w-10 bg-brand-accent/50 transition-all duration-500 group-hover:w-20 lg:mx-auto"></span>
+                            </div>
+                        </li>
                     @endforeach
+                </ol>
+
+                {{-- Bandeau d'invitation : une conseillère, plutôt qu'une FAQ. --}}
+                <div class="mt-20 sm:mt-24 flex flex-col items-center gap-6 border-t border-brand-ink/10 pt-12 text-center sm:flex-row sm:justify-between sm:text-left" data-reveal>
+                    <div>
+                        <p class="font-display text-2xl sm:text-3xl text-brand-ink">Une question avant de commander ?</p>
+                        <p class="mt-2 text-sm text-brand-muted">Une conseillère vous répond, avec plaisir — taille, matière, idée cadeau.</p>
+                    </div>
+
+                    <a
+                        href="{{ $settings->contact_whatsapp ? route('shop.whatsapp') : route('shop.contact') }}"
+                        @if ($settings->contact_whatsapp) target="_blank" rel="noopener" data-whatsapp-cta @endif
+                        class="group inline-flex shrink-0 items-center gap-3 rounded-sm bg-brand-ink px-8 py-4 text-xs font-medium uppercase tracking-[0.15em] text-brand-surface transition duration-300 hover:bg-brand-signature hover:shadow-xl"
+                    >
+                        @if ($settings->contact_whatsapp)
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                            </svg>
+                        @endif
+                        Écrire à une conseillère
+                        <svg class="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                        </svg>
+                    </a>
                 </div>
             </div>
         </section>
     @endif
 
-    {{-- FORMULAIRE d'avis — placé AVANT le carrousel. Avis créé NON publié, puis
-    modéré en admin. Révélation au scroll + notation par étoiles interactive
-    (Alpine) + compteur de caractères + bouton animé. L'état hidden n'est appliqué
-    QUE par Alpine (:style), donc le formulaire reste utilisable sans JS. --}}
+    {{-- AVIS CLIENTS — section sombre (Encre + fond plissé), note moyenne en
+         tête : la preuve sociale vient AVANT l'invitation à laisser un avis. --}}
+    @if ($reviews->isNotEmpty())
+        <section class="relative overflow-hidden bg-brand-ink text-brand-surface">
+            <x-shop.fold-backdrop :cut="false" class="opacity-70" />
+
+            {{-- Guillemet géant décoratif. --}}
+            <span aria-hidden="true" class="pointer-events-none select-none absolute -top-16 left-2 sm:left-10 font-display text-[16rem] sm:text-[22rem] leading-none text-brand-surface/[0.05]">“</span>
+
+            <div class="relative max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-20 sm:py-28">
+                <div class="mx-auto mb-14 max-w-2xl text-center" data-reveal>
+                    <span class="text-xs uppercase tracking-[0.3em] text-brand-sage">Avis clients</span>
+                    <h2 class="mt-4 font-display text-4xl sm:text-5xl leading-[1.05]">Elles nous font confiance</h2>
+
+                    @if ($reviewsAverage)
+                        <div class="mt-6 inline-flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+                            <div class="flex gap-0.5 text-brand-parchment" aria-hidden="true">
+                                @for ($i = 1; $i <= 5; $i++)
+                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="{{ $i <= round($reviewsAverage) ? 'currentColor' : 'none' }}" stroke="currentColor" stroke-width="1.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.5a.56.56 0 011.04 0l2.12 5.11a.56.56 0 00.48.35l5.52.44c.5.04.7.66.32.99l-4.2 3.6a.56.56 0 00-.19.56l1.29 5.38a.56.56 0 01-.84.61l-4.73-2.88a.56.56 0 00-.58 0l-4.73 2.88a.56.56 0 01-.84-.61l1.29-5.38a.56.56 0 00-.19-.56l-4.2-3.6a.56.56 0 01.32-.99l5.52-.44a.56.56 0 00.48-.35L11.48 3.5z" />
+                                    </svg>
+                                @endfor
+                            </div>
+                            <span class="font-display text-2xl">{{ number_format($reviewsAverage, 1, ',', ' ') }}</span>
+                            <span class="text-sm text-brand-surface/60">/ 5 · {{ $reviewsRated }} avis</span>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="overflow-hidden marquee-viewport" data-reveal>
+                    <div class="flex gap-6 w-max marquee-track">
+                        @foreach ([1, 2] as $repeat)
+                            @foreach ($reviews as $review)
+                                <div @class(['w-72 sm:w-96 flex-shrink-0', 'marquee-copy' => $repeat === 2]) @if ($repeat === 2) aria-hidden="true" inert @endif>
+                                    <x-shop.review-card :review="$review" dark />
+                                </div>
+                            @endforeach
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="mt-14 text-center" data-reveal>
+                    <x-shop.cta href="#avis" on-dark x-on:click="$dispatch('open-review-form')">
+                        Laisser un avis
+                    </x-shop.cta>
+                </div>
+            </div>
+        </section>
+    @endif
+
+    {{-- FORMULAIRE d'avis — replié derrière un bouton : il ne s'impose plus en
+         grand sur l'accueil. Il s'ouvre d'office après un envoi (message de
+         merci) ou une erreur de saisie. Avis créé NON publié, modéré en admin.
+         Sans JavaScript, le formulaire reste affiché et utilisable. --}}
     <section
         id="avis"
-        class="relative overflow-hidden border-y border-brand-ink/10 bg-gradient-to-b from-brand-surface to-brand-parchment"
-        x-data="{ shown: false, rating: {{ (int) old('rating', 0) }}, hover: 0 }"
-        x-init="new IntersectionObserver((entries, obs) => entries.forEach(e => { if (e.isIntersecting) { shown = true; obs.disconnect(); } }), { threshold: 0.15 }).observe($el)"
+        class="relative scroll-mt-24 bg-brand-surface"
+        x-data="{ open: {{ $errors->any() || session('status') === 'review-submitted' ? 'true' : 'false' }}, rating: {{ (int) old('rating', 0) }}, hover: 0 }"
+        x-on:open-review-form.window="open = true"
     >
-        <div class="absolute inset-x-0 top-0 h-px bg-brand-signature/15"></div>
-
         <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-16 sm:py-20">
-            <div
-                class="text-center"
-                style="transition: opacity .7s ease, transform .7s ease;"
-                :style="shown ? 'opacity:1; transform:translateY(0)' : 'opacity:0; transform:translateY(1.5rem)'"
-            >
+            <div class="text-center" data-reveal>
                 <span class="text-xs uppercase tracking-[0.3em] text-brand-signature">Votre avis compte</span>
                 <h2 class="mt-3 font-display text-3xl sm:text-4xl text-brand-ink leading-tight">Partagez votre expérience</h2>
                 <p class="mt-3 text-brand-muted">Quelques mots suffisent. Votre avis sera publié après vérification par notre équipe.</p>
+
+                <button
+                    type="button"
+                    x-show="! open"
+                    x-on:click="open = true"
+                    style="display: none"
+                    class="group mt-8 inline-flex items-center gap-2 rounded-sm border border-brand-ink/30 px-8 py-3 text-sm font-medium uppercase tracking-wide text-brand-ink transition hover:border-brand-ink"
+                >
+                    Écrire mon avis
+                    <svg class="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </button>
             </div>
 
             @if (session('status') === 'review-submitted')
@@ -287,9 +509,11 @@
             <form
                 method="post"
                 action="{{ route('shop.reviews.store') }}"
+                x-show="open"
+                x-transition:enter="transition ease-out duration-500"
+                x-transition:enter-start="opacity-0 -translate-y-4"
+                x-transition:enter-end="opacity-100 translate-y-0"
                 class="mt-10 space-y-6 rounded-sm border border-brand-ink/10 bg-white/70 backdrop-blur-sm p-6 sm:p-10 shadow-sm"
-                style="transition: opacity .8s ease .15s, transform .8s ease .15s;"
-                :style="shown ? 'opacity:1; transform:translateY(0)' : 'opacity:0; transform:translateY(2rem)'"
             >
                 @csrf
 
@@ -356,25 +580,4 @@
             </form>
         </div>
     </section>
-
-    {{-- Carrousel des avis PUBLIÉS (marquee, même gabarit que « À découvrir »),
-    placé APRÈS le formulaire. --}}
-    @if ($reviews->isNotEmpty())
-        <section class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-16">
-            <span class="text-xs uppercase tracking-[0.2em] text-brand-signature">Avis clients</span>
-            <h2 class="font-display text-3xl text-brand-ink mt-1 mb-8">Elles nous font confiance</h2>
-
-            <div class="overflow-hidden">
-                <div class="flex gap-6 w-max marquee-track">
-                    @foreach ([1, 2] as $repeat)
-                        @foreach ($reviews as $review)
-                            <div class="w-72 sm:w-80 flex-shrink-0">
-                                <x-shop.review-card :review="$review" />
-                            </div>
-                        @endforeach
-                    @endforeach
-                </div>
-            </div>
-        </section>
-    @endif
 </x-shop-layout>
