@@ -58,7 +58,7 @@ class JournalTest extends TestCase
 
         $this->get('/journal/'.$post->slug)
             ->assertOk()
-            ->assertSee('Dans cet article')
+            ->assertSee('Les pièces de cet article')
             ->assertSee($product->name);
     }
 

@@ -1,37 +1,97 @@
 <x-shop-layout :title="$post->title.' — '.config('app.name')">
-    <article class="max-w-3xl mx-auto px-4 sm:px-6 py-8">
-        <a href="{{ route('shop.journal') }}" class="text-sm underline text-brand-muted hover:text-brand-signature">
-            ← Retour au journal
-        </a>
+    @php
+        // Partage WhatsApp : titre + lien de l'article, en un toucher.
+        $shareUrl = 'https://wa.me/?text='.rawurlencode($post->title.' — '.route('shop.post', $post));
+    @endphp
 
-        <p class="mt-6 text-xs uppercase tracking-[0.25em] text-brand-signature">
-            Journal — {{ $post->published_at->format('d/m/Y') }}
-        </p>
-        <h1 class="font-display text-4xl sm:text-5xl mt-2">{{ $post->title }}</h1>
+    <article>
+        {{-- EN-TÊTE DE MAGAZINE --}}
+        <header class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 pt-12 sm:pt-16 text-center" data-reveal>
+            <a href="{{ route('shop.journal') }}" class="group inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-brand-muted transition hover:text-brand-signature">
+                <svg class="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-x-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+                Journal
+            </a>
 
-        @if ($image = $post->sizedUrl('large'))
-            <img
-                src="{{ $image }}"
-                alt="{{ $post->title }}"
-                class="mt-8 w-full rounded-sm object-cover object-center max-h-[420px]"
-            >
-        @endif
+            <p class="mt-8 text-xs uppercase tracking-[0.25em] text-brand-signature">
+                {{ $post->published_at->translatedFormat('j F Y') }} · {{ $post->readingMinutes() }} min de lecture
+            </p>
+            <h1 class="mx-auto mt-5 max-w-4xl font-display text-4xl sm:text-6xl lg:text-7xl leading-[1.05] text-brand-ink">{{ $post->title }}</h1>
+        </header>
 
-        {{-- Contenu assaini côté modèle (Post::safeContent) : pas de script,
-             même si la source était compromise. --}}
-        <div class="mt-8 space-y-4 text-brand-ink leading-relaxed [&_h2]:font-display [&_h2]:text-2xl [&_h2]:mt-8 [&_a]:underline [&_a]:text-brand-signature [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_blockquote]:border-l-2 [&_blockquote]:border-brand-signature [&_blockquote]:pl-4 [&_blockquote]:italic">
-            {!! $post->safeContent() !!}
+        <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 mt-12 sm:mt-16" data-reveal style="--reveal-delay: 120ms">
+            <div class="relative mx-3 sm:mx-5">
+                <x-shop.post-cover :post="$post" size="large" class="aspect-[16/9] lg:aspect-[2/1]" />
+                <div class="passage-frame pointer-events-none absolute -inset-3 sm:-inset-5"></div>
+            </div>
         </div>
 
-        @if ($post->products->isNotEmpty())
-            <section class="mt-12 border-t border-brand-ink/10 pt-8">
-                <h2 class="font-display text-2xl">Dans cet article</h2>
-                <div class="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 lg:grid-cols-4">
+        {{-- CORPS : chapeau en grand, lettrine Fraunces, ligne de lecture
+             confortable. Contenu assaini côté modèle (Post::safeContent) : pas
+             de script, même si la source était compromise. --}}
+        <div class="mx-auto max-w-2xl px-4 sm:px-6 py-14 sm:py-20">
+            @if ($post->excerpt)
+                <p class="font-display text-2xl sm:text-3xl leading-snug text-brand-ink">{{ $post->excerpt }}</p>
+                <span class="mt-8 block h-px w-16 bg-brand-accent"></span>
+            @endif
+
+            <div class="mt-10 space-y-6 text-lg leading-[1.85] text-brand-ink/85
+                        [&>p:first-child]:first-letter:float-left [&>p:first-child]:first-letter:mr-3 [&>p:first-child]:first-letter:mt-1 [&>p:first-child]:first-letter:font-display [&>p:first-child]:first-letter:text-7xl [&>p:first-child]:first-letter:leading-[0.8] [&>p:first-child]:first-letter:text-brand-signature
+                        [&_h2]:mt-12 [&_h2]:font-display [&_h2]:text-3xl [&_h2]:text-brand-ink [&_h3]:mt-8 [&_h3]:font-display [&_h3]:text-2xl
+                        [&_a]:text-brand-signature [&_a]:underline [&_a]:underline-offset-4
+                        [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6
+                        [&_blockquote]:my-10 [&_blockquote]:border-l-2 [&_blockquote]:border-brand-accent [&_blockquote]:pl-6 [&_blockquote]:font-display [&_blockquote]:text-2xl [&_blockquote]:italic [&_blockquote]:text-brand-ink">
+                {!! $post->safeContent() !!}
+            </div>
+
+            <div class="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-brand-ink/10 pt-8">
+                <p class="text-sm text-brand-muted">Cet article vous a plu ? Partagez-le.</p>
+                <a href="{{ $shareUrl }}" target="_blank" rel="noopener" class="inline-flex items-center gap-3 border border-brand-ink/30 px-6 py-3 text-xs font-medium uppercase tracking-[0.15em] text-brand-ink transition hover:border-brand-ink">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                    </svg>
+                    Partager sur WhatsApp
+                </a>
+            </div>
+        </div>
+    </article>
+
+    {{-- LES PIÈCES DE CET ARTICLE --}}
+    @if ($post->products->isNotEmpty())
+        <section class="border-t border-brand-ink/10 bg-brand-parchment/60">
+            <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-16 sm:py-20">
+                <div class="mb-10" data-reveal>
+                    <span class="text-xs uppercase tracking-[0.3em] text-brand-signature">À retrouver en boutique</span>
+                    <h2 class="mt-3 font-display text-3xl sm:text-4xl text-brand-ink">Les pièces de cet article</h2>
+                </div>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4" data-reveal>
                     @foreach ($post->products as $product)
                         <x-shop.product-card :product="$product" />
                     @endforeach
                 </div>
-            </section>
-        @endif
-    </article>
+            </div>
+        </section>
+    @endif
+
+    {{-- À LIRE AUSSI --}}
+    @if ($others->isNotEmpty())
+        <section class="border-t border-brand-ink/10">
+            <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-16 sm:py-20">
+                <div class="mb-10 flex items-end justify-between gap-4" data-reveal>
+                    <h2 class="font-display text-3xl text-brand-ink">À lire aussi</h2>
+                    <a href="{{ route('shop.journal') }}" class="whitespace-nowrap text-xs uppercase tracking-[0.2em] text-brand-ink/70 transition hover:text-brand-signature">Tout le journal →</a>
+                </div>
+                <div class="grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($others as $other)
+                        <a href="{{ route('shop.post', $other) }}" class="group block" data-reveal style="--reveal-delay: {{ $loop->index * 100 }}ms">
+                            <x-shop.post-cover :post="$other" class="aspect-[4/3]" />
+                            <p class="mt-4 text-[0.65rem] uppercase tracking-[0.2em] text-brand-muted">{{ $other->published_at->translatedFormat('j F Y') }} · {{ $other->readingMinutes() }} min</p>
+                            <h3 class="mt-2 font-display text-xl leading-snug text-brand-ink transition group-hover:text-brand-signature">{{ $other->title }}</h3>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
 </x-shop-layout>

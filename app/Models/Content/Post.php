@@ -40,6 +40,25 @@ class Post extends Model
         return $this->belongsToMany(Product::class)->withTimestamps();
     }
 
+    /**
+     * Couverture affichée : la photo de l'article, sinon celle du premier
+     * produit lié (c'est de lui que parle l'article). Null = couverture
+     * typographique côté vue. Charger `products.images` pour éviter le N+1.
+     */
+    public function coverUrl(string $size): ?string
+    {
+        return $this->sizedUrl($size)
+            ?? $this->products->first(fn (Product $product) => $product->primaryImage())?->primaryImage()->sizedUrl($size);
+    }
+
+    /** Temps de lecture estimé, à 200 mots par minute (au moins 1 min). */
+    public function readingMinutes(): int
+    {
+        $words = preg_match_all('/[\p{L}\p{N}’\']+/u', strip_tags(($this->excerpt ?? '').' '.($this->content ?? '')));
+
+        return max(1, (int) ceil($words / 200));
+    }
+
     /** Visible publiquement : publié ET date de parution atteinte. */
     public function scopePublished(Builder $query): Builder
     {

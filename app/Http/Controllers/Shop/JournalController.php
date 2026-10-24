@@ -11,7 +11,11 @@ class JournalController extends Controller
     public function index(): View
     {
         return view('shop.journal', [
-            'posts' => Post::query()->published()->orderByDesc('published_at')->paginate(9),
+            // Produits liés chargés pour la couverture de repli (Post::coverUrl).
+            'posts' => Post::query()->published()
+                ->with(['products' => fn ($query) => $query->active()->with('images')])
+                ->orderByDesc('published_at')
+                ->paginate(9),
         ]);
     }
 
@@ -22,6 +26,14 @@ class JournalController extends Controller
 
         $post->load(['products' => fn ($query) => $query->active()->with(['category', 'images', 'variants'])]);
 
-        return view('shop.post', ['post' => $post]);
+        return view('shop.post', [
+            'post' => $post,
+            'others' => Post::query()->published()
+                ->whereKeyNot($post->id)
+                ->with(['products' => fn ($query) => $query->active()->with('images')])
+                ->orderByDesc('published_at')
+                ->take(3)
+                ->get(),
+        ]);
     }
 }
