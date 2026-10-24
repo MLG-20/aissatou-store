@@ -15,11 +15,11 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - **Tableau de bord** : chiffre d'affaires encaissé, commandes payées, panier moyen, taux de conversion (compteur de visites maison et anonyme, sans cookie ni IP stockée), paniers abandonnés, meilleures ventes, comparaison à la période précédente ; agrégats quotidiens pour rester rapide quel que soit l'historique
 - Catalogue, contenu éditorial, réglages du site, zones de livraison, messages reçus
 - Commandes : statuts avec transitions contrôlées et historique, facture PDF, organisation de la livraison
-- Paiements : statut réel, référence de transaction, journal immuable (y compris les notifications suspectes), vérification auprès du fournisseur
+- **Paiements** : une ligne par paiement en ligne ; la fiche donne le statut réel, la référence de transaction et tout le déroulement expliqué en français (journal immuable), vérification auprès du fournisseur ; onglet « Messages suspects » pour les notifications rejetées
 - **Codes promo** : pourcentage ou montant fixe, validité, minimum d'achat, ciblage produits/catégories, plafond d'utilisations (compteur atomique, revalidation complète à la validation de la commande), utilisation rendue si la commande est annulée
-- **Stock** : inventaire par catégorie, ajustement manuel avec motif obligatoire, journal immuable des mouvements, alertes email de stock faible (seuil global ou par déclinaison)
+- **Stock** : inventaire par catégorie, fiche par déclinaison avec son historique, ajustement manuel avec motif obligatoire, journal immuable des mouvements, alertes email de stock faible (seuil global ou par déclinaison) avec lien vers la fiche de l'article
 - **Clients** : segmentation (régulières, panier abandonné, inactives), historique complet des achats, lecture seule et consultation tracée
-- **Comptes admin et rôles** : admin complet ou gestionnaire (catalogue, stock, commandes), permissions revérifiées côté serveur sur chaque page et action, journal d'activité (connexions, comptes, commandes, réglages)
+- **Comptes admin et rôles** : admin complet ou gestionnaire (catalogue, stock, commandes), permissions revérifiées côté serveur sur chaque page et action, journal d'activité lisible (une phrase en clair par action : connexions, comptes, commandes, réglages)
 
 **API** : Laravel Sanctum, endpoints versionnés sous `/api/v1` (lecture du catalogue, authentification par jeton), en prévision d'une app mobile.
 
