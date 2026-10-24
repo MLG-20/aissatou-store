@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Order;
 use App\Enums\Admin\AdminPermission;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Order\OrderResource\Pages;
 use App\Models\Order\Order;
@@ -20,6 +21,7 @@ use Filament\Tables\Table;
  */
 class OrderResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission

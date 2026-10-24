@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Order;
 use App\Enums\Admin\AdminPermission;
 use App\Enums\Order\PaymentEventType;
 use App\Enums\Order\PaymentStatus;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Order\PaymentEventResource\Pages;
 use App\Models\Order\PaymentEvent;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class PaymentEventResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission

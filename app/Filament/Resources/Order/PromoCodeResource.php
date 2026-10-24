@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Order;
 
 use App\Enums\Admin\AdminPermission;
 use App\Enums\Order\PromoCodeType;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Order\PromoCodeResource\Pages;
 use App\Models\Order\PromoCode;
@@ -29,6 +30,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class PromoCodeResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission

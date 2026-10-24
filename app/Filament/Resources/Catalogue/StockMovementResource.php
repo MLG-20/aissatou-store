@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Catalogue;
 
 use App\Enums\Admin\AdminPermission;
 use App\Enums\Catalogue\StockMovementType;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\StockMovementResource\Pages;
 use App\Filament\Resources\Order\OrderResource;
@@ -22,6 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class StockMovementResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission

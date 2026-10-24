@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Delivery;
 
 use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Delivery\DeliveryZoneResource\Pages;
 use App\Models\Delivery\DeliveryZone;
@@ -19,6 +20,7 @@ use Filament\Tables\Table;
 
 class DeliveryZoneResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission

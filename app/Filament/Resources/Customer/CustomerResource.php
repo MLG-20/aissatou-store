@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Customer;
 
 use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Customer\CustomerResource\Pages;
 use App\Filament\Resources\Customer\CustomerResource\RelationManagers\OrdersRelationManager;
@@ -27,6 +28,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class CustomerResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission

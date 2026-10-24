@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Content;
 
 use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Content\PostResource\Pages;
 use App\Models\Content\Post;
@@ -30,6 +31,7 @@ use Filament\Tables\Table;
  */
 class PostResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission

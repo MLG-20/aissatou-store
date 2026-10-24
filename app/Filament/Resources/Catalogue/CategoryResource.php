@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Catalogue;
 
 use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\CategoryResource\Pages;
 use App\Models\Catalogue\Category;
@@ -27,6 +28,7 @@ use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission

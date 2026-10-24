@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Catalogue;
 
 use App\Enums\Admin\AdminPermission;
 use App\Enums\Catalogue\ProductLabel;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\ProductResource\Pages;
 use App\Models\Catalogue\Category;
@@ -39,6 +40,7 @@ use Illuminate\Support\Str;
 
 class ProductResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission

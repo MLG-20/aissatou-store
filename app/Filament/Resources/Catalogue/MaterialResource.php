@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Catalogue;
 
 use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\MaterialResource\Pages;
 use App\Models\Catalogue\Material;
@@ -24,6 +25,7 @@ use Filament\Tables\Table;
  */
 class MaterialResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission

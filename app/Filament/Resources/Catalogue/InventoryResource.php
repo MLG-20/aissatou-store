@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Catalogue;
 
 use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\InventoryResource\Pages;
 use App\Models\Admin;
@@ -32,6 +33,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class InventoryResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission

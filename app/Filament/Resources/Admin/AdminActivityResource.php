@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Admin;
 
 use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Admin\AdminActivityResource\Pages;
 use App\Models\AdminActivity;
@@ -19,6 +20,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class AdminActivityResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission

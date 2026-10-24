@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Content;
 
 use App\Enums\Admin\AdminPermission;
+use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Content\HeroSlideResource\Pages;
 use App\Models\Content\HeroSlide;
@@ -23,6 +24,7 @@ use Illuminate\Support\HtmlString;
 
 class HeroSlideResource extends Resource
 {
+    use HasSentenceCaseTitles;
     use RequiresAdminPermission;
 
     protected static function requiredPermission(): AdminPermission
