@@ -6,8 +6,11 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 
 **Site client**
 - Catalogue avec catégories, collections, matières, recherche et filtres AJAX, images WebP responsives
-- Panier invité et compte (fusion à la connexion), liste d'envies, avis clients, journal (articles)
-- Compte client : carnet d'adresses, historique et suivi des commandes (étapes, livreur, statut du paiement)
+- Accueil éditorial : univers en mosaïque, nouveautés, « Notre histoire », parcours « L'expérience Aissatou », avis clients avec note moyenne ; apparition douce au défilement (désactivée en « animations réduites »)
+- Collections en chapitres (sommaire, photo, aperçu des pièces) et journal en magazine (article à la une, temps de lecture, partage WhatsApp)
+- Panier invité et compte (fusion à la connexion), liste d'envies, avis clients
+- **Espace cliente** : salutation selon l'heure de son appareil, badge « Cliente fidèle », commande en cours avec frise de suivi datée, coups de cœur, profil à compléter, adresses, historique des commandes, déconnexion
+- Page contact : WhatsApp, e-mail, formulaire, réseaux sociaux ; afficher/masquer le mot de passe sur tous les formulaires
 - Tunnel de commande : récapitulatif, code promo, frais de livraison par zone calculés côté serveur, choix du paiement
 - **Paiement en ligne PayTech** : redirection, page d'attente qui revérifie le statut côté serveur, nouvel essai en cas d'échec, annulation automatique (et remise en stock) des commandes impayées après 30 min
 
