@@ -4,23 +4,29 @@ namespace App\Filament\Resources\Order;
 
 use App\Enums\Admin\AdminPermission;
 use App\Enums\Order\PaymentEventType;
-use App\Enums\Order\PaymentStatus;
+use App\Filament\Clusters\Payments;
 use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Order\PaymentEventResource\Pages;
 use App\Models\Order\PaymentEvent;
-use App\Support\KeyValueSummary;
+use App\Support\PaymentEventDetails;
+use Filament\Infolists\Components\KeyValueEntry;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
+use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Journal financier (phase 5) : toutes les tentatives, notifications et
- * vérifications, y compris les notifications suspectes qui ne se rattachent
- * à aucune commande. Lecture seule — le journal est immuable, rien ne se
- * crée, ne se modifie ni ne se supprime ici.
+ * Onglet « Messages suspects » des paiements : messages se faisant passer
+ * pour PayTech, rejetés (signature, commande ou montant incorrect), y
+ * compris ceux qui ne visent aucune commande. Lecture seule — le journal
+ * financier est immuable, rien ne se crée, ne se modifie ni ne se supprime.
  */
 class PaymentEventResource extends Resource
 {
@@ -34,38 +40,46 @@ class PaymentEventResource extends Resource
 
     protected static ?string $model = PaymentEvent::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-document-magnifying-glass';
+    protected static ?string $cluster = Payments::class;
 
-    protected static ?string $navigationGroup = 'Commandes';
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
-    protected static ?string $navigationLabel = 'Journal des paiements';
+    protected static ?string $slug = 'messages-suspects';
+
+    protected static ?string $navigationIcon = 'heroicon-o-shield-exclamation';
+
+    protected static ?string $navigationLabel = 'Messages suspects';
 
     protected static ?int $navigationSort = 2;
 
     public static function getModelLabel(): string
     {
-        return 'événement de paiement';
+        return 'message suspect';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'journal des paiements';
+        return 'messages suspects';
     }
 
-    /** Alerte : notifications suspectes des 7 derniers jours. */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('type', PaymentEventType::SuspiciousNotification);
+    }
+
     public static function getNavigationBadge(): ?string
     {
-        $suspicious = PaymentEvent::query()
-            ->where('type', PaymentEventType::SuspiciousNotification)
-            ->where('created_at', '>=', now()->subDays(7))
-            ->count();
-
-        return $suspicious > 0 ? (string) $suspicious : null;
+        return Payments::getNavigationBadge();
     }
 
     public static function getNavigationBadgeColor(): ?string
     {
         return 'danger';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return Payments::getNavigationBadgeTooltip();
     }
 
     public static function canCreate(): bool
@@ -89,52 +103,107 @@ class PaymentEventResource extends Resource
             ->columns([
                 TextColumn::make('created_at')
                     ->label('Date')
-                    ->dateTime('d/m/Y H:i:s')
+                    ->dateTime('d/m/Y H:i')
                     ->sortable(),
-                TextColumn::make('type')
-                    ->label('Événement')
-                    ->badge()
-                    ->formatStateUsing(fn (PaymentEventType $state): string => $state->label())
-                    ->color(fn (PaymentEventType $state): string => match ($state) {
-                        PaymentEventType::Confirmed => 'success',
-                        PaymentEventType::Failed, PaymentEventType::InitiationFailed, PaymentEventType::Expired => 'warning',
-                        PaymentEventType::SuspiciousNotification => 'danger',
-                        default => 'gray',
-                    }),
-                TextColumn::make('payment.order.number')
-                    ->label('Commande')
-                    ->placeholder('inconnue')
-                    ->searchable()
-                    ->url(fn (PaymentEvent $record): ?string => $record->payment?->order
-                        ? OrderResource::getUrl('view', ['record' => $record->payment->order])
-                        : null),
-                TextColumn::make('provider')->label('Fournisseur'),
-                TextColumn::make('status')
-                    ->label('Statut paiement')
-                    ->formatStateUsing(fn (?string $state): string => PaymentStatus::tryFrom((string) $state)?->label() ?? '—'),
-                TextColumn::make('ip')->label('IP')->placeholder('serveur'),
-                TextColumn::make('details')
-                    ->label('Détails')
-                    // Payload déjà expurgé à l'écriture (ni empreintes de clés,
-                    // ni numéro complet du payeur).
-                    ->getStateUsing(fn (PaymentEvent $record): ?string => KeyValueSummary::of($record->payload))
-                    ->wrap()
+                TextColumn::make('reason')
+                    ->label('Motif du rejet')
+                    ->getStateUsing(fn (PaymentEvent $record): ?string => $record->payload['motif'] ?? null)
                     ->placeholder('—'),
+                TextColumn::make('payment.order.number')
+                    ->label('Commande visée')
+                    ->placeholder('aucune')
+                    ->searchable(),
             ])
             ->defaultSort('id', 'desc')
-            ->filters([
-                SelectFilter::make('type')
-                    ->label('Événement')
-                    ->options(collect(PaymentEventType::cases())
-                        ->mapWithKeys(fn (PaymentEventType $type) => [$type->value => $type->label()])
-                        ->all()),
+            ->actions([
+                ViewAction::make()->label('Voir la fiche'),
             ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make('Ce qui s\'est passé')
+                    ->schema([
+                        TextEntry::make('type')
+                            ->label('Événement')
+                            ->badge()
+                            ->formatStateUsing(fn (PaymentEventType $state): string => $state->label())
+                            ->color(fn (PaymentEventType $state): string => $state->color()),
+                        TextEntry::make('created_at')
+                            ->label('Le')
+                            ->dateTime('d/m/Y à H:i:s'),
+                        TextEntry::make('explanation')
+                            ->label('En clair')
+                            ->getStateUsing(fn (PaymentEvent $record): string => $record->type->description())
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2),
+
+                Section::make('Commande visée')
+                    ->schema([
+                        TextEntry::make('payment.order.number')
+                            ->label('Commande')
+                            ->placeholder('Aucune commande correspondante')
+                            ->url(fn (PaymentEvent $record): ?string => $record->payment?->order
+                                ? OrderResource::getUrl('view', ['record' => $record->payment->order])
+                                : null)
+                            ->color('primary'),
+                        TextEntry::make('client')
+                            ->label('Client')
+                            ->getStateUsing(fn (PaymentEvent $record): ?string => self::clientName($record))
+                            ->placeholder('—'),
+                        TextEntry::make('payment.amount')
+                            ->label('Montant de la commande')
+                            ->money('XOF')
+                            ->placeholder('—'),
+                        TextEntry::make('payment.method')
+                            ->label('Moyen de paiement')
+                            ->placeholder('—'),
+                    ])
+                    ->columns(4),
+
+                Section::make('Informations transmises')
+                    ->visible(fn (PaymentEvent $record): bool => filled($record->payload))
+                    ->schema([
+                        // Payload déjà expurgé à l'écriture (ni empreintes de
+                        // clés, ni numéro complet du payeur).
+                        KeyValueEntry::make('details')
+                            ->label('')
+                            ->keyLabel('Information')
+                            ->valueLabel('Valeur')
+                            ->getStateUsing(fn (PaymentEvent $record): array => PaymentEventDetails::of($record->payload)),
+                    ]),
+
+                Section::make('Informations techniques')
+                    ->description('Utiles en cas de litige ou pour le support technique.')
+                    ->collapsed()
+                    ->schema([
+                        TextEntry::make('id')->label('N° de l\'événement'),
+                        TextEntry::make('provider')->label('Fournisseur'),
+                        TextEntry::make('ip')
+                            ->label('Adresse IP d\'origine')
+                            ->placeholder('boutique')
+                            ->helperText('« boutique » : action déclenchée par le site lui-même.'),
+                    ])
+                    ->columns(3),
+            ]);
+    }
+
+    /** Compte client, sinon destinataire saisi au checkout. */
+    private static function clientName(PaymentEvent $record): ?string
+    {
+        $order = $record->payment?->order;
+
+        return $order?->user?->name ?? $order?->recipient_name;
     }
 
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListPaymentEvents::route('/'),
+            'view' => Pages\ViewPaymentEvent::route('/{record}'),
         ];
     }
 }

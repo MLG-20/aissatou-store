@@ -4,9 +4,14 @@ namespace Tests\Feature\Admin;
 
 use App\Enums\Order\PaymentEventType;
 use App\Enums\Order\PaymentStatus;
+use App\Filament\Clusters\Payments;
 use App\Filament\Resources\Order\OrderResource\Pages\ViewOrder;
 use App\Filament\Resources\Order\PaymentEventResource;
 use App\Filament\Resources\Order\PaymentEventResource\Pages\ListPaymentEvents;
+use App\Filament\Resources\Order\PaymentEventResource\Pages\ViewPaymentEvent;
+use App\Filament\Resources\Order\PaymentResource;
+use App\Filament\Resources\Order\PaymentResource\Pages\ListPayments;
+use App\Filament\Resources\Order\PaymentResource\Pages\ViewPayment;
 use App\Models\Admin;
 use App\Models\Cart\Cart;
 use App\Models\Cart\CartItem;
@@ -72,7 +77,8 @@ class PaymentAdminTest extends TestCase
             ->assertSee('Statut réel')
             ->assertSee('En cours')
             ->assertSee('Journal du paiement')
-            ->assertSee('Paiement initié')
+            ->assertSee('Client envoyé vers la page de paiement')
+            ->assertSee('Montant demandé : 10 000 FCFA')
             ->assertSee($order->number.'-1');
     }
 
@@ -123,7 +129,46 @@ class PaymentAdminTest extends TestCase
             ->assertActionHidden('verifyPayment');
     }
 
-    public function test_the_payment_journal_lists_suspicious_notifications_and_is_read_only(): void
+    public function test_the_payments_tab_lists_one_line_per_online_payment(): void
+    {
+        $order = $this->paytechOrder();
+        $user = User::factory()->create();
+        $product = Product::factory()->create();
+        $cart = Cart::create(['user_id' => $user->id]);
+        CartItem::create(['cart_id' => $cart->id, 'product_id' => $product->id, 'quantity' => 1]);
+        $cod = app(OrderService::class)->createFromCart($user, $cart, Address::factory()->for($user)->create(), 'cod');
+        $this->actingAs(Admin::factory()->create(), 'admin');
+
+        Livewire::test(ListPayments::class)
+            ->assertCanSeeTableRecords([$order->payment])
+            ->assertCanNotSeeTableRecords([$cod->payment])
+            ->assertSee($order->user->name)
+            ->assertSee('En cours')
+            ->assertTableActionExists('view');
+
+        $this->assertFalse(PaymentResource::canCreate());
+        $this->assertFalse(PaymentResource::canEdit($order->payment));
+        $this->assertFalse(PaymentResource::canDelete($order->payment));
+    }
+
+    public function test_the_payment_sheet_tells_the_whole_story_in_plain_words(): void
+    {
+        $order = $this->paytechOrder();
+        $this->actingAs(Admin::factory()->create(), 'admin');
+
+        Livewire::test(ViewPayment::class, ['record' => $order->payment->getRouteKey()])
+            ->assertSee('Paiement de la commande '.$order->number)
+            ->assertSee($order->user->name)
+            ->assertSee('Déroulement')
+            ->assertSee('Client envoyé vers la page de paiement')
+            ->assertSee('redirigé vers PayTech pour payer')
+            ->assertSee('Montant demandé')
+            ->assertSee('10 000 FCFA')
+            ->assertSee('Test (aucun argent réel)')
+            ->assertDontSee('ref_command');
+    }
+
+    public function test_suspicious_messages_have_their_own_tab_and_sheet(): void
     {
         $suspect = PaymentEvent::create([
             'provider' => 'paytech',
@@ -131,23 +176,49 @@ class PaymentAdminTest extends TestCase
             'payload' => ['ref_command' => 'AS-2026-FAUX00-1', 'motif' => 'signature invalide'],
             'ip' => '203.0.113.9',
         ]);
+        $normal = $this->paytechOrder()->payment->events()->first();
         $this->actingAs(Admin::factory()->create(), 'admin');
 
         Livewire::test(ListPaymentEvents::class)
             ->assertCanSeeTableRecords([$suspect])
+            ->assertCanNotSeeTableRecords([$normal])
             ->assertSee('signature invalide')
+            ->assertDontSee('203.0.113.9');
+
+        // La fiche garde tout pour un litige, en clair.
+        Livewire::test(ViewPaymentEvent::class, ['record' => $suspect->getRouteKey()])
+            ->assertSee('Message suspect bloqué')
+            ->assertSee('Aucune commande correspondante')
+            ->assertSee('Motif du rejet')
             ->assertSee('203.0.113.9');
 
-        $this->assertEquals('1', PaymentEventResource::getNavigationBadge());
+        $this->assertEquals('1', Payments::getNavigationBadge());
         $this->assertFalse(PaymentEventResource::canCreate());
         $this->assertFalse(PaymentEventResource::canEdit($suspect));
         $this->assertFalse(PaymentEventResource::canDelete($suspect));
     }
 
+    public function test_old_payment_journal_links_lead_to_the_new_pages(): void
+    {
+        $event = $this->paytechOrder()->payment->events()->first();
+        $suspect = PaymentEvent::create([
+            'provider' => 'paytech',
+            'type' => PaymentEventType::SuspiciousNotification,
+            'payload' => ['motif' => 'signature invalide'],
+        ]);
+        $this->actingAs(Admin::factory()->create(), 'admin');
+
+        $this->get('/admin/order/payment-events')->assertRedirect(PaymentResource::getUrl('index'));
+        $this->get('/admin/order/payment-events/'.$event->id)
+            ->assertRedirect(PaymentResource::getUrl('view', ['record' => $event->payment_id]));
+        $this->get('/admin/order/payment-events/'.$suspect->id)
+            ->assertRedirect(PaymentEventResource::getUrl('view', ['record' => $suspect]));
+    }
+
     public function test_the_journal_is_reserved_to_admins(): void
     {
         $this->actingAs(User::factory()->create())
-            ->get(PaymentEventResource::getUrl('index'))
+            ->get(PaymentResource::getUrl('index'))
             ->assertRedirect();
     }
 

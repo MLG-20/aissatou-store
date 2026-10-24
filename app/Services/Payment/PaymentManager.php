@@ -23,6 +23,21 @@ class PaymentManager
         return collect($this->providers())->firstWhere(fn (PaymentProvider $provider) => $provider->key() === $key);
     }
 
+    /**
+     * Clés des fournisseurs en ligne, même désactivés : les paiements passés
+     * restent consultables au back-office.
+     *
+     * @return list<string>
+     */
+    public function onlineKeys(): array
+    {
+        return collect($this->providers())
+            ->filter(fn (PaymentProvider $provider) => $provider->isOnline())
+            ->map(fn (PaymentProvider $provider) => $provider->key())
+            ->values()
+            ->all();
+    }
+
     /** @return list<PaymentProvider> */
     private function providers(): array
     {

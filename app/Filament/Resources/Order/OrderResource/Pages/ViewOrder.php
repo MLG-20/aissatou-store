@@ -8,13 +8,15 @@ use App\Enums\Order\PaymentEventType;
 use App\Enums\Order\PaymentStatus;
 use App\Exceptions\OrderException;
 use App\Filament\Resources\Order\OrderResource;
+use App\Filament\Resources\Order\PaymentEventResource;
+use App\Filament\Resources\Order\PaymentResource;
 use App\Models\Admin;
 use App\Models\Order\Order;
 use App\Models\Order\PaymentEvent;
 use App\Services\AdminAudit;
 use App\Services\OrderService;
 use App\Services\Payment\PaymentService;
-use App\Support\KeyValueSummary;
+use App\Support\PaymentEventDetails;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -117,20 +119,18 @@ class ViewOrder extends ViewRecord
                             ->schema([
                                 TextEntry::make('created_at')->label('Date')->dateTime('d/m/Y H:i:s'),
                                 TextEntry::make('type')
-                                    ->label('Événement')
+                                    ->label('Ce qui s\'est passé')
                                     ->badge()
                                     ->formatStateUsing(fn (PaymentEventType $state): string => $state->label())
-                                    ->color(fn (PaymentEventType $state): string => match ($state) {
-                                        PaymentEventType::Confirmed => 'success',
-                                        PaymentEventType::Failed, PaymentEventType::InitiationFailed, PaymentEventType::Expired => 'warning',
-                                        PaymentEventType::SuspiciousNotification => 'danger',
-                                        default => 'gray',
-                                    }),
-                                TextEntry::make('ip')->label('IP')->placeholder('serveur'),
+                                    ->color(fn (PaymentEventType $state): string => $state->color())
+                                    ->url(fn (PaymentEvent $record): string => $record->type === PaymentEventType::SuspiciousNotification
+                                        ? PaymentEventResource::getUrl('view', ['record' => $record])
+                                        : PaymentResource::getUrl('view', ['record' => $record->payment_id])),
                                 TextEntry::make('details')
                                     ->label('Détails')
-                                    ->getStateUsing(fn (PaymentEvent $record): ?string => KeyValueSummary::of($record->payload))
-                                    ->placeholder('—'),
+                                    ->getStateUsing(fn (PaymentEvent $record): ?string => PaymentEventDetails::summary($record->payload))
+                                    ->placeholder('—')
+                                    ->columnSpan(2),
                             ])
                             ->columns(4),
                     ]),
