@@ -7,11 +7,13 @@ use App\Models\Catalogue\Category;
 use App\Models\Catalogue\Collection;
 use App\Models\Catalogue\ProductImage;
 use App\Models\Content\HeroSlide;
+use App\Models\Content\Look;
 use App\Models\Content\Post;
 use App\Models\Content\SiteSetting;
 use App\Observers\CategoryObserver;
 use App\Observers\CollectionObserver;
 use App\Observers\HeroSlideObserver;
+use App\Observers\LookObserver;
 use App\Observers\PostObserver;
 use App\Observers\ProductImageObserver;
 use App\Services\AdminAudit;
@@ -41,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
     {
         ProductImage::observe(ProductImageObserver::class);
         HeroSlide::observe(HeroSlideObserver::class);
+        Look::observe(LookObserver::class);
         Category::observe(CategoryObserver::class);
         Collection::observe(CollectionObserver::class);
         Post::observe(PostObserver::class);

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
-    'trust_items', 'about_story', 'about_quote', 'about_values',
+    'trust_items', 'marquee_items', 'about_story', 'about_quote', 'about_values',
     'contact_whatsapp', 'contact_email', 'contact_address', 'contact_hours',
     'footer_tagline', 'social_instagram', 'social_facebook', 'social_tiktok',
     'auth_title', 'auth_subtitle', 'auth_image_path',
@@ -26,6 +26,7 @@ class SiteSetting extends Model
     {
         return [
             'trust_items' => 'array',
+            'marquee_items' => 'array',
             'about_values' => 'array',
             'low_stock_threshold' => 'integer',
         ];
@@ -43,6 +44,13 @@ class SiteSetting extends Model
                 'Payez à la réception, en toute confiance',
                 'Une livraison préparée avec soin, rien que pour vous',
                 'Une conseillère à votre écoute, comme une amie',
+            ],
+            'marquee_items' => [
+                'Paiement à la réception',
+                'Wave, Orange Money ou carte',
+                'Livraison à Dakar et en régions',
+                'Une conseillère sur WhatsApp',
+                'Pièces choisies une à une',
             ],
             // Textes par défaut repris du positionnement officiel de la marque
             // (rapport d'identité p.2). Éditables depuis Filament.

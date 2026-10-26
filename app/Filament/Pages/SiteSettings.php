@@ -53,6 +53,9 @@ class SiteSettings extends Page implements HasForms
         $settings['trust_items'] = collect($settings['trust_items'] ?? [])
             ->map(fn (string $text) => ['text' => $text])
             ->all();
+        $settings['marquee_items'] = collect($settings['marquee_items'] ?? [])
+            ->map(fn (string $text) => ['text' => $text])
+            ->all();
 
         // Le champ d'upload de l'image d'auth démarre vide (l'image actuelle est
         // montrée en aperçu) : le remplir = remplacer, le laisser vide = conserver
@@ -75,6 +78,18 @@ class SiteSettings extends Page implements HasForms
                             ->maxItems(3)
                             ->minItems(1)
                             ->reorderable(false),
+                    ]),
+
+                Section::make('Bandeau défilant')
+                    ->description("Les courtes phrases qui défilent sous la grande photo de l'accueil. Restez bref : 3 à 5 mots chacune.")
+                    ->schema([
+                        Repeater::make('marquee_items')
+                            ->label('Phrases')
+                            ->simple(TextInput::make('text')->required()->maxLength(60))
+                            ->maxItems(6)
+                            ->reorderable()
+                            ->defaultItems(0)
+                            ->helperText('Laissez vide pour masquer le bandeau.'),
                     ]),
 
                 Section::make('Pages de connexion & inscription')
@@ -182,6 +197,11 @@ class SiteSettings extends Page implements HasForms
         $state = $this->form->getState();
 
         $state['trust_items'] = collect($state['trust_items'] ?? [])
+            ->pluck('text')
+            ->filter()
+            ->values()
+            ->all();
+        $state['marquee_items'] = collect($state['marquee_items'] ?? [])
             ->pluck('text')
             ->filter()
             ->values()

@@ -9,6 +9,7 @@ use App\Filament\Resources\Admin\AdminResource;
 use App\Filament\Resources\Admin\AdminResource\Pages\CreateAdmin;
 use App\Filament\Resources\Admin\AdminResource\Pages\EditAdmin;
 use App\Filament\Resources\Catalogue\ProductResource;
+use App\Filament\Resources\Content\LookResource;
 use App\Filament\Resources\Content\PostResource;
 use App\Filament\Resources\Delivery\DeliveryZoneResource;
 use App\Filament\Resources\Order\OrderResource;
@@ -75,6 +76,8 @@ class AdminRolesTest extends TestCase
             AdminActivityResource::getUrl('index'),
             DeliveryZoneResource::getUrl('index'),
             PostResource::getUrl('index'),
+            LookResource::getUrl('index'),
+            LookResource::getUrl('create'),
             SiteSettings::getUrl(),
         ] as $url) {
             $this->get($url)->assertForbidden();

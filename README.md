@@ -269,7 +269,7 @@ app/
 │   ├── Catalogue/             produits, déclinaisons, images, catégories, collections, matières, mouvements de stock
 │   ├── Order/                 commandes, lignes, historique de statut, paiements, journal des paiements, codes promo
 │   ├── Cart/, Wishlist/, Customer/ (adresses), Delivery/ (zones)
-│   ├── Content/, Contact/     accueil, journal, avis, réglages du site, messages reçus
+│   ├── Content/, Contact/     accueil (hero, « Le Look »), journal, avis, réglages, messages
 │   ├── User                   clientes (guard web)
 │   └── Admin, AdminActivity   comptes back-office (guard admin) et journal d'activité
 │

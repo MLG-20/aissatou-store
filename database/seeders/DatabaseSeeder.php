@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             DeliveryZoneSeeder::class,
             ReviewSeeder::class,
             OrderDemoSeeder::class,
+            LookDemoSeeder::class,
         ]);
 
         User::factory()->create([

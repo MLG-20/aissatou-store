@@ -97,6 +97,8 @@
         @endif
     </section>
 
+    @include('shop.partials.home-marquee', ['items' => $settings->marquee_items ?? []])
+
     {{-- NOS UNIVERS — une tuile par catégorie racine (architecture de l'offre,
          rapport d'identité p.3), en mosaïque éditoriale : la première tuile
          occupe deux rangées, le nom est posé sur la photo, et le cadre ouvert
@@ -249,6 +251,8 @@
         </section>
     @endif
 
+    @include('shop.partials.home-look')
+
     {{-- NOTRE HISTOIRE — le récit de la maison (page À propos), en version courte :
          citation en grand, premier paragraphe, les trois valeurs. Tout vient des
          réglages du site (Filament > Contenu du site > Réglages du site). --}}
@@ -317,6 +321,8 @@
             </div>
         </section>
     @endif
+
+    @include('shop.partials.home-gifts')
 
     {{-- L'EXPÉRIENCE AISSATOU — les indicateurs de confiance (texte éditable :
          Filament > Contenu du site > Réglages du site), présentés comme un
@@ -466,6 +472,8 @@
             </div>
         </section>
     @endif
+
+    @include('shop.partials.home-journal')
 
     {{-- FORMULAIRE d'avis — replié derrière un bouton : il ne s'impose plus en
          grand sur l'accueil. Il s'ouvre d'office après un envoi (message de
