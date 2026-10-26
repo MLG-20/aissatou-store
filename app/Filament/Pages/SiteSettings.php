@@ -43,6 +43,9 @@ class SiteSettings extends Page implements HasForms
 
     public ?array $data = [];
 
+    /** Images des réglages : laissées vides à l'enregistrement = conservées. */
+    private const IMAGE_FIELDS = ['auth_image_path', 'story_image_path'];
+
     public function mount(): void
     {
         $settings = SiteSetting::current()->toArray();
@@ -57,10 +60,12 @@ class SiteSettings extends Page implements HasForms
             ->map(fn (string $text) => ['text' => $text])
             ->all();
 
-        // Le champ d'upload de l'image d'auth démarre vide (l'image actuelle est
+        // Les champs d'upload d'image démarrent vides (l'image actuelle est
         // montrée en aperçu) : le remplir = remplacer, le laisser vide = conserver
         // (voir save()). Même logique que le hero.
-        $settings['auth_image_path'] = null;
+        foreach (self::IMAGE_FIELDS as $field) {
+            $settings[$field] = null;
+        }
 
         $this->form->fill($settings);
     }
@@ -81,7 +86,7 @@ class SiteSettings extends Page implements HasForms
                     ]),
 
                 Section::make('Bandeau défilant')
-                    ->description("Les courtes phrases qui défilent sous la grande photo de l'accueil. Restez bref : 3 à 5 mots chacune.")
+                    ->description("Une information à faire passer (promo, délai de livraison…) ? Ajoutez de courtes phrases : elles défilent sous la grande photo de l'accueil. Restez bref : 3 à 5 mots chacune.")
                     ->schema([
                         Repeater::make('marquee_items')
                             ->label('Phrases')
@@ -97,23 +102,10 @@ class SiteSettings extends Page implements HasForms
                     ->schema([
                         Placeholder::make('auth_image_preview')
                             ->label('Image actuelle du panneau')
-                            ->content(function (): HtmlString {
-                                $path = SiteSetting::current()->auth_image_path;
-
-                                if (! $path) {
-                                    return new HtmlString(
-                                        '<span style="color:#6b7280;">Aucune image — le panneau affiche le fond ébène + or de la charte.</span>'
-                                    );
-                                }
-
-                                $url = Storage::disk('public')->url($path);
-
-                                return new HtmlString(
-                                    '<img src="'.e($url).'" alt="Image du panneau d\'auth" '
-                                    .'style="max-width:100%;max-height:220px;border-radius:0.75rem;'
-                                    .'box-shadow:0 1px 3px rgba(0,0,0,.15);object-fit:cover;">'
-                                );
-                            }),
+                            ->content(fn (): HtmlString => self::imagePreview(
+                                SiteSetting::current()->auth_image_path,
+                                'Aucune image — le panneau affiche le fond ébène + or de la charte.'
+                            )),
 
                         ImageSlot::AuthPanel->configure(
                             FileUpload::make('auth_image_path'),
@@ -132,6 +124,26 @@ class SiteSettings extends Page implements HasForms
                             ->label('Sous-texte')
                             ->rows(2)
                             ->maxLength(500),
+                    ]),
+
+                Section::make('Accueil — section « La Maison »')
+                    ->description("La photo à côté de la citation de la marque, sur la page d'accueil. Le texte vient de « Page À propos » ci-dessous.")
+                    ->schema([
+                        Placeholder::make('story_image_preview')
+                            ->label('Image actuelle')
+                            ->content(fn (): HtmlString => self::imagePreview(
+                                SiteSetting::current()->story_image_path,
+                                'Aucune image — la section reprend la première photo du hero.'
+                            )),
+
+                        ImageSlot::Story->configure(
+                            FileUpload::make('story_image_path'),
+                            'Laissez vide pour conserver l\'image ci-dessus.'
+                        )
+                            ->label("Changer l'image")
+                            ->disk('public')
+                            ->directory('story')
+                            ->visibility('public'),
                     ]),
 
                 Section::make('Page À propos')
@@ -202,10 +214,12 @@ class SiteSettings extends Page implements HasForms
             ->values()
             ->all();
 
-        // Image d'auth laissée vide => on conserve l'existante (on ne l'écrase
-        // pas avec null). Une nouvelle image déposée remplace.
-        if (blank($state['auth_image_path'] ?? null)) {
-            unset($state['auth_image_path']);
+        // Image laissée vide => on conserve l'existante (on ne l'écrase pas
+        // avec null). Une nouvelle image déposée remplace.
+        foreach (self::IMAGE_FIELDS as $field) {
+            if (blank($state[$field] ?? null)) {
+                unset($state[$field]);
+            }
         }
 
         $settings = SiteSetting::current();
@@ -218,5 +232,20 @@ class SiteSettings extends Page implements HasForms
         }
 
         Notification::make()->title('Réglages enregistrés')->success()->send();
+    }
+
+    private static function imagePreview(?string $path, string $empty): HtmlString
+    {
+        if (! $path) {
+            return new HtmlString('<span style="color:#6b7280;">'.e($empty).'</span>');
+        }
+
+        $url = Storage::disk('public')->url($path);
+
+        return new HtmlString(
+            '<img src="'.e($url).'" alt="" '
+            .'style="max-width:100%;max-height:220px;border-radius:0.75rem;'
+            .'box-shadow:0 1px 3px rgba(0,0,0,.15);object-fit:cover;">'
+        );
     }
 }

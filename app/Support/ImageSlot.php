@@ -31,13 +31,14 @@ enum ImageSlot: string
     case Look = 'look';
     case PostCover = 'post_cover';
     case AuthPanel = 'auth_panel';
+    case Story = 'story';
 
     /** @return array{0: int, 1: int} largeur, hauteur du ratio */
     public function ratio(): array
     {
         return match ($this) {
             self::Hero => [16, 9],
-            self::HeroMobile, self::Category => [4, 5],
+            self::HeroMobile, self::Category, self::Story => [4, 5],
             self::Product, self::AuthPanel => [3, 4],
             self::Look => [2, 3],
             self::PostCover => [3, 2],
@@ -51,7 +52,7 @@ enum ImageSlot: string
             self::Hero => [2560, 1440],
             self::HeroMobile => [1080, 1350],
             self::Product => [1500, 2000],
-            self::Category => [1600, 2000],
+            self::Category, self::Story => [1600, 2000],
             self::Look => [1600, 2400],
             self::PostCover => [2400, 1600],
             self::AuthPanel => [1200, 1600],
@@ -65,7 +66,7 @@ enum ImageSlot: string
             self::Hero => [1920, 1080],
             self::HeroMobile => [900, 1125],
             self::Product => [1050, 1400],
-            self::Category => [1000, 1250],
+            self::Category, self::Story => [1000, 1250],
             self::Look => [1000, 1500],
             self::PostCover => [1500, 1000],
             self::AuthPanel => [900, 1200],
@@ -106,6 +107,7 @@ enum ImageSlot: string
             self::Look => 'un look',
             self::PostCover => 'une couverture d\'article',
             self::AuthPanel => 'le panneau de connexion',
+            self::Story => 'la section « La Maison »',
         };
     }
 

@@ -29,6 +29,23 @@ class HomeShowcaseTest extends TestCase
         $this->get('/')->assertOk()->assertDontSee('marquee-track flex w-max items-center', false);
     }
 
+    public function test_the_marquee_is_hidden_until_the_owner_fills_it(): void
+    {
+        $this->assertSame([], SiteSetting::current()->marquee_items);
+
+        $this->get('/')->assertOk()->assertDontSee('marquee-track flex w-max items-center', false);
+    }
+
+    public function test_la_maison_has_its_own_photo_apart_from_the_login_panel(): void
+    {
+        SiteSetting::current()->update([
+            'auth_image_path' => 'auth/connexion.jpg',
+            'story_image_path' => 'story/maison.jpg',
+        ]);
+
+        $this->get('/')->assertOk()->assertSee('story/maison.jpg', false)->assertDontSee('auth/connexion.jpg', false);
+    }
+
     public function test_the_look_shows_its_pieces_and_the_full_outfit_price(): void
     {
         $voile = Product::factory()->create(['is_active' => true, 'name' => 'Voile Mousseline', 'price' => 6500]);

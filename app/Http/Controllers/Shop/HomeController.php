@@ -65,11 +65,10 @@ class HomeController extends Controller
             // Note moyenne des avis notés (la note est facultative).
             'reviewsAverage' => $reviews->whereNotNull('rating')->avg('rating'),
             'reviewsRated' => $reviews->whereNotNull('rating')->count(),
-            // Photo de « Notre histoire » : pas de réglage dédié, on reprend
-            // la photo de marque du panneau de connexion, sinon la première
-            // image du hero.
-            'storyImage' => $settings->auth_image_path
-                ? Storage::disk('public')->url($settings->auth_image_path)
+            // Photo de « La Maison » : son propre réglage (Réglages du site),
+            // sinon la première image du hero.
+            'storyImage' => $settings->story_image_path
+                ? Storage::disk('public')->url($settings->story_image_path)
                 : $slides->first(fn (HeroSlide $slide) => $slide->image_path)?->sizedUrl('large'),
         ]);
     }
