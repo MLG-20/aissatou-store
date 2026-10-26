@@ -76,6 +76,30 @@ class JournalTest extends TestCase
         $response->assertDontSee('<script>', false);
     }
 
+    public function test_dangerous_attributes_and_links_are_removed_but_formatting_is_kept(): void
+    {
+        $post = Post::create([
+            'title' => 'Attributs',
+            'content' => '<p onmouseover="alert(1)">Texte</p>'
+                .'<a href="javascript:alert(2)">piège</a>'
+                .'<a href="https://example.com/page" target="_blank">lien</a>'
+                .'<h2 style="color:red">Titre</h2><img src="x" onerror="alert(3)">',
+            'is_published' => true, 'published_at' => now()->subDay(),
+        ]);
+
+        $html = $post->safeContent();
+
+        $this->assertStringNotContainsString('onmouseover', $html);
+        $this->assertStringNotContainsString('javascript:', $html);
+        $this->assertStringNotContainsString('onerror', $html);
+        $this->assertStringNotContainsString('<img', $html);
+        $this->assertStringNotContainsString('style=', $html);
+        $this->assertStringContainsString('<p>Texte</p>', $html);
+        $this->assertStringContainsString('<h2>Titre</h2>', $html);
+        $this->assertStringContainsString('href="https://example.com/page"', $html);
+        $this->assertStringContainsString('rel="noopener noreferrer nofollow"', $html);
+    }
+
     public function test_admin_can_create_a_post_from_the_panel(): void
     {
         $this->actingAs(Admin::factory()->create(), 'admin');
