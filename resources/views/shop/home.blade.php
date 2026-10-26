@@ -17,10 +17,25 @@
         ];
     @endphp
 
+    {{-- Hauteur du hero, pour couper le moins de photo possible. Grand écran :
+         au format 16:9 d'une photo paysage (dans la limite de l'écran), plus
+         haut pour un portrait. Téléphone : presque tout l'écran dès qu'une
+         photo verticale s'y affiche (portrait ou version téléphone). --}}
+    @php
+        $anyPortrait = $slides->contains(fn ($slide) => $slide->image_path && $slide->isPortrait());
+        $anyPhonePortrait = $anyPortrait || $slides->contains(fn ($slide) => $slide->image_path && $slide->mobile_image_path);
+    @endphp
     <section
-        class="relative w-full min-h-[560px] text-brand-surface overflow-hidden"
-        x-data="{ active: 0, count: {{ max($slides->count(), 1) }} }"
+        @class([
+            'relative w-full text-brand-surface overflow-hidden md:min-h-[560px]',
+            'min-h-[560px]' => ! $anyPhonePortrait,
+            'min-h-[max(620px,92svh)]' => $anyPhonePortrait,
+            'md:h-[min(100svh,56.25vw)]' => ! $anyPortrait,
+            'lg:min-h-[680px] lg:h-[min(88vh,860px)]' => $anyPortrait,
+        ])
+        x-data="{ active: 0, count: {{ max($slides->count(), 1) }}, portraits: @js($slides->map(fn ($slide) => (bool) ($slide->image_path && $slide->isPortrait()))->values()) }"
         x-init="count > 1 && setInterval(() => active = (active + 1) % count, 6000)"
+        x-effect="$dispatch('hero-light', portraits[active] ?? false)"
     >
         @if ($slides->isEmpty())
             <div class="absolute inset-0 bg-brand-ink">
@@ -46,11 +61,24 @@
             </div>
         @else
             @foreach ($slides as $index => $slide)
+                {{-- Une photo paysage couvre tout le hero (le point focal choisit
+                     la partie gardée). Un portrait aussi, sauf sur grand écran :
+                     étiré sur toute la largeur, il perdrait le haut et le bas.
+                     Il y occupe alors la moitié droite (à peine recadré, le
+                     point focal choisit quoi garder), le texte en Encre sur la
+                     moitié gauche claire ; l'en-tête passe alors en opaque
+                     (événement `hero-light`, cf. layouts/shop). --}}
+                @php
+                    $portrait = $slide->image_path && $slide->isPortrait();
+                    // Photo verticale affichée sur téléphone : texte posé en bas.
+                    $phonePortrait = $portrait || ($slide->image_path && $slide->mobile_image_path);
+                @endphp
+
                 <div
                     x-show="active === {{ $index }}"
                     x-cloak
                     x-transition.opacity.duration.500ms
-                    class="absolute inset-0 overflow-hidden bg-brand-ink"
+                    @class(['absolute inset-0 overflow-hidden bg-brand-ink', 'xl:bg-brand-surface' => $portrait])
                 >
                     {{-- Vraie image responsive (charte photo, App\Support\ImageSlot) :
                          le navigateur choisit la taille utile à l'écran (2 400 px
@@ -59,7 +87,7 @@
                          garde le sujet dans le cadre. Lent zoom arrière à
                          l'apparition (« Ken Burns »), sauf animations réduites. --}}
                     @if ($slide->image_path)
-                        <picture>
+                        <picture @class(['absolute inset-0 block overflow-hidden', 'xl:left-1/2' => $portrait])>
                             @if ($slide->mobile_image_path)
                                 <source
                                     media="(max-width: 767px)"
@@ -76,7 +104,7 @@
                                 {{-- Le point focal est réglé sur la grande photo : la
                                      version téléphone dédiée, elle, reste centrée. --}}
                                 @class([
-                                    'hero-kenburns absolute inset-0 h-full w-full object-cover',
+                                    'hero-kenburns h-full w-full object-cover',
                                     '[object-position:var(--focal)]' => ! $slide->mobile_image_path,
                                     'object-center md:[object-position:var(--focal)]' => $slide->mobile_image_path,
                                 ])
@@ -84,22 +112,47 @@
                             >
                         </picture>
 
-                        {{-- Voile en dégradé depuis le texte plutôt qu'un aplat :
-                             la photo garde son éclat là où il n'y a rien à lire. --}}
-                        <div class="absolute inset-0 bg-brand-ink/45 sm:bg-transparent sm:bg-gradient-to-r sm:from-brand-ink/80 sm:via-brand-ink/40 sm:to-brand-ink/5"></div>
-                        <div class="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-brand-ink/50 to-transparent"></div>
+                        {{-- Voile en dégradé depuis le texte plutôt qu'un aplat : la
+                             photo garde son éclat là où il n'y a rien à lire. Sur
+                             téléphone, une photo verticale porte son texte en bas : le
+                             voile monte alors du bas, et les visages restent dégagés.
+                             Sur grand écran, le texte d'un portrait est déjà sur fond
+                             clair : aucun voile, la photo reste nette. --}}
+                        @if ($phonePortrait)
+                            <div class="absolute inset-0 bg-gradient-to-t from-brand-ink/95 via-brand-ink/50 to-brand-ink/10 sm:bg-none sm:bg-transparent"></div>
+                        @endif
+                        <div @class([
+                            'absolute inset-0 sm:bg-gradient-to-r sm:from-brand-ink/80 sm:via-brand-ink/40 sm:to-brand-ink/5',
+                            'bg-brand-ink/45' => ! $phonePortrait,
+                            'hidden sm:block' => $phonePortrait,
+                            'xl:hidden' => $portrait,
+                        ])></div>
+                        <div @class([
+                            'absolute inset-x-0 bottom-0 hidden h-1/3 bg-gradient-to-t from-brand-ink/50 to-transparent sm:block',
+                            'xl:hidden' => $portrait,
+                        ])></div>
                     @endif
 
                     @unless ($slide->image_path)
                         <x-shop.fold-backdrop />
                     @endunless
 
-                    <div class="relative h-full max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 flex flex-col justify-center items-start gap-6 py-24">
-                        <span class="text-[0.65rem] uppercase tracking-[0.4em] text-brand-surface/60">Aissatou Store</span>
-                        <h1 class="font-display text-4xl sm:text-6xl lg:text-7xl leading-[1.05] max-w-3xl">{{ $slide->title }}</h1>
+                    <div @class([
+                        'relative h-full max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 flex flex-col items-start gap-6 py-24',
+                        'justify-center' => ! $phonePortrait,
+                        // Téléphone : texte en bas, les visages restent dégagés en haut.
+                        'justify-end pb-16 sm:justify-center sm:pb-24' => $phonePortrait,
+                        // Grand écran : texte Encre sur la moitié claire.
+                        'xl:text-brand-ink' => $portrait,
+                    ])>
+                        <span @class(['text-[0.65rem] uppercase tracking-[0.4em] text-brand-surface/60', 'xl:text-brand-muted' => $portrait])>Aissatou Store</span>
+                        <h1 @class([
+                            'font-display text-4xl sm:text-6xl lg:text-7xl leading-[1.05] max-w-3xl',
+                            'hero-portrait-title' => $portrait,
+                        ])>{{ $slide->title }}</h1>
 
                         @if ($slide->subtitle)
-                            <p class="text-brand-surface/70 max-w-lg text-base sm:text-lg">{{ $slide->subtitle }}</p>
+                            <p @class(['text-brand-surface/70 max-w-lg text-base sm:text-lg', 'xl:text-brand-ink/70' => $portrait])>{{ $slide->subtitle }}</p>
                         @endif
 
                         <div class="flex flex-wrap gap-3 mt-2">
@@ -109,7 +162,11 @@
                                 </x-shop.cta>
                             @endif
 
-                            <x-shop.cta :href="route('shop.index', ['nouveautes' => 1])" on-dark>
+                            <x-shop.cta
+                                :href="route('shop.index', ['nouveautes' => 1])"
+                                on-dark
+                                :class="$portrait ? 'xl:border-brand-ink/30 xl:text-brand-ink xl:hover:border-brand-ink' : ''"
+                            >
                                 Explorer les nouveautés
                             </x-shop.cta>
                         </div>
@@ -117,17 +174,20 @@
                 </div>
             @endforeach
 
+            {{-- Points de navigation alignés sur le texte. --}}
             @if ($slides->count() > 1)
-                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                    @foreach ($slides as $index => $slide)
-                        <button
-                            type="button"
-                            @click="active = {{ $index }}"
-                            class="h-1.5 rounded-full transition-all"
-                            :class="active === {{ $index }} ? 'w-6 bg-brand-accent' : 'w-1.5 bg-brand-surface/50'"
-                            aria-label="Aller à la diapositive {{ $index + 1 }}"
-                        ></button>
-                    @endforeach
+                <div class="absolute inset-x-0 bottom-6 z-10">
+                    <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 flex gap-2">
+                        @foreach ($slides as $index => $slide)
+                            <button
+                                type="button"
+                                @click="active = {{ $index }}"
+                                class="h-1.5 rounded-full transition-all"
+                                :class="active === {{ $index }} ? 'w-6 bg-brand-accent' : (portraits[active] ? 'w-1.5 bg-brand-surface/50 xl:bg-brand-ink/25' : 'w-1.5 bg-brand-surface/50')"
+                                aria-label="Aller à la diapositive {{ $index + 1 }}"
+                            ></button>
+                        @endforeach
+                    </div>
                 </div>
             @endif
         @endif

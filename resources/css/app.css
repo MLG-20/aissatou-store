@@ -258,6 +258,14 @@ input::-ms-clear {
     }
 }
 
+/* Hero à photo portrait sur grand écran : la photo occupe la moitié droite,
+   le titre s'arrête avant elle (le texte suit la grille, plafonnée à 1 600 px). */
+@media (min-width: 1280px) {
+    .hero-portrait-title {
+        max-width: calc(min(50vw, 800px) - 5rem);
+    }
+}
+
 @keyframes hero-kenburns {
     from {
         transform: scale(1.08);

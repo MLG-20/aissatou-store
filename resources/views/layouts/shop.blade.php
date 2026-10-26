@@ -63,15 +63,22 @@
         @endphp
 
         <header
-            x-data="{ scrolled: false }"
-            x-init="scrolled = window.pageYOffset > 20"
+            x-data="{ scrolled: false, heroLight: false, wide: false }"
+            x-init="scrolled = window.pageYOffset > 20; wide = window.matchMedia('(min-width: 1280px)').matches"
             @scroll.window="scrolled = window.pageYOffset > 20"
+            @resize.window="wide = window.matchMedia('(min-width: 1280px)').matches"
+            @hero-light.window="heroLight = $event.detail"
             @if ($transparentHeader)
                 {{-- Accueil : transparent sur le hero (texte Parchemin), puis fond
-                     opaque dès qu'on scrolle OU que le menu mobile s'ouvre. --}}
+                     opaque dès qu'on scrolle OU que le menu mobile s'ouvre — ou
+                     quand la slide affichée est un portrait sur grand écran : son
+                     texte est sur fond clair, le Parchemin y serait illisible (fond
+                     plein, sans flou : la photo dessous reste nette). --}}
                 :class="(scrolled || mobileNavOpen)
                     ? 'bg-brand-surface/95 backdrop-blur border-brand-ink/10 text-brand-ink shadow-sm'
-                    : 'bg-transparent border-transparent text-brand-surface'"
+                    : (heroLight && wide)
+                        ? 'bg-brand-surface border-brand-ink/10 text-brand-ink'
+                        : 'bg-transparent border-transparent text-brand-surface'"
                 class="fixed top-0 inset-x-0 z-30 border-b transition-colors duration-300"
             @else
                 class="sticky top-0 z-30 border-b border-brand-ink/10 bg-brand-surface/95 backdrop-blur text-brand-ink"
@@ -98,7 +105,7 @@
                      l'en-tête devient opaque au défilement. --}}
                 <div
                     class="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-brand-ink/75 via-brand-ink/40 to-transparent transition-opacity duration-300"
-                    x-show="!(scrolled || mobileNavOpen)"
+                    x-show="!(scrolled || mobileNavOpen || (heroLight && wide))"
                     x-transition.opacity.duration.300ms
                     aria-hidden="true"
                 ></div>

@@ -4,6 +4,7 @@ namespace App\Models\Content;
 
 use App\Models\Concerns\HasFocalPoint;
 use App\Services\ImageVariantGenerator;
+use App\Support\ImageSlot;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -31,6 +32,15 @@ class HeroSlide extends Model
     public function sizedUrl(string $size): ?string
     {
         return $this->sizedUrlOf($this->image_path, $size);
+    }
+
+    /**
+     * Photo plus haute que large : sur grand écran, le hero l'affiche sur sa
+     * moitié droite, le texte sur fond Encre à gauche.
+     */
+    public function isPortrait(): bool
+    {
+        return ImageSlot::isPortrait($this->image_path);
     }
 
     /** Version téléphone (portrait) ; null si aucune n'est fournie. */

@@ -28,3 +28,6 @@ Thumbs.db
 
 # Documentation interne (cahier des charges, journaux, référentiel cliente) : locale uniquement
 /docs
+
+# Photos de travail (cliente, banques d images) : jamais dans le depot.
+/Images/

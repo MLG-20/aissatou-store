@@ -2,6 +2,7 @@
 
 namespace App\Filament\Forms;
 
+use Closure;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Placeholder;
@@ -21,10 +22,11 @@ use Illuminate\Support\HtmlString;
 class FocalPointFields
 {
     /**
-     * @param  array<string, string>  $frames  libellé => ratio CSS (« 16 / 9 ») des recadrages du site
+     * @param  array<string, string>|Closure(Model): array<string, string>  $frames  libellé => ratio CSS
+     *                                                                               (« 16 / 9 ») des recadrages du site
      * @return array<Component>
      */
-    public static function make(array $frames, string $pathField = 'image_path'): array
+    public static function make(array|Closure $frames, string $pathField = 'image_path'): array
     {
         return [
             Placeholder::make('focal_preview')
@@ -34,7 +36,7 @@ class FocalPointFields
                     Storage::disk('public')->url($record->{$pathField}),
                     (int) ($get('focal_x') ?? 50),
                     (int) ($get('focal_y') ?? 50),
-                    $frames,
+                    $frames instanceof Closure ? $frames($record) : $frames,
                 ))
                 ->columnSpanFull(),
 

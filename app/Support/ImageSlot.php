@@ -72,6 +72,30 @@ enum ImageSlot: string
         };
     }
 
+    /**
+     * Le hero accepte les deux orientations : une photo paysage s'affiche en
+     * plein écran, une photo portrait sur la moitié droite sur grand écran
+     * (texte sur fond clair à gauche). Le recadrage forcé à l'envoi y gardait
+     * une bande au centre d'un portrait, coupant les visages.
+     */
+    public function acceptsBothOrientations(): bool
+    {
+        return $this === self::Hero;
+    }
+
+    /**
+     * Minimum applicable à une photo donnée : pour le hero, il dépend de son
+     * orientation (un portrait n'a pas à faire 1 920 px de large).
+     *
+     * @return array{0: int, 1: int}
+     */
+    public function minimumFor(int $width, int $height): array
+    {
+        return $this->acceptsBothOrientations() && $height > $width
+            ? [1200, 1500]
+            : $this->minimum();
+    }
+
     public function label(): string
     {
         return match ($this) {
@@ -111,27 +135,46 @@ enum ImageSlot: string
      */
     public function configure(FileUpload $field, ?string $intro = null): FileUpload
     {
-        [$minWidth, $minHeight] = $this->minimum();
-
-        return $field
+        $field = $field
             ->image()
             ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
             ->imageEditor()
-            ->imageCropAspectRatio($this->ratioLabel())
-            ->imageEditorAspectRatios([$this->ratioLabel()])
             ->maxSize(15360)
-            ->rules(["dimensions:min_width={$minWidth},min_height={$minHeight}"])
-            ->validationMessages([
-                'dimensions' => 'Photo trop petite pour '.$this->label().' : il faut au moins '
-                    .self::px($minWidth).' × '.self::px($minHeight).' px. Elle paraîtrait floue sur le site.',
-            ])
+            ->rules([fn (): Closure => function (string $attribute, $file, Closure $fail): void {
+                $size = @getimagesize($file->getRealPath());
+
+                if (! $size) {
+                    return;
+                }
+
+                [$minWidth, $minHeight] = $this->minimumFor($size[0], $size[1]);
+
+                if ($size[0] < $minWidth || $size[1] < $minHeight) {
+                    $fail('Photo trop petite pour '.$this->label().' ('.self::px($size[0]).' × '.self::px($size[1]).' px) : '
+                        .'il faut au moins '.self::px($minWidth).' × '.self::px($minHeight).' px. Elle paraîtrait floue sur le site.');
+                }
+            }])
             ->helperText($this->helperText($intro));
+
+        return $this->acceptsBothOrientations()
+            ? $field->imageEditorAspectRatios([$this->ratioLabel(), '4:5', null])
+            : $field->imageCropAspectRatio($this->ratioLabel())->imageEditorAspectRatios([$this->ratioLabel()]);
     }
 
     public function helperText(?string $intro = null): HtmlString
     {
         [$idealWidth, $idealHeight] = $this->ideal();
         [$minWidth, $minHeight] = $this->minimum();
+
+        if ($this->acceptsBothOrientations()) {
+            return new HtmlString(
+                ($intro ? e($intro).' ' : '')
+                .'<strong>Paysage 16:9 : '.self::px($idealWidth).' × '.self::px($idealHeight).' px idéalement</strong>'
+                .' (minimum '.self::px($minWidth).' × '.self::px($minHeight).' px), affichée en plein écran. '
+                .'<strong>Ou portrait 4:5 : 2 000 × 2 500 px</strong> (minimum 1 200 × 1 500 px), '
+                .'affichée entière à côté du texte. La photo n\'est pas recadrée ; le crayon reste disponible. JPEG, PNG ou WebP, 15 Mo maximum.'
+            );
+        }
 
         return new HtmlString(
             ($intro ? e($intro).' ' : '')
@@ -150,10 +193,35 @@ enum ImageSlot: string
      */
     public function isBelowMinimum(?string $path): bool
     {
+        $size = self::storedSize($path);
+
+        if (! $size) {
+            return false;
+        }
+
+        [$minWidth, $minHeight] = $this->minimumFor($size[0], $size[1]);
+
+        return $size[0] < $minWidth || $size[1] < $minHeight;
+    }
+
+    /**
+     * Vrai si la photo enregistrée est plus haute que large (même mémoire
+     * que isBelowMinimum) ; faux si elle est absente ou illisible.
+     */
+    public static function isPortrait(?string $path): bool
+    {
+        $size = self::storedSize($path);
+
+        return $size !== null && $size[1] > $size[0];
+    }
+
+    /** @return array{0: int, 1: int}|null */
+    private static function storedSize(?string $path): ?array
+    {
         $disk = Storage::disk('public');
 
         if (blank($path) || ! $disk->exists($path)) {
-            return false;
+            return null;
         }
 
         $size = Cache::rememberForever(
@@ -161,13 +229,7 @@ enum ImageSlot: string
             fn () => @getimagesize($disk->path($path)) ?: null
         );
 
-        if (! $size) {
-            return false;
-        }
-
-        [$minWidth, $minHeight] = $this->minimum();
-
-        return $size[0] < $minWidth || $size[1] < $minHeight;
+        return $size ? [$size[0], $size[1]] : null;
     }
 
     /**
@@ -184,11 +246,7 @@ enum ImageSlot: string
             ->badge()
             ->color('warning')
             ->icon('heroicon-m-exclamation-triangle')
-            ->tooltip(function (): string {
-                [$width, $height] = $this->minimum();
-
-                return 'Sous le minimum de '.self::px($width).' × '.self::px($height).' px : floue sur grand écran.';
-            });
+            ->tooltip('Sous la taille minimum de la charte photo : floue sur grand écran.');
     }
 
     private static function px(int $value): string

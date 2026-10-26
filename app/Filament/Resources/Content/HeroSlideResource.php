@@ -70,10 +70,9 @@ class HeroSlideResource extends Resource
 
                 // Le point focal garde le sujet dans le cadre sur ordinateur ET,
                 // faute de version dédiée, sur téléphone.
-                ...FocalPointFields::make([
-                    'Ordinateur' => '12 / 5',
-                    'Téléphone (sans version dédiée)' => '9 / 14',
-                ]),
+                ...FocalPointFields::make(fn (HeroSlide $slide): array => $slide->isPortrait()
+                    ? ['Ordinateur' => '2 / 1', 'Téléphone' => '9 / 16']
+                    : ['Ordinateur' => '12 / 5', 'Téléphone (sans version dédiée)' => '9 / 14']),
 
                 Placeholder::make('current_mobile_preview')
                     ->label('Version téléphone actuelle')
