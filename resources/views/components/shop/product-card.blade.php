@@ -15,6 +15,20 @@
                 loading="lazy"
                 class="h-full w-full object-cover object-center transition duration-700 group-hover:scale-[1.03]"
             >
+
+            {{-- Deuxième photo (porté, détail, dos) révélée en fondu au survol :
+                 la cliente découvre la pièce sous un autre angle sans quitter
+                 la liste. Souris seulement — au doigt, le survol « colle ». --}}
+            @if ($alternate = $product->images->first(fn ($candidate) => $candidate->isNot($image)))
+                <img
+                    src="{{ $alternate->sizedUrl('thumb') }}"
+                    srcset="{{ $alternate->sizedUrl('thumb') }} 480w, {{ $alternate->sizedUrl('medium') }} 800w"
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                    alt=""
+                    loading="lazy"
+                    class="absolute inset-0 hidden h-full w-full object-cover object-center opacity-0 transition duration-700 [@media(hover:hover)]:block group-hover:scale-[1.03] group-hover:opacity-100"
+                >
+            @endif
         @else
             <x-shop.image-placeholder :category="$product->category" />
         @endif
@@ -26,6 +40,10 @@
                 {{ $product->label->label() }}
             </span>
         @endif
+
+        <span class="pointer-events-none absolute inset-x-0 bottom-0 hidden translate-y-full bg-brand-surface/90 py-3 text-center text-[0.6rem] uppercase tracking-[0.25em] text-brand-ink backdrop-blur-sm transition duration-500 ease-out [@media(hover:hover)]:block group-hover:translate-y-0" aria-hidden="true">
+            Découvrir la pièce
+        </span>
 
         @unless ($product->isInStock())
             <span class="absolute right-0 top-4 bg-brand-ink/80 px-3 py-1.5 text-[0.6rem] font-medium uppercase tracking-[0.15em] text-brand-surface">
