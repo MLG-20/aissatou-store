@@ -42,9 +42,13 @@ Route::get('whatsapp', function () {
     return redirect()->away('https://wa.me/'.$digits);
 })->name('shop.whatsapp');
 Route::get('contact', [ContactController::class, 'show'])->name('shop.contact');
-Route::post('contact', [ContactController::class, 'store'])->name('shop.contact.store');
+// Formulaires publics sans compte : limite de débit contre le spam en rafale
+// (en plus du piège à robots dans le formulaire).
+Route::post('contact', [ContactController::class, 'store'])
+    ->middleware('throttle:5,1')->name('shop.contact.store');
 
-Route::post('avis', [ReviewController::class, 'store'])->name('shop.reviews.store');
+Route::post('avis', [ReviewController::class, 'store'])
+    ->middleware('throttle:5,1')->name('shop.reviews.store');
 
 Route::get('panier', [CartController::class, 'index'])->name('shop.cart');
 Route::post('panier', [CartController::class, 'store'])->name('shop.cart.store');

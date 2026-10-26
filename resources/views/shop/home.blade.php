@@ -516,6 +516,7 @@
                 class="mt-10 space-y-6 rounded-sm border border-brand-ink/10 bg-white/70 backdrop-blur-sm p-6 sm:p-10 shadow-sm"
             >
                 @csrf
+                <x-honeypot />
 
                 {{-- Notation par étoiles interactive (survol + clic). --}}
                 <div>

@@ -126,6 +126,7 @@
 
                 <form method="post" action="{{ route('shop.contact.store') }}" class="mt-8 space-y-6">
                     @csrf
+                    <x-honeypot />
 
                     <div class="grid gap-6 sm:grid-cols-2">
                         <div>

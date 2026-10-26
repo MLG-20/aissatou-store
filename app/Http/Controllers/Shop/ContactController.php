@@ -18,7 +18,10 @@ class ContactController extends Controller
 
     public function store(StoreContactMessageRequest $request): RedirectResponse
     {
-        ContactMessage::create($request->validated());
+        // Piège à robots rempli : même réponse, rien d'enregistré.
+        if (! $request->filled('website')) {
+            ContactMessage::create($request->validated());
+        }
 
         return back()->with('status', 'message-sent');
     }

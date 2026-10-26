@@ -50,4 +50,29 @@ class ReviewSubmissionTest extends TestCase
         $response->assertSessionHasErrors(['author_name', 'comment']);
         $this->assertDatabaseCount('reviews', 0);
     }
+
+    public function test_a_bot_filling_the_honeypot_gets_the_same_answer_but_nothing_is_saved(): void
+    {
+        $response = $this->post(route('shop.reviews.store'), [
+            'author_name' => 'Robot',
+            'comment' => 'Achetez mes produits',
+            'website' => 'https://spam.example',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('status', 'review-submitted');
+        $this->assertDatabaseCount('reviews', 0);
+    }
+
+    public function test_review_submissions_are_rate_limited(): void
+    {
+        $review = ['author_name' => 'Awa', 'comment' => 'Très belle qualité.'];
+
+        foreach (range(1, 5) as $attempt) {
+            $this->post(route('shop.reviews.store'), $review)->assertRedirect();
+        }
+
+        $this->post(route('shop.reviews.store'), $review)->assertTooManyRequests();
+        $this->assertDatabaseCount('reviews', 5);
+    }
 }

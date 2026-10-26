@@ -13,7 +13,10 @@ class ReviewController extends Controller
     {
         // Avis soumis par une cliente : créé NON publié. Il n'apparaîtra sur le
         // site qu'après validation par l'admin (Contenu du site > Avis clients).
-        Review::create($request->validated() + ['is_published' => false]);
+        // Piège à robots rempli : même réponse, rien d'enregistré.
+        if (! $request->filled('website')) {
+            Review::create($request->validated() + ['is_published' => false]);
+        }
 
         return redirect()
             ->route('home')
