@@ -4,6 +4,10 @@
         Merci de votre inscription ! Avant de commencer, confirmez votre adresse email en cliquant sur le lien
         que nous venons de vous envoyer. Si vous ne l'avez pas reçu, nous vous en renvoyons un volontiers.
     </p>
+    <p class="text-sm text-brand-muted -mt-4 mb-8">
+        Cette confirmation est nécessaire pour passer commande. Votre panier vous attend : vous y reviendrez
+        directement après avoir cliqué sur le lien.
+    </p>
 
     @if (session('status') == 'verification-link-sent')
         <p class="mb-6 font-medium text-sm text-green-700">

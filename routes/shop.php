@@ -57,12 +57,20 @@ Route::delete('panier/{item}', [CartController::class, 'destroy'])->name('shop.c
 
 // Tunnel de commande (compte requis : il s'appuie sur le carnet d'adresses).
 Route::middleware('auth')->group(function (): void {
-    Route::get('commande', [CheckoutController::class, 'show'])->name('shop.checkout');
-    Route::post('commande', [CheckoutController::class, 'store'])->name('shop.checkout.store');
-    // Code promo : limite de débit contre l'essai de codes en rafale.
-    Route::post('commande/code-promo', [CheckoutController::class, 'applyPromo'])
-        ->middleware('throttle:10,1')->name('shop.checkout.promo.apply');
-    Route::delete('commande/code-promo', [CheckoutController::class, 'removePromo'])->name('shop.checkout.promo.remove');
+    // Passer commande exige un e-mail vérifié : pas de commandes à la
+    // livraison depuis un compte jetable, qui bloqueraient du stock. Retour
+    // automatique ici après le clic sur le lien (URL « intended »).
+    Route::middleware('verified')->group(function (): void {
+        Route::get('commande', [CheckoutController::class, 'show'])->name('shop.checkout');
+        Route::post('commande', [CheckoutController::class, 'store'])->name('shop.checkout.store');
+        // Code promo : limite de débit contre l'essai de codes en rafale.
+        Route::post('commande/code-promo', [CheckoutController::class, 'applyPromo'])
+            ->middleware('throttle:10,1')->name('shop.checkout.promo.apply');
+        Route::delete('commande/code-promo', [CheckoutController::class, 'removePromo'])->name('shop.checkout.promo.remove');
+    });
+
+    // Commande déjà passée : accessible même si l'e-mail repasse en non
+    // vérifié (changement d'adresse dans le profil) pendant un paiement.
     Route::get('commande/merci/{order:number}', [CheckoutController::class, 'success'])->name('shop.checkout.success');
 
     // Retour de PayTech (succès ET annulation) : page d'attente qui vérifie

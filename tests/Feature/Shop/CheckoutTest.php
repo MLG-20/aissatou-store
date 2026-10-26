@@ -22,6 +22,25 @@ class CheckoutTest extends TestCase
         $this->post(route('shop.checkout.store'))->assertRedirect(route('login'));
     }
 
+    public function test_an_unverified_customer_must_confirm_her_email_before_ordering(): void
+    {
+        $user = User::factory()->unverified()->create();
+        $product = Product::factory()->create();
+        $cart = Cart::create(['user_id' => $user->id]);
+        CartItem::create(['cart_id' => $cart->id, 'product_id' => $product->id, 'quantity' => 1]);
+        $address = Address::factory()->for($user)->create(['is_default' => true]);
+
+        $this->actingAs($user)->get(route('shop.checkout'))
+            ->assertRedirect(route('verification.notice'));
+        // Retour au tunnel après le clic sur le lien de vérification.
+        $this->assertSame(route('shop.checkout'), session('url.intended'));
+
+        $this->actingAs($user)->post(route('shop.checkout.store'), ['address_id' => $address->id, 'provider' => 'cod'])
+            ->assertRedirect(route('verification.notice'));
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
     public function test_the_cart_page_leads_to_the_checkout(): void
     {
         $user = User::factory()->create();
