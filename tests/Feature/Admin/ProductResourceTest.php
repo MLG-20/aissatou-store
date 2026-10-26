@@ -148,6 +148,31 @@ class ProductResourceTest extends TestCase
         $this->assertDatabaseMissing('products', ['slug' => 'produit-malveillant']);
     }
 
+    public function test_an_svg_image_is_rejected_because_it_can_carry_javascript(): void
+    {
+        Storage::fake('public');
+        $this->actingAs(Admin::factory()->create(), 'admin');
+
+        $category = Category::factory()->create();
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>';
+
+        Livewire::test(CreateProduct::class)
+            ->fillForm([
+                'name' => 'Produit SVG',
+                'slug' => 'produit-svg',
+                'category_id' => $category->id,
+                'price' => 1000,
+                'images' => [
+                    ['path' => [UploadedFile::fake()->createWithContent('logo.svg', $svg)], 'is_primary' => true, 'position' => 0],
+                ],
+            ])
+            ->call('create')
+            ->assertHasFormErrors();
+
+        $this->assertDatabaseMissing('products', ['slug' => 'produit-svg']);
+        $this->assertEmpty(Storage::disk('public')->allFiles());
+    }
+
     public function test_editing_a_product_without_touching_its_image_keeps_it(): void
     {
         // Point critique du Repeater d'images : sur la page Edit, le champ de

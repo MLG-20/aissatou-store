@@ -7,6 +7,7 @@ use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\CollectionResource\Pages;
 use App\Models\Catalogue\Collection;
+use App\Services\ImageVariantGenerator;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -73,6 +74,7 @@ class CollectionResource extends Resource
                     ->label('Image')
                     ->helperText('Bannière de la page collection. 15 Mo maximum.')
                     ->image()
+                    ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
                     ->disk('public')
                     ->directory('collections')
                     ->visibility('public')

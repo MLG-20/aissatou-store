@@ -26,6 +26,15 @@ class ImageVariantGenerator
     ];
 
     /**
+     * Seuls formats acceptés à l'upload (back-office). `->image()` de
+     * Filament accepte tout `image/*`, donc le SVG : un fichier qui peut
+     * embarquer du JavaScript, servi depuis le domaine de la boutique.
+     *
+     * @var list<string>
+     */
+    public const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+    /**
      * Génère les variantes WebP redimensionnées d'une image déjà stockée sur
      * le disque public, à côté du fichier original. Idempotent : régénère à
      * chaque appel (utile si l'image d'origine est remplacée).

@@ -7,6 +7,7 @@ use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Content\PostResource\Pages;
 use App\Models\Content\Post;
+use App\Services\ImageVariantGenerator;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
@@ -81,6 +82,7 @@ class PostResource extends Resource
                     ->label('Photo de couverture')
                     ->helperText('Affichée en tête de l\'article et sur la liste. 15 Mo maximum.')
                     ->image()
+                    ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
                     ->disk('public')
                     ->directory('journal')
                     ->visibility('public')

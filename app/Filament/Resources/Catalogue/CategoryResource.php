@@ -7,6 +7,7 @@ use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Catalogue\CategoryResource\Pages;
 use App\Models\Catalogue\Category;
+use App\Services\ImageVariantGenerator;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
@@ -115,6 +116,7 @@ class CategoryResource extends Resource
                         ? 'Image de la catégorie'
                         : "Changer l'image")
                     ->image()
+                    ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
                     ->imageEditor()
                     ->disk('public')
                     ->directory('categories')

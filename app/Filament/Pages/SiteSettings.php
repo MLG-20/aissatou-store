@@ -6,6 +6,7 @@ use App\Enums\Admin\AdminPermission;
 use App\Filament\Concerns\PageRequiresAdminPermission;
 use App\Models\Content\SiteSetting;
 use App\Services\AdminAudit;
+use App\Services\ImageVariantGenerator;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -102,6 +103,7 @@ class SiteSettings extends Page implements HasForms
                         FileUpload::make('auth_image_path')
                             ->label("Changer l'image du panneau")
                             ->image()
+                            ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
                             ->imageEditor()
                             ->disk('public')
                             ->directory('auth')

@@ -7,6 +7,7 @@ use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Content\HeroSlideResource\Pages;
 use App\Models\Content\HeroSlide;
+use App\Services\ImageVariantGenerator;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
@@ -82,6 +83,7 @@ class HeroSlideResource extends Resource
                         ? 'Image de fond'
                         : "Changer l'image de fond")
                     ->image()
+                    ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
                     ->imageEditor()
                     ->disk('public')
                     ->directory('hero')

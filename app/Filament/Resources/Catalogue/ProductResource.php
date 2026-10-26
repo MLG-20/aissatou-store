@@ -10,6 +10,7 @@ use App\Filament\Resources\Catalogue\ProductResource\Pages;
 use App\Models\Catalogue\Category;
 use App\Models\Catalogue\Product;
 use App\Models\Catalogue\ProductVariant;
+use App\Services\ImageVariantGenerator;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\KeyValue;
@@ -200,6 +201,7 @@ class ProductResource extends Resource
                                 ? 'Image'
                                 : "Changer l'image")
                             ->image()
+                            ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
                             ->imageEditor()
                             ->disk('public')
                             ->directory('products')
