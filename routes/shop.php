@@ -11,7 +11,9 @@ use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\ReviewController;
 use App\Http\Controllers\Shop\WishlistController;
 use App\Models\Content\SiteSetting;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 Route::get('catalogue', [ProductController::class, 'index'])->name('shop.index');
 Route::get('categories/{category:slug}', [CategoryController::class, 'show'])->name('shop.category');
@@ -34,12 +36,16 @@ Route::get('a-propos', fn () => view('shop.about', ['settings' => SiteSetting::c
 // Redirection interne vers WhatsApp : un lien direct `wa.me` est masqué par
 // les bloqueurs de pub/filtres scolaires, qui ciblent ce domaine. Ici, le
 // HTML ne contient que `/whatsapp` — rien à filtrer côté client.
-Route::get('whatsapp', function () {
+// `texte` pré-remplit le message (fiche produit : « je suis intéressée
+// par… ») ; tronqué pour ne pas fabriquer d'URL démesurée.
+Route::get('whatsapp', function (Request $request) {
     $digits = preg_replace('/\D/', '', (string) SiteSetting::current()->contact_whatsapp);
 
     abort_unless(filled($digits), 404);
 
-    return redirect()->away('https://wa.me/'.$digits);
+    $text = Str::limit(trim((string) $request->query('texte', '')), 500, '');
+
+    return redirect()->away('https://wa.me/'.$digits.($text !== '' ? '?text='.rawurlencode($text) : ''));
 })->name('shop.whatsapp');
 Route::get('contact', [ContactController::class, 'show'])->name('shop.contact');
 // Formulaires publics sans compte : limite de débit contre le spam en rafale

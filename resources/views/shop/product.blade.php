@@ -1,6 +1,9 @@
 @php
     $images = $product->images;
     $variants = $product->variants;
+    $cheapestZone = $deliveryZones->sortBy('fee')->first();
+    $formatFcfa = fn ($amount) => number_format($amount, 0, ',', ' ').' FCFA';
+    $whatsappText = 'Bonjour, je suis intéressée par « '.$product->name.' » ('.$formatFcfa($product->price).'). '.route('shop.product', $product);
 @endphp
 
 <x-shop-layout :title="$product->name.' — '.config('app.name')">
@@ -15,6 +18,20 @@
             zoomed: false,
             originX: 50,
             originY: 50,
+            buyBar: false,
+            init() {
+                if (!('IntersectionObserver' in window)) return;
+                // Zone d'observation prolongée très loin vers le bas : le bouton
+                // n'en « sort » qu'en passant au-dessus de l'écran. Sans cela,
+                // passer de « sous l'écran » à « au-dessus » ne change pas
+                // l'état observé et la barre ne venait jamais.
+                new IntersectionObserver(([entry]) => {
+                    this.buyBar = !entry.isIntersecting;
+                    // Les boutons flottants (WhatsApp, retour en haut) montent
+                    // au-dessus de la barre plutôt que de la chevaucher.
+                    document.documentElement.classList.toggle('has-buy-bar', this.buyBar);
+                }, { rootMargin: '0px 0px 100000px 0px' }).observe(document.getElementById('product-cta'));
+            },
             onSwipe(event, count) {
                 const deltaX = event.changedTouches[0].screenX - this.touchStartX;
                 if (Math.abs(deltaX) < 40 || count <= 1) return;
@@ -51,8 +68,10 @@
             <span class="text-brand-ink">{{ $product->name }}</span>
         </nav>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            <div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+            {{-- La galerie reste à l'écran pendant qu'on lit la colonne d'achat
+                 (volets dépliés compris) : la pièce ne quitte jamais le regard. --}}
+            <div class="lg:sticky lg:top-28 lg:self-start">
                 <div
                     class="group relative aspect-square w-full overflow-hidden rounded-sm bg-brand-parchment touch-pan-y {{ $images->isNotEmpty() ? 'cursor-zoom-in' : '' }}"
                     x-on:touchstart="touchStartX = $event.changedTouches[0].screenX"
@@ -127,7 +146,7 @@
                     @endif
                 </div>
 
-                <h1 class="mt-2 font-display text-3xl">{{ $product->name }}</h1>
+                <h1 class="mt-3 font-display text-4xl sm:text-5xl leading-[1.05] text-brand-ink">{{ $product->name }}</h1>
 
                 @if ($product->material_tagline)
                     <p class="mt-2 text-brand-muted">{{ $product->material_tagline }}</p>
@@ -140,18 +159,21 @@
                     </p>
                 @endif
 
-                <p class="mt-3 text-xl text-brand-ink">
-                    {{ number_format($product->price, 0, ',', ' ') }} FCFA
-                </p>
+                <div class="mt-5 flex items-baseline gap-4 border-t border-brand-ink/10 pt-5">
+                    <p class="font-display text-2xl text-brand-ink">{{ $formatFcfa($product->price) }}</p>
 
-                @if ($product->isInStock())
-                    <p class="mt-1 text-sm text-brand-muted">En stock</p>
-                @else
-                    <p class="mt-1 text-sm text-brand-signature">Rupture de stock</p>
-                @endif
+                    @if ($product->isInStock())
+                        <p class="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.15em] text-brand-muted">
+                            <span class="h-1.5 w-1.5 rounded-full bg-brand-sage" aria-hidden="true"></span>
+                            En stock
+                        </p>
+                    @else
+                        <p class="text-xs uppercase tracking-[0.15em] text-brand-signature">Rupture de stock</p>
+                    @endif
+                </div>
 
                 @if ($product->description)
-                    <p class="mt-6 text-brand-ink/80 whitespace-pre-line">{{ $product->description }}</p>
+                    <p class="mt-6 leading-relaxed text-brand-ink/80 whitespace-pre-line">{{ $product->description }}</p>
                 @endif
 
                 @if ($errors->has('variant_id') || $errors->has('quantity'))
@@ -160,7 +182,7 @@
                     </p>
                 @endif
 
-                <form method="POST" action="{{ route('shop.cart.store') }}" class="mt-8">
+                <form id="product-form" method="POST" action="{{ route('shop.cart.store') }}" class="mt-8">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
 
@@ -262,9 +284,11 @@
                          aux actions secondaires — la fiche n'avait alors aucun
                          CTA principal, alors que le rapport en impose exactement
                          un par écran. --}}
-                    <x-shop.cta variant="primary" class="mt-6 w-full sm:w-auto" :disabled="! $product->isInStock()">
-                        Ajouter au panier
-                    </x-shop.cta>
+                    <div id="product-cta">
+                        <x-shop.cta variant="primary" class="mt-6 w-full sm:w-auto" :disabled="! $product->isInStock()">
+                            Ajouter au panier
+                        </x-shop.cta>
+                    </div>
                 </form>
 
                 {{-- Action secondaire (contour, jamais Garance) : mettre de côté. --}}
@@ -280,6 +304,126 @@
                         {{ ($inWishlist ?? false) ? 'Dans votre liste' : 'Ajouter à ma liste' }}
                     </button>
                 </form>
+
+                {{-- RÉASSURANCE au pied du bouton, là où se prend la décision :
+                     les arguments de l'accueil (paiement à la réception en tête)
+                     ne servent à rien s'ils sont loin de l'achat. Tout est tiré
+                     des vrais réglages (zones, moyens de paiement, WhatsApp). --}}
+                <ul class="mt-8 grid gap-px overflow-hidden rounded-sm border border-brand-ink/10 bg-brand-ink/10 sm:grid-cols-3">
+                    @if ($cheapestZone)
+                        <li class="flex items-start gap-3 bg-brand-surface p-4">
+                            <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-brand-signature" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                            </svg>
+                            <span class="text-xs leading-snug text-brand-muted">
+                                <span class="block font-medium text-brand-ink">Livraison dès {{ $formatFcfa($cheapestZone->fee) }}</span>
+                                {{ $cheapestZone->name }}{{ $cheapestZone->delay_label ? ', '.$cheapestZone->delay_label : '' }}
+                            </span>
+                        </li>
+                    @endif
+                    <li class="flex items-start gap-3 bg-brand-surface p-4">
+                        <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-brand-signature" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                        </svg>
+                        <span class="text-xs leading-snug text-brand-muted">
+                            <span class="block font-medium text-brand-ink">Payez à la réception</span>
+                            {{ $paymentMethods->count() > 1 ? 'ou en ligne : '.$paymentMethods->last() : 'en toute confiance' }}
+                        </span>
+                    </li>
+                    @if ($whatsappAvailable)
+                        <li class="bg-brand-surface">
+                            <a
+                                href="{{ route('shop.whatsapp', ['texte' => $whatsappText]) }}"
+                                target="_blank"
+                                rel="noopener"
+                                data-whatsapp-cta
+                                class="group flex h-full items-start gap-3 p-4 transition hover:bg-brand-parchment/60"
+                            >
+                                <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-brand-signature" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                                </svg>
+                                <span class="text-xs leading-snug text-brand-muted">
+                                    <span class="block font-medium text-brand-ink underline decoration-brand-ink/20 underline-offset-4 transition group-hover:decoration-brand-accent">Une question ?</span>
+                                    Une conseillère vous répond
+                                </span>
+                            </a>
+                        </li>
+                    @endif
+                </ul>
+
+                {{-- VOLETS : l'information utile sans allonger la colonne. Des
+                     <details> natifs — accessibles au clavier et lisibles sans
+                     JavaScript ; l'ouverture est animée en CSS là où le
+                     navigateur le permet (.product-fold). --}}
+                <div class="mt-10 border-t border-brand-ink/10">
+                    @if ($product->material || $product->material_tagline)
+                        <details class="product-fold group border-b border-brand-ink/10" open>
+                            <summary class="flex cursor-pointer list-none items-center justify-between py-5 text-xs font-medium uppercase tracking-[0.2em] text-brand-ink [&::-webkit-details-marker]:hidden">
+                                {{ $product->material ? 'Matière' : 'Détails' }}
+                                <span class="relative h-3 w-3" aria-hidden="true">
+                                    <span class="absolute left-0 top-1/2 h-px w-3 bg-current"></span>
+                                    <span class="absolute left-1/2 top-0 h-3 w-px bg-current transition-transform duration-300 group-open:rotate-90 group-open:opacity-0"></span>
+                                </span>
+                            </summary>
+                            <div class="pb-6 text-sm leading-relaxed text-brand-muted">
+                                @if ($product->material)
+                                    <p><span class="text-brand-ink">{{ $product->material->name }}</span>{{ $product->material_tagline ? ' — '.$product->material_tagline : '' }}</p>
+                                    <a href="{{ route('shop.index', ['material_id' => $product->material_id]) }}" class="mt-3 inline-block text-xs uppercase tracking-[0.18em] text-brand-signature underline underline-offset-4 hover:text-brand-ink">
+                                        Toutes les pièces en {{ $product->material->name }}
+                                    </a>
+                                @else
+                                    <p>{{ $product->material_tagline }}</p>
+                                @endif
+                            </div>
+                        </details>
+                    @endif
+
+                    @if ($deliveryZones->isNotEmpty())
+                        <details class="product-fold group border-b border-brand-ink/10">
+                            <summary class="flex cursor-pointer list-none items-center justify-between py-5 text-xs font-medium uppercase tracking-[0.2em] text-brand-ink [&::-webkit-details-marker]:hidden">
+                                Livraison
+                                <span class="relative h-3 w-3" aria-hidden="true">
+                                    <span class="absolute left-0 top-1/2 h-px w-3 bg-current"></span>
+                                    <span class="absolute left-1/2 top-0 h-3 w-px bg-current transition-transform duration-300 group-open:rotate-90 group-open:opacity-0"></span>
+                                </span>
+                            </summary>
+                            <div class="pb-6">
+                                <dl class="divide-y divide-brand-ink/5 text-sm">
+                                    @foreach ($deliveryZones as $zone)
+                                        <div class="flex items-baseline justify-between gap-4 py-2.5">
+                                            <dt class="text-brand-ink">
+                                                {{ $zone->name }}
+                                                @if ($zone->delay_label)
+                                                    <span class="ml-1 text-xs text-brand-muted">{{ $zone->delay_label }}</span>
+                                                @endif
+                                            </dt>
+                                            <dd class="whitespace-nowrap text-brand-muted">{{ $formatFcfa($zone->fee) }}</dd>
+                                        </div>
+                                    @endforeach
+                                </dl>
+                                <p class="mt-3 text-xs text-brand-muted">Le suivi de votre commande est visible à tout moment dans votre espace.</p>
+                            </div>
+                        </details>
+                    @endif
+
+                    <details class="product-fold group border-b border-brand-ink/10">
+                        <summary class="flex cursor-pointer list-none items-center justify-between py-5 text-xs font-medium uppercase tracking-[0.2em] text-brand-ink [&::-webkit-details-marker]:hidden">
+                            Paiement
+                            <span class="relative h-3 w-3" aria-hidden="true">
+                                <span class="absolute left-0 top-1/2 h-px w-3 bg-current"></span>
+                                <span class="absolute left-1/2 top-0 h-3 w-px bg-current transition-transform duration-300 group-open:rotate-90 group-open:opacity-0"></span>
+                            </span>
+                        </summary>
+                        <ul class="space-y-2 pb-6 text-sm text-brand-muted">
+                            @foreach ($paymentMethods as $method)
+                                <li class="flex items-center gap-3">
+                                    <span class="h-px w-4 bg-brand-signature/50" aria-hidden="true"></span>
+                                    {{ $method }}
+                                </li>
+                            @endforeach
+                        </ul>
+                    </details>
+                </div>
             </div>
         </div>
 
@@ -349,5 +493,42 @@
                 </div>
             </div>
         @endif
+
+        {{-- BARRE D'ACHAT MOBILE — apparaît une fois le bouton principal sorti
+             de l'écran par le haut, et s'efface quand il revient : il n'y a
+             jamais deux « Ajouter au panier » visibles à la fois (un seul CTA
+             Garance par écran). Elle soumet le MÊME formulaire (`form=`), donc
+             le choix de variante obligatoire reste vérifié par le navigateur. --}}
+        <div
+            x-show="buyBar"
+            x-cloak
+            x-transition:enter="transition duration-300 ease-out"
+            x-transition:enter-start="translate-y-full"
+            x-transition:leave="transition duration-200 ease-in"
+            x-transition:leave-end="translate-y-full"
+            class="fixed inset-x-0 bottom-0 z-40 border-t border-brand-ink/10 bg-brand-surface/95 px-4 py-3 shadow-[0_-8px_24px_-12px_rgba(23,21,27,0.25)] backdrop-blur lg:hidden"
+        >
+            <div class="flex items-center gap-3">
+                @if ($image = $product->primaryImage())
+                    <img src="{{ $image->sizedUrl('thumb') }}" alt="" class="h-11 w-11 flex-shrink-0 rounded-sm object-cover">
+                @endif
+                <div class="min-w-0 flex-1">
+                    <p class="truncate font-display text-base leading-tight text-brand-ink">{{ $product->name }}</p>
+                    <p class="text-xs text-brand-muted">{{ $formatFcfa($product->price) }}</p>
+                </div>
+                <button
+                    type="submit"
+                    form="product-form"
+                    @disabled(! $product->isInStock())
+                    class="rounded-sm bg-brand-accent px-5 py-3 text-[0.65rem] font-medium uppercase tracking-[0.15em] text-brand-surface transition hover:bg-brand-signature disabled:opacity-40"
+                >
+                    Ajouter au panier
+                </button>
+            </div>
+        </div>
     </div>
+
+    @include('shop.partials.product-rail', ['eyebrow' => 'L\'accord parfait', 'title' => 'Complétez votre tenue', 'products' => $completeTheLook, 'muted' => true])
+    @include('shop.partials.product-rail', ['eyebrow' => 'Dans le même univers', 'title' => 'Vous aimerez aussi', 'products' => $related, 'muted' => false])
+    @include('shop.partials.product-rail', ['eyebrow' => 'Votre parcours', 'title' => 'Vus récemment', 'products' => $recentlyViewed, 'muted' => true])
 </x-shop-layout>

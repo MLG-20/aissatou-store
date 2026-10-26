@@ -213,3 +213,38 @@ input::-ms-clear {
     -webkit-mask-position: center;
             mask-position: center;
 }
+
+/* Barre d'achat mobile de la fiche produit : tant qu'elle est là, les boutons
+   flottants montent d'autant. `translate` (propriété autonome) et non
+   `transform`, que le bouton WhatsApp utilise déjà pour s'effacer. */
+.float-lift {
+    transition-property: translate, opacity, transform, background-color;
+}
+
+@media (max-width: 1023px) {
+    .has-buy-bar .float-lift {
+        translate: 0 -4.5rem;
+    }
+}
+
+/* Volets de la fiche produit (<details>) : ouverture en douceur là où le
+   navigateur sait animer vers `auto` ; ailleurs, ouverture instantanée. */
+@media (prefers-reduced-motion: no-preference) {
+    @supports (interpolate-size: allow-keywords) {
+        .product-fold {
+            interpolate-size: allow-keywords;
+        }
+
+        .product-fold::details-content {
+            block-size: 0;
+            overflow: hidden;
+            transition:
+                block-size 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                content-visibility 0.45s allow-discrete;
+        }
+
+        .product-fold[open]::details-content {
+            block-size: auto;
+        }
+    }
+}
