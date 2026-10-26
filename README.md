@@ -40,7 +40,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 
 ## Stack technique
 
-- **Backend** : Laravel 13, PHP 8.4, organisation par domaine (`App\Models\Catalogue`, `Order`, `Delivery`…)
+- **Backend** : Laravel 13, PHP 8.4 (8.4.27 minimum, correctifs « php2shell »), organisation par domaine (`App\Models\Catalogue`, `Order`, `Delivery`…)
 - **Base de données** : MySQL 8
 - **Site client** : Blade, Alpine.js, Tailwind CSS (Vite)
 - **Back-office** : Filament 3, guard `admin` totalement séparé du guard `web` des clients (table `admins`)
@@ -225,6 +225,8 @@ php artisan db:seed --class=RolePermissionSeeder --force   # aligne rôles et pe
 Sans cette étape, aucun compte admin n'a accès au back-office : en cas de doute, l'accès est refusé.
 
 Prévoir aussi un worker de file (`queue:work`, supervisé) et la tâche cron `* * * * * php artisan schedule:run`.
+
+Serveur : PHP 8.4.27 ou plus (`composer install` refuse une version plus ancienne, exposée aux CVE-2026-109618/109619), et `session.upload_progress.enabled=0` dans le `php.ini` (précaution recommandée pour CVE-2026-115560). L'envoi d'e-mails (`MAIL_*`) doit être configuré : une nouvelle cliente doit vérifier son adresse avant de commander.
 
 ## Tests et qualité
 
