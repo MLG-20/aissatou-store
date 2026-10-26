@@ -6,7 +6,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 
 **Site client**
 - Catalogue avec catégories, collections, matières, recherche et filtres AJAX, images WebP responsives
-- Accueil éditorial : univers en mosaïque, nouveautés, « Notre histoire », parcours « L'expérience Aissatou », avis clients avec note moyenne ; apparition douce au défilement (désactivée en « animations réduites »)
+- Accueil éditorial : hero en carrousel (photo paysage plein écran au format 16:9 ; photo portrait sur la moitié droite, texte sur fond clair ; version téléphone dédiée), bandeau défilant facultatif, univers en mosaïque, nouveautés, « Le Look » (pièces d'une tenue mises en avant tour à tour), « La Maison » (photo à effet de profondeur), parcours « L'expérience Aissatou », avis clients avec note moyenne ; apparition douce au défilement et zoom des photos au survol (désactivés en « animations réduites »)
 - Collections en chapitres (sommaire, photo, aperçu des pièces) et journal en magazine (article à la une, temps de lecture, partage WhatsApp)
 - Panier invité et compte (fusion à la connexion), liste d'envies, avis clients
 - **Espace cliente** : salutation selon l'heure de son appareil, badge « Cliente fidèle », commande en cours avec frise de suivi datée, coups de cœur, profil à compléter, adresses, historique des commandes, déconnexion
@@ -16,7 +16,8 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 
 **Back-office (`/admin`, Filament)**
 - **Tableau de bord** : chiffre d'affaires encaissé, commandes payées, panier moyen, taux de conversion (compteur de visites maison et anonyme, sans cookie ni IP stockée), paniers abandonnés, meilleures ventes, comparaison à la période précédente ; agrégats quotidiens pour rester rapide quel que soit l'historique
-- Catalogue, contenu éditorial, réglages du site, zones de livraison, messages reçus
+- Catalogue, contenu éditorial, réglages du site (photos distinctes pour la connexion et « La Maison », bandeau défilant masqué quand il est vide), zones de livraison, messages reçus
+- **Charte photo** : un format et un minimum par emplacement (refus des photos trop petites, badge « À remplacer »), point focal réglable avec aperçu de chaque recadrage
 - Commandes : statuts avec transitions contrôlées et historique, facture PDF, organisation de la livraison
 - **Paiements** : une ligne par paiement en ligne ; la fiche donne le statut réel, la référence de transaction et tout le déroulement expliqué en français (journal immuable), vérification auprès du fournisseur ; onglet « Messages suspects » pour les notifications rejetées
 - **Codes promo** : pourcentage ou montant fixe, validité, minimum d'achat, ciblage produits/catégories, plafond d'utilisations (compteur atomique, revalidation complète à la validation de la commande), utilisation rendue si la commande est annulée
