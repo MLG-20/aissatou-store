@@ -362,10 +362,33 @@
 
         <section class="overflow-hidden">
             <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-20 sm:py-28 grid items-center gap-16 lg:grid-cols-2 lg:gap-24">
-                <div class="relative mx-3 sm:mx-5" data-reveal>
+                <div class="group relative mx-3 sm:mx-5" data-reveal>
                     <div class="relative aspect-[4/5] overflow-hidden bg-brand-ink">
                         @if ($storyImage)
-                            <img src="{{ $storyImage }}" alt="" loading="lazy" class="h-full w-full object-cover object-center">
+                            {{-- La photo glisse doucement au défilement (léger
+                                 décalage de profondeur, agrandie juste assez pour
+                                 ne jamais montrer de bord) et zoome au survol —
+                                 sauf animations réduites. --}}
+                            <div class="h-full w-full transition duration-[1400ms] ease-out motion-safe:group-hover:scale-[1.04]">
+                                <img
+                                    src="{{ $storyImage }}"
+                                    alt=""
+                                    loading="lazy"
+                                    class="h-full w-full object-cover object-center will-change-transform"
+                                    x-data="{ shift: 0 }"
+                                    x-init="
+                                        if (! matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                                            const update = () => {
+                                                const box = $el.parentElement.getBoundingClientRect();
+                                                shift = Math.max(-32, Math.min(32, (innerHeight / 2 - (box.top + box.height / 2)) * 0.08));
+                                            };
+                                            update();
+                                            addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+                                        }
+                                    "
+                                    :style="`transform: translateY(${shift}px) scale(1.12)`"
+                                >
+                            </div>
                         @else
                             <x-shop.fold-backdrop :cut="false" />
                         @endif

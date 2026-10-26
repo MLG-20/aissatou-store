@@ -39,10 +39,11 @@ class LookDemoSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        // Positions en % de la photo, relevées sur l'image : le voile sur la
-        // tête, le pan drapé au premier plan, le col de la blouse.
+        // Positions en % de la photo, relevées sur l'image : le voile (drapé
+        // sous le menton, à l'écart du visage), le pan au premier plan, le col
+        // de la blouse.
         $spots = [
-            ['Voile Mousseline Bordeaux', 71, 13],
+            ['Voile Mousseline Bordeaux', 60, 33],
             ['Voile Soie Naturelle Beige', 22, 58],
             ['Col Claudine Brodé', 88, 41],
         ];

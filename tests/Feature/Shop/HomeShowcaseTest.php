@@ -44,7 +44,9 @@ class HomeShowcaseTest extends TestCase
             ->assertOk()
             ->assertSee('Soirée de Korité')
             ->assertSee('Voile Mousseline')
-            ->assertSee('left: 70.5%; top: 45%', false)
+            // Plus de points sur la photo : les pièces s'allument tour à tour.
+            ->assertDontSee('left: 70.5%; top: 45%', false)
+            ->assertSee("spots: JSON.parse('[2]')", false)
             // Une pièce désactivée disparaît du look, et de son total.
             ->assertDontSee('Pièce Retirée')
             ->assertSee('18 500 FCFA');
