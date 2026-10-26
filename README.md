@@ -48,6 +48,118 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - **PDF** : barryvdh/laravel-dompdf
 - **Paiement en ligne** : PayTech (API REST + notifications IPN signées HMAC)
 
+## Architecture
+
+### Vue d'ensemble
+
+```mermaid
+flowchart TB
+    cliente(["Cliente<br/>navigateur mobile"])
+    gerante(["Gérante / admin"])
+    appmobile(["App mobile<br/>(à venir)"])
+
+    subgraph app["Application Laravel 13"]
+        direction TB
+        subgraph entrees["Points d'entrée"]
+            shop["Site client<br/>Blade + Alpine.js<br/>Shop · Account · Auth"]
+            filament["Back-office /admin<br/>Filament 3"]
+            api["API /api/v1<br/>Sanctum"]
+            ipn["IPN PayTech<br/>signature HMAC"]
+        end
+
+        subgraph metier["Services métier (app/Services)"]
+            order["OrderService<br/>commande atomique, statuts"]
+            cart["CartService · WishlistService"]
+            promo["PromoService"]
+            stock["StockService<br/>seul chemin du stock"]
+            payment["PaymentService<br/>+ PaymentManager"]
+            delivery["DeliveryManager"]
+            stats["StatisticsService · VisitTracker"]
+            audit["AdminAccountService · AdminAudit"]
+        end
+
+        subgraph fond["Arrière-plan"]
+            queue["queue:work<br/>emails"]
+            sched["schedule:work<br/>payments:expire · stats:aggregate<br/>carts:detect-abandoned"]
+        end
+    end
+
+    db[("MySQL 8<br/>modèles par domaine")]
+    paytech["PayTech<br/>Wave · Orange Money · carte"]
+    yango["Yango<br/>(inactif sans clés)"]
+    smtp["Serveur mail"]
+
+    cliente --> shop
+    gerante --> filament
+    appmobile -.-> api
+
+    shop --> cart & order & promo
+    shop --> stats
+    filament --> order & stock & promo & stats & audit
+    api --> db
+    ipn --> payment
+
+    order --> stock & promo & payment & cart
+    payment -->|"CodProvider / PayTechProvider"| paytech
+    delivery -->|"Manual / Yango"| yango
+    paytech -->|"notification"| ipn
+
+    metier --> db
+    order & stock -->|"mails en file"| queue
+    queue --> smtp
+    sched --> order & payment & stats
+```
+
+Les contrôleurs restent minces : toute règle métier (prix, stock, promo, statut) passe par un service, recalculée côté serveur. Paiement et livraison sont derrière un contrat (`PaymentProvider`, `DeliveryProvider`) : ajouter un fournisseur ne touche pas au tunnel.
+
+### Deux mondes d'authentification séparés
+
+```mermaid
+flowchart LR
+    subgraph web["Guard web"]
+        users[("users<br/>clientes")]
+        site["Site client, espace cliente"]
+    end
+    subgraph admin["Guard admin"]
+        admins[("admins")]
+        bo["Back-office Filament"]
+        roles["spatie/permission<br/>admin · gestionnaire"]
+    end
+    subgraph sanctum["Sanctum"]
+        tokens["Jetons API"]
+    end
+    site --- users
+    bo --- admins
+    bo --- roles
+    tokens --- users
+```
+
+### Parcours d'un paiement en ligne
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as Cliente
+    participant S as Site (Checkout)
+    participant O as OrderService
+    participant P as PaymentService
+    participant PT as PayTech
+    participant Q as File d'attente
+
+    C->>S: Valide la commande
+    S->>O: Création atomique (recalcul, verrous stock, promo)
+    O-->>S: Commande en attente de paiement
+    S->>PT: Demande de paiement
+    PT-->>C: Redirection vers Wave / OM / carte
+    PT->>P: IPN signée (HMAC)
+    P->>P: Confirmation idempotente + journal du paiement
+    P->>Q: Emails cliente et boutique
+    C->>S: Retour sur la page d'attente
+    S->>PT: Revérifie le statut côté serveur
+    S-->>C: Commande confirmée
+    Note over O,P: Non payée après 30 min : payments:expire annule et remet en stock
+```
+
 ## Démarrage local
 
 ```bash
@@ -127,20 +239,55 @@ GitHub Actions (`.github/workflows/ci.yml`) exécute à chaque push et PR sur `m
 
 ## Structure du projet
 
-- `app/Models/` — par domaine : `Catalogue` (produits, déclinaisons, mouvements de stock…), `Order` (commandes, paiements, journal des paiements), `Delivery`, `Cart`, `Wishlist`, `Content`, `Contact`, `Customer` ; `Admin` et `AdminActivity` (journal d'activité)
-- `app/Services/` — logique métier :
-  - `OrderService` : création atomique de commande (recalcul serveur, verrous anti-survente), transitions de statut
-  - `StockService` : seul chemin de variation du stock (journalisé), alertes de stock faible
-  - `PromoService` : aperçu et décision finale des codes promo (verrou + incrément conditionnel)
-  - `StatisticsService`, `VisitTracker` : statistiques du tableau de bord et compteur de visites anonyme
-  - `Payment/` : contrat `PaymentProvider`, `CodProvider` (livraison), `PayTechProvider`, `PaymentService` (confirmation idempotente)
-  - `Delivery/` : contrat `DeliveryProvider`, livraison manuelle, Yango
-  - `AdminAccountService`, `AdminAudit` : comptes admin et journal d'activité
-- `app/Support/AdminRoles.php`, `app/Enums/Admin/AdminPermission.php` — rôles et permissions du back-office (le code fait foi)
-- `app/Filament/` — back-office ; `Concerns/` contient les traits de contrôle d'accès par permission
-- `app/Http/Controllers/` — `Shop` (site et tunnel), `Account` (espace client), `Payment` (IPN PayTech), `Admin` (facture PDF), `Api/V1`
-- `app/Console/Commands/` — `payments:expire` (toutes les 5 min), `stats:aggregate` (chaque nuit ; `--from=AAAA-MM-JJ` pour rattraper), `carts:detect-abandoned` (toutes les heures)
-- `app/Mail/` — emails en file d'attente (commande, statut, alerte boutique, stock faible)
-- `routes/` — `web.php`, `shop.php`, `account.php`, `auth.php`, `api.php`, `console.php` (planification)
+```text
+app/
+├── Http/
+│   ├── Controllers/
+│   │   ├── Shop/              site client et tunnel (accueil, catalogue, panier, commande, journal, contact)
+│   │   ├── Account/           espace cliente (tableau de bord, commandes, adresses)
+│   │   ├── Auth/              inscription, connexion, mot de passe (guard web)
+│   │   ├── Payment/           IPN PayTech (signature HMAC)
+│   │   ├── Admin/             facture PDF
+│   │   └── Api/V1/            catalogue et authentification par jeton (Sanctum)
+│   └── Middleware/TrackVisit  compteur de visites anonyme
+│
+├── Services/                  logique métier : les contrôleurs et Filament passent par ici
+│   ├── OrderService           création atomique (recalcul serveur, verrous anti-survente), transitions de statut
+│   ├── StockService           seul chemin de variation du stock (journalisé), alertes de stock faible
+│   ├── PromoService           aperçu et décision finale des codes promo (verrou + incrément conditionnel)
+│   ├── CartService, WishlistService, AddressService
+│   ├── StatisticsService, VisitTracker   tableau de bord et visites
+│   ├── AdminAccountService, AdminAudit   comptes admin et journal d'activité
+│   ├── ImageVariantGenerator  variantes WebP responsives
+│   ├── Payment/               contrat PaymentProvider → CodProvider, PayTechProvider ;
+│   │                          PaymentManager (choix), PaymentService (confirmation idempotente)
+│   └── Delivery/              contrat DeliveryProvider → Manual, Yango ; DeliveryManager
+│
+├── Models/                    par domaine
+│   ├── Catalogue/             produits, déclinaisons, images, catégories, collections, matières, mouvements de stock
+│   ├── Order/                 commandes, lignes, historique de statut, paiements, journal des paiements, codes promo
+│   ├── Cart/, Wishlist/, Customer/ (adresses), Delivery/ (zones)
+│   ├── Content/, Contact/     accueil, journal, avis, réglages du site, messages reçus
+│   ├── User                   clientes (guard web)
+│   └── Admin, AdminActivity   comptes back-office (guard admin) et journal d'activité
+│
+├── Filament/                  back-office /admin
+│   ├── Resources/             Catalogue, Order, Customer, Content, Delivery, Admin
+│   ├── Clusters/              Paiements, Stock
+│   ├── Pages/, Widgets/       tableau de bord, réglages du site, graphiques
+│   └── Concerns/              traits de contrôle d'accès par permission
+│
+├── Enums/                     statuts (commande, paiement…), permissions admin (AdminPermission)
+├── Support/                   AdminRoles (rôles, le code fait foi), textes lisibles des journaux, périodes de stats
+├── Mail/                      emails en file : commande, statut, alerte boutique, stock faible
+├── Observers/                 génération d'images à l'enregistrement du contenu
+└── Console/Commands/          payments:expire (5 min), stats:aggregate (nuit, --from=AAAA-MM-JJ),
+                               carts:detect-abandoned (heure), images:generate-variants
+
+routes/        web.php · shop.php · account.php · auth.php · api.php · console.php (planification)
+resources/     views/ (shop, account, auth, emails, pdfs, filament…), css/, js/ (Tailwind, Alpine, Vite)
+database/      migrations, factories, seeders (rôles et permissions, admin, catalogue et commandes de démo)
+tests/Feature/ par domaine : Shop, Account, Order, Payment, Delivery, Catalogue, Admin, Api, Auth
+```
 
 La documentation interne (cahier des charges, journaux de phase) est conservée hors dépôt.
