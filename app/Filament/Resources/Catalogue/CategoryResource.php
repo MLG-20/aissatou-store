@@ -5,11 +5,11 @@ namespace App\Filament\Resources\Catalogue;
 use App\Enums\Admin\AdminPermission;
 use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
+use App\Filament\Forms\FocalPointFields;
 use App\Filament\Resources\Catalogue\CategoryResource\Pages;
 use App\Models\Catalogue\Category;
-use App\Services\ImageVariantGenerator;
+use App\Support\ImageSlot;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -23,7 +23,6 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
@@ -87,50 +86,30 @@ class CategoryResource extends Resource
                     ->maxLength(2000)
                     ->columnSpanFull(),
 
-                // Aperçu de l'image actuelle (édition uniquement).
-                Placeholder::make('current_image_preview')
-                    ->label('Image actuelle')
-                    ->content(function (?Category $record): HtmlString {
-                        if (! $record?->image_path) {
-                            return new HtmlString(
-                                '<span style="color:#6b7280;">Aucune image — la catégorie affiche le visuel « signature » par défaut.</span>'
-                            );
-                        }
-
-                        $url = Storage::disk('public')->url($record->image_path);
-
-                        return new HtmlString(
-                            '<img src="'.e($url).'" alt="Image actuelle" '
-                            .'style="max-width:100%;max-height:220px;border-radius:0.75rem;'
-                            .'box-shadow:0 1px 3px rgba(0,0,0,.15);object-fit:cover;">'
-                        );
-                    })
-                    ->hidden(fn (string $operation): bool => $operation === 'create')
-                    ->columnSpanFull(),
-
                 // Champ « Changer l'image » : en édition il démarre vide (l'image
-                // actuelle est déjà en aperçu au-dessus). Vide = conservée ;
+                // actuelle est montrée dans l'aperçu du cadrage). Vide = conservée ;
                 // fichier déposé = remplacée (variantes régénérées par l'observer).
-                FileUpload::make('image_path')
+                ImageSlot::Category->configure(FileUpload::make('image_path'))
                     ->label(fn (string $operation): string => $operation === 'create'
                         ? 'Image de la catégorie'
                         : "Changer l'image")
-                    ->image()
-                    ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
-                    ->imageEditor()
                     ->disk('public')
                     ->directory('categories')
                     ->visibility('public')
-                    ->maxSize(15360)
                     ->formatStateUsing(fn (string $operation, $state) => $operation === 'edit' ? null : $state)
                     ->dehydrated(fn ($state): bool => filled($state))
-                    ->helperText(fn (string $operation): HtmlString => new HtmlString(
-                        ($operation === 'create'
-                            ? 'Facultatif. '
-                            : 'Laissez vide pour conserver l\'image ci-dessus. ')
-                        .'<strong>Format portrait recommandé : 1000 × 1250 px</strong> (4:5). 15 Mo maximum.'
+                    ->helperText(fn (string $operation): HtmlString => ImageSlot::Category->helperText(
+                        $operation === 'create' ? 'Facultatif.' : 'Laissez vide pour conserver l\'image ci-dessus.'
                     ))
                     ->columnSpanFull(),
+
+                // La même photo sert de tuile portrait sur l'accueil et de
+                // bandeau large en tête de la page catégorie.
+                ...FocalPointFields::make([
+                    'Tuile de l\'accueil' => '4 / 5',
+                    'Grande tuile' => '3 / 2',
+                    'Bandeau de la page' => '18 / 5',
+                ]),
 
                 TextInput::make('position')
                     ->label("Ordre d'affichage")
@@ -152,6 +131,7 @@ class CategoryResource extends Resource
             ->columns([
                 ImageColumn::make('image_path')->label('Image')->disk('public'),
                 TextColumn::make('name')->label('Nom')->searchable(),
+                ImageSlot::Category->qualityColumn(fn (Category $category) => $category->image_path),
                 TextColumn::make('parent.name')->label('Parent')->placeholder('—'),
                 TextColumn::make('position')->label('Position')->sortable(),
                 IconColumn::make('is_active')->label('Active')->boolean(),

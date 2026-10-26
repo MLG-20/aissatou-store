@@ -2,6 +2,7 @@
 
 namespace App\Models\Catalogue;
 
+use App\Models\Concerns\HasFocalPoint;
 use App\Services\ImageVariantGenerator;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,6 +14,8 @@ use Illuminate\Support\Str;
 #[Fillable(['name', 'slug', 'description', 'image_path', 'position', 'is_active'])]
 class Collection extends Model
 {
+    use HasFocalPoint;
+
     protected function casts(): array
     {
         return [

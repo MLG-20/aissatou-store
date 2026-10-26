@@ -2,6 +2,7 @@
 
 namespace App\Models\Catalogue;
 
+use App\Models\Concerns\HasFocalPoint;
 use App\Services\ImageVariantGenerator;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,6 +18,7 @@ use Illuminate\Support\Str;
 class Category extends Model
 {
     use HasFactory;
+    use HasFocalPoint;
 
     protected function casts(): array
     {

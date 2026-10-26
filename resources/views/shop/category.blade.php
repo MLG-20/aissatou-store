@@ -1,4 +1,4 @@
-@php $categoryImage = $category->sizedUrl('large'); @endphp
+@php $categoryImage = $category->sizedUrl('xlarge'); @endphp
 
 {{-- Header transparent sur le hero de catégorie (puis opaque au scroll), comme
      l'accueil — mais UNIQUEMENT quand la catégorie a une image (hero sombre,
@@ -11,7 +11,7 @@
     hero. Sinon, repli sur le dégradé de la charte + texte encre. --}}
     <section
         class="relative w-full border-b border-brand-ink/10 overflow-hidden bg-cover bg-center flex items-center {{ $categoryImage ? 'bg-brand-ink min-h-[300px] sm:min-h-[380px]' : 'bg-gradient-to-br from-brand-parchment via-brand-surface to-brand-muted/20 py-14 sm:py-20' }}"
-        @if ($categoryImage) style="background-image: url('{{ $categoryImage }}');" @endif
+        @if ($categoryImage) style="background-image: url('{{ $categoryImage }}'); background-position: {{ $category->focalPosition() }};" @endif
     >
         @if ($categoryImage)
             <div class="absolute inset-0 bg-brand-ink/55"></div>

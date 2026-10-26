@@ -23,6 +23,10 @@ class ImageVariantGenerator
         'thumb' => 480,
         'medium' => 800,
         'large' => 1400,
+        // Grands visuels (hero, bannières, look) sur écran large ou haute
+        // densité : 1400 px y paraissaient mous. Jamais d'agrandissement —
+        // une photo plus petite garde sa taille d'origine.
+        'xlarge' => 2400,
     ];
 
     /**

@@ -5,12 +5,12 @@ namespace App\Filament\Resources\Content;
 use App\Enums\Admin\AdminPermission;
 use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
+use App\Filament\Forms\FocalPointFields;
 use App\Filament\Resources\Content\HeroSlideResource\Pages;
 use App\Models\Content\HeroSlide;
-use App\Services\ImageVariantGenerator;
+use App\Support\ImageSlot;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
@@ -49,65 +49,53 @@ class HeroSlideResource extends Resource
     {
         return $form
             ->schema([
-                // Aperçu de l'image actuelle (édition uniquement) : la cliente
-                // voit ce qui est en place avant de décider de le remplacer.
-                Placeholder::make('current_image_preview')
-                    ->label('Image de fond actuelle')
-                    ->content(function (?HeroSlide $record): HtmlString {
-                        if (! $record?->image_path) {
-                            return new HtmlString(
-                                '<span style="color:#6b7280;">Aucune image pour le moment — le hero affiche le fond en dégradé de la charte.</span>'
-                            );
-                        }
-
-                        $url = Storage::disk('public')->url($record->image_path);
-
-                        return new HtmlString(
-                            '<img src="'.e($url).'" alt="Image de fond actuelle" '
-                            .'style="max-width:100%;max-height:220px;border-radius:0.75rem;'
-                            .'box-shadow:0 1px 3px rgba(0,0,0,.15);object-fit:cover;">'
-                        );
-                    })
-                    ->hidden(fn (string $operation): bool => $operation === 'create'),
-
                 // Champ « Changer l'image » : en édition il démarre volontairement
-                // vide (l'image actuelle est déjà montrée en aperçu au-dessus).
+                // vide (l'image actuelle est montrée dans l'aperçu du cadrage).
                 //  - formatStateUsing : ne pas précharger la vignette existante,
-                //    pour que le champ agisse comme un bouton « déposer/remplacer »
-                //    ouvrant directement le sélecteur (plus besoin de supprimer avant).
+                //    pour que le champ agisse comme un bouton « déposer/remplacer ».
                 //  - dehydrated(filled) : laissé vide => l'image existante est
-                //    CONSERVÉE (le champ est ignoré à l'enregistrement) au lieu
-                //    d'être effacée. Elle n'est mise à jour que si un fichier est choisi.
-                FileUpload::make('image_path')
+                //    CONSERVÉE au lieu d'être effacée.
+                ImageSlot::Hero->configure(FileUpload::make('image_path'))
                     ->label(fn (string $operation): string => $operation === 'create'
-                        ? 'Image de fond'
-                        : "Changer l'image de fond")
-                    ->image()
-                    ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
-                    ->imageEditor()
+                        ? 'Grande photo'
+                        : 'Changer la grande photo')
                     ->disk('public')
                     ->directory('hero')
                     ->visibility('public')
-                    ->maxSize(15360)
                     ->formatStateUsing(fn (string $operation, $state) => $operation === 'edit' ? null : $state)
                     ->dehydrated(fn ($state): bool => filled($state))
-                    ->helperText(fn (string $operation): HtmlString => new HtmlString(
-                        ($operation === 'create'
-                            ? 'Laissez vide pour garder le fond en dégradé de la charte. '
-                            : 'Choisissez une image pour remplacer celle ci-dessus. Laissez vide pour la conserver. ')
-                        .'<br><strong>Format paysage recommandé : 1920 × 1080 px</strong> (sujet vers le centre pour ne pas être coupé). 15 Mo maximum.'
-                    )),
+                    ->helperText(fn (string $operation): HtmlString => ImageSlot::Hero->helperText($operation === 'create'
+                        ? 'Laissez vide pour garder le fond en dégradé de la charte.'
+                        : 'Laissez vide pour conserver la photo actuelle.')),
 
-                Select::make('image_position')
-                    ->label("Cadrage de l'image")
-                    ->options([
-                        'left' => 'Sujet à gauche de la photo',
-                        'center' => 'Sujet centré',
-                        'right' => 'Sujet à droite de la photo',
-                    ])
-                    ->default('center')
-                    ->required()
-                    ->helperText('Le bandeau est large : ce réglage évite de couper le sujet si la photo est un portrait. À ajuster selon le résultat affiché sur le site.'),
+                // Le point focal garde le sujet dans le cadre sur ordinateur ET,
+                // faute de version dédiée, sur téléphone.
+                ...FocalPointFields::make([
+                    'Ordinateur' => '12 / 5',
+                    'Téléphone (sans version dédiée)' => '9 / 14',
+                ]),
+
+                Placeholder::make('current_mobile_preview')
+                    ->label('Version téléphone actuelle')
+                    ->content(fn (?HeroSlide $record): HtmlString => new HtmlString(
+                        '<img src="'.e(Storage::disk('public')->url($record->mobile_image_path)).'" alt="" '
+                        .'style="max-height:220px;border-radius:.375rem;">'
+                    ))
+                    ->hidden(fn (?HeroSlide $record): bool => blank($record?->mobile_image_path)),
+
+                // Facultative mais recommandée : sur téléphone, une photo
+                // paysage devient une étroite bande verticale. Une photo pensée
+                // en portrait garde toute sa force.
+                ImageSlot::HeroMobile->configure(FileUpload::make('mobile_image_path'))
+                    ->label(fn (?HeroSlide $record): string => $record?->mobile_image_path
+                        ? 'Changer la version téléphone'
+                        : 'Version téléphone (facultative)')
+                    ->disk('public')
+                    ->directory('hero')
+                    ->visibility('public')
+                    ->formatStateUsing(fn (string $operation, $state) => $operation === 'edit' ? null : $state)
+                    ->dehydrated(fn ($state): bool => filled($state))
+                    ->helperText(ImageSlot::HeroMobile->helperText('Facultative : sans elle, le téléphone recadre la grande photo autour du point focal.')),
 
                 TextInput::make('title')
                     ->label('Titre')
@@ -146,11 +134,12 @@ class HeroSlideResource extends Resource
             ->columns([
                 ImageColumn::make('image_path')->label('Image')->disk('public'),
                 TextColumn::make('title')->label('Titre')->searchable(),
+                ImageSlot::Hero->qualityColumn(fn (HeroSlide $slide) => $slide->image_path),
                 TextColumn::make('position')->label('Ordre')->sortable(),
                 IconColumn::make('is_active')->label('Actif')->boolean(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->modalWidth('5xl'),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

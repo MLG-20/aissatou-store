@@ -59,7 +59,7 @@
                     <a href="{{ route('shop.collection', $collection) }}" @class(['group relative mx-3 block sm:mx-5', 'lg:order-2' => $imageRight]) data-reveal>
                         <div class="relative aspect-[4/5] overflow-hidden {{ $dark ? 'bg-brand-signature/30' : 'bg-brand-parchment' }}">
                             @if ($image)
-                                <img src="{{ $image }}" alt="{{ $collection->name }}" loading="lazy" class="h-full w-full object-cover object-center transition duration-[1400ms] ease-out group-hover:scale-[1.05]">
+                                <img src="{{ $image }}" alt="{{ $collection->name }}" loading="lazy" style="object-position: {{ $collection->focalPosition() }}" class="h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.05]">
                             @else
                                 <x-shop.fold-backdrop :cut="false" />
                             @endif

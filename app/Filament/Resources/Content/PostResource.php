@@ -5,9 +5,10 @@ namespace App\Filament\Resources\Content;
 use App\Enums\Admin\AdminPermission;
 use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
+use App\Filament\Forms\FocalPointFields;
 use App\Filament\Resources\Content\PostResource\Pages;
 use App\Models\Content\Post;
-use App\Services\ImageVariantGenerator;
+use App\Support\ImageSlot;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
@@ -78,16 +79,17 @@ class PostResource extends Resource
                     ->helperText("Mise en forme (gras, titres, listes, liens) — les scripts sont retirés à l'affichage.")
                     ->required()
                     ->columnSpanFull(),
-                FileUpload::make('cover_image_path')
+                ImageSlot::PostCover->configure(FileUpload::make('cover_image_path'), 'Affichée en tête de l\'article et sur la liste.')
                     ->label('Photo de couverture')
-                    ->helperText('Affichée en tête de l\'article et sur la liste. 15 Mo maximum.')
-                    ->image()
-                    ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
                     ->disk('public')
                     ->directory('journal')
                     ->visibility('public')
-                    ->maxSize(15360)
                     ->columnSpanFull(),
+                ...FocalPointFields::make([
+                    'Liste du Journal' => '4 / 3',
+                    'En-tête de l\'article' => '2 / 1',
+                    'Accueil' => '5 / 4',
+                ], 'cover_image_path'),
                 Select::make('products')
                     ->label('Produits mis en avant')
                     ->helperText("Les pièces citées dans l'article, affichées en bas de page avec un lien d'achat.")
@@ -116,6 +118,7 @@ class PostResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('title')->label('Titre')->searchable(),
+                ImageSlot::PostCover->qualityColumn(fn (Post $post) => $post->cover_image_path),
                 IconColumn::make('is_published')->label('Publié')->boolean(),
                 TextColumn::make('published_at')->label('Parution')->dateTime('d/m/Y')->sortable(),
                 TextColumn::make('products_count')->label('Produits')->counts('products'),

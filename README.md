@@ -260,7 +260,7 @@ app/
 │   ├── CartService, WishlistService, AddressService
 │   ├── StatisticsService, VisitTracker   tableau de bord et visites
 │   ├── AdminAccountService, AdminAudit   comptes admin et journal d'activité
-│   ├── ImageVariantGenerator  variantes WebP responsives
+│   ├── ImageVariantGenerator  variantes WebP responsives (480 → 2 400 px)
 │   ├── Payment/               contrat PaymentProvider → CodProvider, PayTechProvider ;
 │   │                          PaymentManager (choix), PaymentService (confirmation idempotente)
 │   └── Delivery/              contrat DeliveryProvider → Manual, Yango ; DeliveryManager
@@ -277,10 +277,12 @@ app/
 │   ├── Resources/             Catalogue, Order, Customer, Content, Delivery, Admin
 │   ├── Clusters/              Paiements, Stock
 │   ├── Pages/, Widgets/       tableau de bord, réglages du site, graphiques
+│   ├── Forms/                 champs réutilisables (point focal avec aperçu des recadrages)
 │   └── Concerns/              traits de contrôle d'accès par permission
 │
 ├── Enums/                     statuts (commande, paiement…), permissions admin (AdminPermission)
-├── Support/                   AdminRoles (rôles, le code fait foi), textes lisibles des journaux, périodes de stats
+├── Support/                   AdminRoles (rôles, le code fait foi), ImageSlot (charte photo : format, minimum,
+│                              recadrage par emplacement), textes lisibles des journaux, périodes de stats
 ├── Mail/                      emails en file : commande, statut, alerte boutique, stock faible
 ├── Observers/                 génération d'images à l'enregistrement du contenu
 └── Console/Commands/          payments:expire (5 min), stats:aggregate (nuit, --from=AAAA-MM-JJ),

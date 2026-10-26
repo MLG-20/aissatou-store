@@ -8,7 +8,7 @@ use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Content\LookResource\Pages;
 use App\Models\Catalogue\Product;
 use App\Models\Content\Look;
-use App\Services\ImageVariantGenerator;
+use App\Support\ImageSlot;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -60,24 +60,22 @@ class LookResource extends Resource
         return $form
             ->schema([
                 Section::make('La photo')
-                    ->description('Une photo de mannequin qui porte plusieurs pièces de la boutique. Format portrait ou carré, sujet bien visible.')
+                    ->description('Une photo de mannequin qui porte plusieurs pièces de la boutique, en pied ou à mi-corps, sujet bien visible.')
                     ->columns(2)
                     ->schema([
-                        FileUpload::make('image_path')
+                        ImageSlot::Look->configure(FileUpload::make('image_path'))
                             ->label(fn (string $operation): string => $operation === 'create' ? 'Photo' : 'Changer la photo')
-                            ->image()
-                            ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
-                            ->imageEditor()
                             ->disk('public')
                             ->directory('looks')
                             ->visibility('public')
-                            ->maxSize(15360)
                             ->required(fn (string $operation): bool => $operation === 'create')
                             // Même logique que le hero : vide en édition = on garde
                             // la photo actuelle (montrée dans l'aperçu plus bas).
                             ->formatStateUsing(fn (string $operation, $state) => $operation === 'edit' ? null : $state)
                             ->dehydrated(fn ($state): bool => filled($state))
-                            ->helperText('15 Mo maximum. Laissez vide pour conserver la photo actuelle.')
+                            ->helperText(fn (string $operation): HtmlString => ImageSlot::Look->helperText(
+                                $operation === 'edit' ? 'Laissez vide pour conserver la photo actuelle.' : null
+                            ))
                             ->columnSpanFull(),
 
                         TextInput::make('title')
@@ -190,6 +188,7 @@ class LookResource extends Resource
             ->columns([
                 ImageColumn::make('image_path')->label('Photo')->disk('public'),
                 TextColumn::make('title')->label('Titre')->searchable(),
+                ImageSlot::Look->qualityColumn(fn (Look $look) => $look->image_path),
                 TextColumn::make('hotspots_count')->label('Pièces')->counts('hotspots'),
                 TextColumn::make('position')->label('Ordre')->sortable(),
                 IconColumn::make('is_active')->label('Visible')->boolean(),

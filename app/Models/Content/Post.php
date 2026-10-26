@@ -3,6 +3,7 @@
 namespace App\Models\Content;
 
 use App\Models\Catalogue\Product;
+use App\Models\Concerns\HasFocalPoint;
 use App\Services\ImageVariantGenerator;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -19,6 +20,8 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 ])]
 class Post extends Model
 {
+    use HasFocalPoint;
+
     protected function casts(): array
     {
         return [

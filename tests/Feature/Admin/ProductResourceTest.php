@@ -34,7 +34,7 @@ class ProductResourceTest extends TestCase
                 'price' => 15000,
                 'is_active' => true,
                 'images' => [
-                    ['path' => [UploadedFile::fake()->image('voile.jpg')], 'is_primary' => true, 'position' => 0],
+                    ['path' => [UploadedFile::fake()->image('voile.jpg', 1200, 1600)], 'is_primary' => true, 'position' => 0],
                 ],
                 // La référence de déclinaison n'est plus saisie : le modèle la génère.
                 'variants' => [

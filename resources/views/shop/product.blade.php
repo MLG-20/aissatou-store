@@ -73,7 +73,7 @@
                  (volets dépliés compris) : la pièce ne quitte jamais le regard. --}}
             <div class="lg:sticky lg:top-28 lg:self-start">
                 <div
-                    class="group relative aspect-square w-full overflow-hidden rounded-sm bg-brand-parchment touch-pan-y {{ $images->isNotEmpty() ? 'cursor-zoom-in' : '' }}"
+                    class="group relative aspect-[3/4] w-full overflow-hidden rounded-sm bg-brand-parchment touch-pan-y {{ $images->isNotEmpty() ? 'cursor-zoom-in' : '' }}"
                     x-on:touchstart="touchStartX = $event.changedTouches[0].screenX"
                     x-on:touchend="onSwipe($event, {{ $images->count() }})"
                     @if ($images->isNotEmpty()) @click="openLightbox()" @endif

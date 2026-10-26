@@ -10,7 +10,7 @@ use App\Filament\Resources\Catalogue\ProductResource\Pages;
 use App\Models\Catalogue\Category;
 use App\Models\Catalogue\Product;
 use App\Models\Catalogue\ProductVariant;
-use App\Services\ImageVariantGenerator;
+use App\Support\ImageSlot;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\KeyValue;
@@ -196,23 +196,18 @@ class ProductResource extends Resource
                         // ->image() valide le vrai type MIME côté serveur (pas juste
                         // l'extension), et Filament renomme le fichier au stockage —
                         // c'est ce qui rejette un .php déguisé en .jpg.
-                        FileUpload::make('path')
+                        ImageSlot::Product->configure(FileUpload::make('path'))
                             ->label(fn (Get $get): string => blank($get('existing_path'))
                                 ? 'Image'
                                 : "Changer l'image")
-                            ->image()
-                            ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
-                            ->imageEditor()
                             ->disk('public')
                             ->directory('products')
                             ->visibility('public')
-                            ->maxSize(15360)
                             // Obligatoire uniquement pour une NOUVELLE image ; sur une
                             // image existante, laisser vide = conserver l'actuelle.
                             ->required(fn (Get $get): bool => blank($get('existing_path')))
-                            ->helperText(fn (Get $get): HtmlString => new HtmlString(
-                                (blank($get('existing_path')) ? '' : "Laissez vide pour conserver l'image ci-dessus. ")
-                                .'<strong>Format carré recommandé : 1400 × 1400 px</strong>, fond clair et uni. 15 Mo maximum.'
+                            ->helperText(fn (Get $get): HtmlString => ImageSlot::Product->helperText(
+                                blank($get('existing_path')) ? 'Fond clair et uni, pièce entière.' : "Laissez vide pour conserver l'image ci-dessus."
                             ))
                             ->columnSpanFull(),
 
@@ -289,6 +284,7 @@ class ProductResource extends Resource
                     ->disk('public')
                     ->limit(1),
                 TextColumn::make('name')->label('Nom')->searchable(),
+                ImageSlot::Product->qualityColumn(fn (Product $product) => $product->primaryImage()?->path),
                 TextColumn::make('category.name')->label('Catégorie')->sortable(),
                 TextColumn::make('price')->label('Prix')->money('XOF')->sortable(),
                 IconColumn::make('is_active')->label('Active')->boolean(),
@@ -308,7 +304,7 @@ class ProductResource extends Resource
             // Affiche aussi les produits soft-supprimés (avec une action Restaurer)
             // pour que l'admin puisse récupérer un produit plutôt que de le voir
             // simplement disparaître.
-            ->modifyQueryUsing(fn (Builder $query) => $query->withoutGlobalScopes([SoftDeletingScope::class]));
+            ->modifyQueryUsing(fn (Builder $query) => $query->withoutGlobalScopes([SoftDeletingScope::class])->with('images'));
     }
 
     public static function getPages(): array

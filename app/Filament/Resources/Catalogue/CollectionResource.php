@@ -5,9 +5,10 @@ namespace App\Filament\Resources\Catalogue;
 use App\Enums\Admin\AdminPermission;
 use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
+use App\Filament\Forms\FocalPointFields;
 use App\Filament\Resources\Catalogue\CollectionResource\Pages;
 use App\Models\Catalogue\Collection;
-use App\Services\ImageVariantGenerator;
+use App\Support\ImageSlot;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -70,16 +71,16 @@ class CollectionResource extends Resource
                     ->rows(3)
                     ->maxLength(2000)
                     ->columnSpanFull(),
-                FileUpload::make('image_path')
+                ImageSlot::Category->configure(FileUpload::make('image_path'), 'Photo de la collection.')
                     ->label('Image')
-                    ->helperText('Bannière de la page collection. 15 Mo maximum.')
-                    ->image()
-                    ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
                     ->disk('public')
                     ->directory('collections')
                     ->visibility('public')
-                    ->maxSize(15360)
                     ->columnSpanFull(),
+                ...FocalPointFields::make([
+                    'Page Collections' => '4 / 5',
+                    'Page de la collection' => '5 / 4',
+                ]),
                 Select::make('products')
                     ->label('Produits de la collection')
                     ->helperText("Un produit peut appartenir à plusieurs collections — c'est ce qui distingue une collection d'une catégorie.")
@@ -108,6 +109,7 @@ class CollectionResource extends Resource
                     ->disk('public')
                     ->limit(1),
                 TextColumn::make('name')->label('Nom')->searchable(),
+                ImageSlot::Category->qualityColumn(fn (Collection $collection) => $collection->image_path),
                 TextColumn::make('products_count')->label('Produits')->counts('products')->sortable(),
                 IconColumn::make('is_active')->label('Visible')->boolean(),
             ])

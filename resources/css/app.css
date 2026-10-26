@@ -248,3 +248,21 @@ input::-ms-clear {
         }
     }
 }
+
+/* Hero : lent zoom arrière à chaque apparition d'une diapositive (x-show la
+   ré-affiche, l'animation repart). Mouvement réservé à qui ne demande pas
+   moins d'animations. */
+@media (prefers-reduced-motion: no-preference) {
+    .hero-kenburns {
+        animation: hero-kenburns 9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+}
+
+@keyframes hero-kenburns {
+    from {
+        transform: scale(1.08);
+    }
+    to {
+        transform: scale(1);
+    }
+}

@@ -7,7 +7,7 @@
 
 <div {{ $attributes->merge(['class' => 'relative overflow-hidden bg-brand-ink']) }}>
     @if ($cover)
-        <img src="{{ $cover }}" alt="" loading="lazy" class="absolute inset-0 h-full w-full object-cover object-center transition duration-[1400ms] ease-out group-hover:scale-[1.05]">
+        <img src="{{ $cover }}" alt="" loading="lazy" style="object-position: {{ $post->focalPosition() }}" class="absolute inset-0 h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.05]">
     @else
         <x-shop.fold-backdrop :cut="false" />
         <div class="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 text-brand-surface">

@@ -50,10 +50,46 @@
                     x-show="active === {{ $index }}"
                     x-cloak
                     x-transition.opacity.duration.500ms
-                    class="absolute inset-0 bg-brand-ink bg-cover"
-                    @if ($slide->image_path) style="background-image: url('{{ $slide->sizedUrl('large') }}'); background-position: {{ $slide->cssBackgroundPosition() }};" @endif
+                    class="absolute inset-0 overflow-hidden bg-brand-ink"
                 >
-                    <div class="absolute inset-0 {{ $slide->image_path ? 'bg-brand-ink/50' : '' }}"></div>
+                    {{-- Vraie image responsive (charte photo, App\Support\ImageSlot) :
+                         le navigateur choisit la taille utile à l'écran (2 400 px
+                         sur grand écran haute densité, 800 px sur téléphone), la
+                         version téléphone dédiée si elle existe, et le point focal
+                         garde le sujet dans le cadre. Lent zoom arrière à
+                         l'apparition (« Ken Burns »), sauf animations réduites. --}}
+                    @if ($slide->image_path)
+                        <picture>
+                            @if ($slide->mobile_image_path)
+                                <source
+                                    media="(max-width: 767px)"
+                                    srcset="{{ $slide->mobileSizedUrl('medium') }} 800w, {{ $slide->mobileSizedUrl('large') }} 1400w"
+                                    sizes="100vw"
+                                >
+                            @endif
+                            <img
+                                src="{{ $slide->sizedUrl('large') }}"
+                                srcset="{{ $slide->sizedUrl('medium') }} 800w, {{ $slide->sizedUrl('large') }} 1400w, {{ $slide->sizedUrl('xlarge') }} 2400w"
+                                sizes="100vw"
+                                alt=""
+                                @if ($index === 0) fetchpriority="high" @else loading="lazy" @endif
+                                {{-- Le point focal est réglé sur la grande photo : la
+                                     version téléphone dédiée, elle, reste centrée. --}}
+                                @class([
+                                    'hero-kenburns absolute inset-0 h-full w-full object-cover',
+                                    '[object-position:var(--focal)]' => ! $slide->mobile_image_path,
+                                    'object-center md:[object-position:var(--focal)]' => $slide->mobile_image_path,
+                                ])
+                                style="--focal: {{ $slide->focalPosition() }}"
+                            >
+                        </picture>
+
+                        {{-- Voile en dégradé depuis le texte plutôt qu'un aplat :
+                             la photo garde son éclat là où il n'y a rien à lire. --}}
+                        <div class="absolute inset-0 bg-brand-ink/45 sm:bg-transparent sm:bg-gradient-to-r sm:from-brand-ink/80 sm:via-brand-ink/40 sm:to-brand-ink/5"></div>
+                        <div class="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-brand-ink/50 to-transparent"></div>
+                    @endif
+
                     @unless ($slide->image_path)
                         <x-shop.fold-backdrop />
                     @endunless
@@ -164,7 +200,8 @@
                                 src="{{ $image }}"
                                 alt=""
                                 loading="lazy"
-                                class="absolute inset-0 h-full w-full object-cover object-center transition duration-[1400ms] ease-out group-hover:scale-[1.06]"
+                                class="absolute inset-0 h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.06]"
+                                style="object-position: {{ $collection->focalPosition() }}"
                             >
                         @else
                             <x-shop.fold-backdrop :cut="false" />

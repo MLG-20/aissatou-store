@@ -32,7 +32,7 @@
             <div class="relative mx-3 sm:mx-5" data-reveal style="--reveal-delay: 150ms">
                 <div class="relative aspect-[5/4] overflow-hidden bg-brand-parchment">
                     @if ($collectionImage)
-                        <img src="{{ $collectionImage }}" alt="{{ $collection->name }}" class="h-full w-full object-cover object-center">
+                        <img src="{{ $collectionImage }}" alt="{{ $collection->name }}" style="object-position: {{ $collection->focalPosition() }}" class="h-full w-full object-cover">
                     @else
                         <x-shop.fold-backdrop :cut="false" />
                     @endif
@@ -67,7 +67,7 @@
                     @foreach ($others as $other)
                         <a href="{{ route('shop.collection', $other) }}" class="group relative block aspect-[4/5] overflow-hidden bg-brand-ink" data-reveal style="--reveal-delay: {{ $loop->index * 100 }}ms">
                             @if ($otherImage = $other->sizedUrl('medium'))
-                                <img src="{{ $otherImage }}" alt="" loading="lazy" class="absolute inset-0 h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.06]">
+                                <img src="{{ $otherImage }}" alt="" loading="lazy" style="object-position: {{ $other->focalPosition() }}" class="absolute inset-0 h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.06]">
                             @else
                                 <x-shop.fold-backdrop :cut="false" />
                             @endif

@@ -6,7 +6,7 @@ use App\Enums\Admin\AdminPermission;
 use App\Filament\Concerns\PageRequiresAdminPermission;
 use App\Models\Content\SiteSetting;
 use App\Services\AdminAudit;
-use App\Services\ImageVariantGenerator;
+use App\Support\ImageSlot;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -115,19 +115,14 @@ class SiteSettings extends Page implements HasForms
                                 );
                             }),
 
-                        FileUpload::make('auth_image_path')
+                        ImageSlot::AuthPanel->configure(
+                            FileUpload::make('auth_image_path'),
+                            'Laissez vide pour conserver l\'image ci-dessus (ou le fond de la charte si aucune).'
+                        )
                             ->label("Changer l'image du panneau")
-                            ->image()
-                            ->acceptedFileTypes(ImageVariantGenerator::ACCEPTED_TYPES)
-                            ->imageEditor()
                             ->disk('public')
                             ->directory('auth')
-                            ->visibility('public')
-                            ->maxSize(15360)
-                            ->helperText(new HtmlString(
-                                'Laissez vide pour conserver l\'image ci-dessus (ou le fond de la charte si aucune). '
-                                .'<strong>Format portrait recommandé : 1200 × 1600 px</strong>. 15 Mo maximum.'
-                            )),
+                            ->visibility('public'),
 
                         TextInput::make('auth_title')
                             ->label('Titre')

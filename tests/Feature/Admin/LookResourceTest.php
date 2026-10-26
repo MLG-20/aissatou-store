@@ -26,7 +26,7 @@ class LookResourceTest extends TestCase
         Livewire::test(CreateLook::class)
             ->fillForm([
                 'title' => 'Soirée de Korité',
-                'image_path' => [UploadedFile::fake()->image('look.jpg', 800, 1200)],
+                'image_path' => [UploadedFile::fake()->image('look.jpg', 1000, 1500)],
                 'position' => 1,
                 'is_active' => true,
             ])
