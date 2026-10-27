@@ -79,22 +79,36 @@ class HomeShowcaseTest extends TestCase
         $this->get('/')->assertOk()->assertDontSee('Look masqué')->assertDontSee('Look sans pièce');
     }
 
-    public function test_the_gift_guide_offers_only_budgets_that_have_pieces(): void
+    public function test_the_gift_guide_splits_the_real_prices_into_three_budgets(): void
     {
         Category::factory()->create(['name' => 'Cadeaux', 'slug' => 'cadeaux', 'parent_id' => null]);
-        Product::factory()->create(['is_active' => true, 'price' => 8000]);
-        Product::factory()->create(['is_active' => true, 'price' => 9999]);
-        Product::factory()->create(['is_active' => true, 'price' => 30000]);
-        Product::factory()->create(['is_active' => false, 'price' => 15000]);
+
+        foreach ([5000, 6000, 6500, 12000, 13000, 14000, 30000, 32000, 35000] as $price) {
+            Product::factory()->create(['is_active' => true, 'price' => $price]);
+        }
+        // Un produit masqué ne déplace pas les seuils.
+        Product::factory()->create(['is_active' => false, 'price' => 500000]);
 
         $budgets = $this->get('/')->assertOk()
             ->assertSee('Un présent qui leur ressemble')
-            ->assertSee(e(route('shop.index', ['max_price' => 9999])), false)
+            ->assertSee(e(route('shop.index', ['max_price' => 7000])), false)
             ->assertSee('Voir les coffrets &amp; cadeaux', false)
             ->viewData('giftBudgets');
 
         $this->assertSame(
-            [['Moins de 10 000 FCFA', 2], ['Plus de 25 000 FCFA', 1]],
+            [["Jusqu'à 7 000 FCFA", 3], ['7 000 à 14 000 FCFA', 3], ['Plus de 14 000 FCFA', 3]],
+            collect($budgets)->map(fn ($budget) => [$budget['label'], $budget['count']])->all()
+        );
+    }
+
+    public function test_the_gift_guide_offers_only_budgets_that_have_pieces(): void
+    {
+        Product::factory()->count(3)->create(['is_active' => true, 'price' => 5000]);
+
+        $budgets = $this->get('/')->assertOk()->viewData('giftBudgets');
+
+        $this->assertSame(
+            [["Jusqu'à 5 000 FCFA", 3]],
             collect($budgets)->map(fn ($budget) => [$budget['label'], $budget['count']])->all()
         );
     }

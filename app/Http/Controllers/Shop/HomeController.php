@@ -77,16 +77,29 @@ class HomeController extends Controller
      * Guide cadeau par budget : trois tranches menant au catalogue filtré par
      * prix. Une tranche vide n'est pas proposée (jamais de page sans résultat).
      *
+     * Les seuils ne sont pas figés : ils partagent les prix réels du catalogue
+     * en trois parts à peu près égales (arrondies au millier supérieur), et
+     * suivent donc d'eux-mêmes les prix que la cliente saisit.
+     *
      * @return list<array{label: string, hint: string, count: int, query: array<string, int>}>
      */
     private function giftBudgets(): array
     {
-        $prices = Product::query()->active()->pluck('price');
+        $prices = Product::query()->active()->orderBy('price')->pluck('price')->map(fn ($price) => (int) $price);
+
+        if ($prices->isEmpty()) {
+            return [];
+        }
+
+        $threshold = fn (float $share): int => (int) (ceil($prices[(int) ceil($prices->count() * $share) - 1] / 1000) * 1000);
+        $low = $threshold(1 / 3);
+        $high = $threshold(2 / 3);
+        $fcfa = fn (int $amount): string => number_format($amount, 0, ',', ' ').' FCFA';
 
         return collect([
-            ['label' => 'Moins de 10 000 FCFA', 'hint' => 'Une attention', 'min' => null, 'max' => 9999],
-            ['label' => '10 000 à 25 000 FCFA', 'hint' => 'Un vrai cadeau', 'min' => 10000, 'max' => 25000],
-            ['label' => 'Plus de 25 000 FCFA', 'hint' => "L'exception", 'min' => 25001, 'max' => null],
+            ['label' => "Jusqu'à ".$fcfa($low), 'hint' => 'Une attention', 'min' => null, 'max' => $low],
+            ['label' => number_format($low, 0, ',', ' ').' à '.$fcfa($high), 'hint' => 'Un vrai cadeau', 'min' => $low + 1, 'max' => $high],
+            ['label' => 'Plus de '.$fcfa($high), 'hint' => "L'exception", 'min' => $high + 1, 'max' => null],
         ])
             ->map(fn (array $budget) => [
                 'label' => $budget['label'],
