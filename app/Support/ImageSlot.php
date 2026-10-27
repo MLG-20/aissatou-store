@@ -65,7 +65,10 @@ enum ImageSlot: string
         return match ($this) {
             self::Hero => [1920, 1080],
             self::HeroMobile => [900, 1125],
-            self::Product => [1050, 1400],
+            // Volontairement bas : les photos de la boutique arrivent par
+            // WhatsApp (compressées, ~800 px). Une fiche produit ne les
+            // affiche jamais plus grand ; seules les vraies miniatures sont refusées.
+            self::Product => [600, 600],
             self::Category, self::Story => [1000, 1250],
             self::Look => [1000, 1500],
             self::PostCover => [1500, 1000],
@@ -175,6 +178,15 @@ enum ImageSlot: string
                 .' (minimum '.self::px($minWidth).' × '.self::px($minHeight).' px), affichée en plein écran. '
                 .'<strong>Ou portrait 4:5 : 2 000 × 2 500 px</strong> (minimum 1 200 × 1 500 px), '
                 .'affichée entière à côté du texte. La photo n\'est pas recadrée ; le crayon reste disponible. JPEG, PNG ou WebP, 15 Mo maximum.'
+            );
+        }
+
+        if ($this === self::Product) {
+            return new HtmlString(
+                ($intro ? e($intro).' ' : '')
+                .'<strong>Envoyez la photo telle quelle</strong>, de préférence prise en hauteur : '
+                .'elle est cadrée automatiquement, le crayon permet d\'ajuster. '
+                .'Au moins '.self::px($minWidth).' × '.self::px($minHeight).' px. JPEG, PNG ou WebP.'
             );
         }
 

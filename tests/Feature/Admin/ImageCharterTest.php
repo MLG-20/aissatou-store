@@ -6,6 +6,7 @@ use App\Filament\Resources\Catalogue\ProductResource\Pages\CreateProduct;
 use App\Filament\Resources\Content\HeroSlideResource\Pages\ManageHeroSlides;
 use App\Models\Admin;
 use App\Models\Catalogue\Category;
+use App\Models\Catalogue\Product;
 use App\Models\Content\HeroSlide;
 use App\Support\ImageSlot;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,14 +36,38 @@ class ImageCharterTest extends TestCase
                 'category_id' => Category::factory()->create()->id,
                 'price' => 5000,
                 'images' => [
-                    ['path' => [UploadedFile::fake()->image('petite.jpg', 600, 800)], 'is_primary' => true, 'position' => 0],
+                    ['path' => [UploadedFile::fake()->image('petite.jpg', 436, 458)], 'is_primary' => true, 'position' => 0],
                 ],
             ])
             ->call('create')
             ->assertHasFormErrors()
-            ->assertSee('il faut au moins 1 050 × 1 400 px');
+            ->assertSee('il faut au moins 600 × 600 px');
 
         $this->assertDatabaseMissing('products', ['slug' => 'voile-flou']);
+    }
+
+    public function test_a_product_photo_sent_through_whatsapp_is_accepted(): void
+    {
+        Storage::fake('public');
+        $this->actingAs(Admin::factory()->create(), 'admin');
+
+        Livewire::test(CreateProduct::class)
+            ->fillForm([
+                'name' => 'Pashmina',
+                'slug' => 'pashmina',
+                'category_id' => Category::factory()->create()->id,
+                'price' => 5000,
+                'images' => [
+                    ['path' => [UploadedFile::fake()->image('whatsapp.jpg', 800, 800)], 'is_primary' => true, 'position' => 0],
+                ],
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('products', ['slug' => 'pashmina']);
+        $this->assertFalse(ImageSlot::Product->isBelowMinimum(
+            Product::where('slug', 'pashmina')->firstOrFail()->primaryImage()->path
+        ));
     }
 
     public function test_a_hero_photo_below_full_hd_is_refused(): void
