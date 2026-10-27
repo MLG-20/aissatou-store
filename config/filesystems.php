@@ -41,7 +41,10 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // Relative : les images suivent l'adresse par laquelle on visite le
+            // site (local, tunnel ngrok, production). Construite sur APP_URL,
+            // elle pointait vers 127.0.0.1 pour un visiteur passant par ngrok.
+            'url' => '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
