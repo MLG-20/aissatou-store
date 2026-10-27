@@ -7,18 +7,6 @@
      un <details> replié, pour que la grille reste immédiatement visible.
 
      Les filtres Matière (actif depuis la Phase 2.2A) et Collection (Phase 2.2B, à venir) de la maquette — cf. docs/files/02.2-modules-maquette.md. --}}
-@php
-    // Tranches de prix en FCFA, proposées en raccourci. Elles pilotent les mêmes
-    // champs min_price/max_price que la saisie libre : aucun paramètre nouveau
-    // côté serveur, donc aucune validation à modifier.
-    $priceRanges = [
-        ['label' => 'Moins de 25 000 FCFA', 'min' => '', 'max' => '25000'],
-        ['label' => '25 000 à 50 000 FCFA', 'min' => '25000', 'max' => '50000'],
-        ['label' => '50 000 à 100 000 FCFA', 'min' => '50000', 'max' => '100000'],
-        ['label' => 'Plus de 100 000 FCFA', 'min' => '100000', 'max' => ''],
-    ];
-@endphp
-
 <div
     x-data="productFilters({
         action: @js($action),
@@ -122,41 +110,31 @@
                 @endif
 
                 <div class="flex flex-col gap-3 border-t border-brand-ink/10 pt-6">
-                    <span class="text-[0.65rem] uppercase tracking-[0.18em] text-brand-muted">Prix</span>
+                    <span class="text-[0.65rem] uppercase tracking-[0.18em] text-brand-muted">Prix (FCFA)</span>
 
-                    @foreach ($priceRanges as $range)
-                        <label class="flex items-center gap-2.5 text-sm">
-                            <input
-                                type="radio"
-                                name="price-range"
-                                @change="filters.min_price = @js($range['min']); filters.max_price = @js($range['max']); apply()"
-                                :checked="filters.min_price === @js($range['min']) && filters.max_price === @js($range['max'])"
-                                class="border-brand-ink/30 text-brand-accent focus:ring-brand-accent"
-                            >
-                            {{ $range['label'] }}
-                        </label>
-                    @endforeach
-
-                    {{-- Saisie libre conservée : les tranches ne sont qu'un raccourci. --}}
-                    <div class="mt-2 flex items-center gap-2">
+                    {{-- Saisie libre uniquement : des tranches figées ne suivraient
+                         pas les prix réels de la boutique. Un champ vide = sans limite. --}}
+                    <div class="flex items-center gap-2">
                         <input
                             type="number"
                             min="0"
+                            inputmode="numeric"
                             x-model="filters.min_price"
                             @input.debounce.400ms="apply()"
-                            aria-label="Prix minimum"
-                            placeholder="Min"
-                            class="w-full rounded-sm border-brand-ink/20 bg-transparent text-xs focus:border-brand-signature focus:ring-brand-accent"
+                            aria-label="Prix minimum en FCFA"
+                            placeholder="De"
+                            class="w-full rounded-sm border-brand-ink/20 bg-transparent text-sm focus:border-brand-signature focus:ring-brand-accent"
                         >
                         <span class="text-brand-muted">–</span>
                         <input
                             type="number"
                             min="0"
+                            inputmode="numeric"
                             x-model="filters.max_price"
                             @input.debounce.400ms="apply()"
-                            aria-label="Prix maximum"
-                            placeholder="Max"
-                            class="w-full rounded-sm border-brand-ink/20 bg-transparent text-xs focus:border-brand-signature focus:ring-brand-accent"
+                            aria-label="Prix maximum en FCFA"
+                            placeholder="À"
+                            class="w-full rounded-sm border-brand-ink/20 bg-transparent text-sm focus:border-brand-signature focus:ring-brand-accent"
                         >
                     </div>
                 </div>
