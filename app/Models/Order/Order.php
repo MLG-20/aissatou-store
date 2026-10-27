@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'subtotal', 'discount_total', 'promo_code', 'shipping_total', 'shipping_zone', 'total',
     'delivery_assignee', 'delivery_note',
     'recipient_name', 'phone', 'city', 'address_line', 'landmark',
+    'whatsapp_opt_in', 'whatsapp_opt_in_at',
 ])]
 class Order extends Model
 {
@@ -31,6 +32,8 @@ class Order extends Model
             'discount_total' => 'decimal:2',
             'shipping_total' => 'decimal:2',
             'total' => 'decimal:2',
+            'whatsapp_opt_in' => 'boolean',
+            'whatsapp_opt_in_at' => 'datetime',
         ];
     }
 
@@ -52,5 +55,10 @@ class Order extends Model
     public function history(): HasMany
     {
         return $this->hasMany(OrderStatusHistory::class)->orderBy('created_at');
+    }
+
+    public function whatsappMessages(): HasMany
+    {
+        return $this->hasMany(WhatsAppMessage::class)->orderBy('created_at');
     }
 }

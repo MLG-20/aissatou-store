@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
+use App\Enums\Order\WhatsAppTemplate;
 use App\Exceptions\OrderException;
+use App\Jobs\SendOrderWhatsApp;
 use App\Mail\NewOrderForAdmin;
 use App\Mail\OrderPlaced;
 use App\Mail\OrderStatusChanged;
@@ -51,7 +53,7 @@ class OrderService
      *
      * @throws OrderException
      */
-    public function createFromCart(User $user, Cart $cart, Address $address, string $providerKey, ?string $promoCode = null): Order
+    public function createFromCart(User $user, Cart $cart, Address $address, string $providerKey, ?string $promoCode = null, bool $whatsappOptIn = false): Order
     {
         abort_unless($address->user_id === $user->id, 403);
 
@@ -59,7 +61,7 @@ class OrderService
 
         throw_unless($provider && $provider->isAvailable(), OrderException::paymentUnavailable());
 
-        $order = DB::transaction(function () use ($user, $cart, $address, $provider, $promoCode) {
+        $order = DB::transaction(function () use ($user, $cart, $address, $provider, $promoCode, $whatsappOptIn) {
             $items = $cart->items()->with(['product', 'variant'])->get();
 
             throw_if($items->isEmpty(), OrderException::emptyCart());
@@ -152,6 +154,9 @@ class OrderService
                 'city' => $address->city,
                 'address_line' => $address->address_line,
                 'landmark' => $address->landmark,
+                // Suivi WhatsApp : seulement avec l'accord explicite du client.
+                'whatsapp_opt_in' => $whatsappOptIn,
+                'whatsapp_opt_in_at' => $whatsappOptIn ? now() : null,
             ]);
 
             $order->items()->createMany($lines);
@@ -181,6 +186,7 @@ class OrderService
         // Après commit uniquement : un rollback ne doit jamais avoir envoyé
         // d'email. File d'attente (phase 3) : le tunnel ne bloque pas dessus.
         Mail::to($order->user)->queue(new OrderPlaced($order));
+        SendOrderWhatsApp::dispatchFor($order, WhatsAppTemplate::OrderConfirmed);
 
         // Paiement en ligne : la boutique sera alertée à la confirmation
         // (PaymentService::confirm), pas pour un panier qui peut être abandonné.
