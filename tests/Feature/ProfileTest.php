@@ -60,6 +60,15 @@ class ProfileTest extends TestCase
         $this->assertSame('771234567', $user->refresh()->phone);
     }
 
+    public function test_an_invalid_phone_number_is_refused(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->patch('/profile', ['name' => $user->name, 'email' => $user->email, 'phone' => '12345'])
+            ->assertSessionHasErrors('phone');
+    }
+
     public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
     {
         $user = User::factory()->create();

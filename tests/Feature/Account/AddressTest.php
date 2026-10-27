@@ -95,6 +95,19 @@ class AddressTest extends TestCase
         $response->assertSessionHasErrors(['recipient_name', 'phone', 'city', 'address_line']);
     }
 
+    public function test_address_phone_must_be_a_senegalese_number(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('account.addresses.store'), $this->addressPayload(['phone' => '77313166']))
+            ->assertSessionHasErrors(['phone' => 'Numéro sénégalais à 9 chiffres attendu, par exemple 77 123 45 67.']);
+
+        $this->actingAs($user)
+            ->post(route('account.addresses.store'), $this->addressPayload(['phone' => '+221 77 123 45 67']))
+            ->assertSessionHasNoErrors();
+    }
+
     /**
      * @return array<string, mixed>
      */

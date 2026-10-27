@@ -18,7 +18,7 @@ class AddressFactory extends Factory
         return [
             'user_id' => User::factory(),
             'recipient_name' => fake()->name(),
-            'phone' => fake()->numerify('7#######'),
+            'phone' => fake()->numerify('77#######'),
             'city' => fake()->city(),
             'address_line' => fake()->streetAddress(),
             'landmark' => null,
