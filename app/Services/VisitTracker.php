@@ -29,7 +29,7 @@ class VisitTracker
             && ! $request->ajax()
             && ! $request->expectsJson()
             && $request->header('Purpose') !== 'prefetch'
-            && ! $request->is('admin', 'admin/*', 'livewire/*', 'api/*', 'up')
+            && ! $request->is('admin', 'admin/*', 'livewire/*', 'api/*', 'webhooks/*', 'up')
             && $agent !== ''
             && ! preg_match(self::BOT_PATTERN, $agent)
             // L'équipe qui consulte la boutique ne gonfle pas les chiffres.

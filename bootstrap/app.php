@@ -14,9 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Appel serveur-à-serveur de PayTech (pas de session ni de jeton
-        // CSRF) : l'authenticité est vérifiée par signature dans le contrôleur.
-        $middleware->validateCsrfTokens(except: ['paiement/paytech/ipn']);
+        // Appels serveur-à-serveur de PayTech et de Meta (pas de session ni
+        // de jeton CSRF) : l'authenticité est vérifiée par signature dans le
+        // contrôleur.
+        $middleware->validateCsrfTokens(except: ['paiement/paytech/ipn', 'webhooks/whatsapp']);
 
         // Visiteurs uniques anonymes, pour le taux de conversion (Phase 6D).
         $middleware->web(append: [TrackVisit::class]);

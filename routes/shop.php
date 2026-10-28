@@ -10,6 +10,7 @@ use App\Http\Controllers\Shop\JournalController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\ReviewController;
 use App\Http\Controllers\Shop\WishlistController;
+use App\Http\Controllers\WhatsApp\WebhookController as WhatsAppWebhookController;
 use App\Models\Content\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -89,3 +90,10 @@ Route::middleware('auth')->group(function (): void {
 // IPN PayTech : sans session ni CSRF (cf. bootstrap/app.php), signé.
 Route::post('paiement/paytech/ipn', PayTechIpnController::class)
     ->middleware('throttle:60,1')->name('payment.paytech.ipn');
+
+// Webhook WhatsApp (Meta) : vérification d'abonnement + notifications
+// signées, sans CSRF (cf. bootstrap/app.php).
+Route::get('webhooks/whatsapp', [WhatsAppWebhookController::class, 'verify'])
+    ->middleware('throttle:10,1')->name('webhooks.whatsapp.verify');
+Route::post('webhooks/whatsapp', [WhatsAppWebhookController::class, 'receive'])
+    ->middleware('throttle:120,1')->name('webhooks.whatsapp.receive');
