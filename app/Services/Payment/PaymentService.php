@@ -4,6 +4,8 @@ namespace App\Services\Payment;
 
 use App\Enums\Order\PaymentEventType;
 use App\Enums\Order\PaymentStatus;
+use App\Enums\Order\WhatsAppTemplate;
+use App\Jobs\SendOrderWhatsApp;
 use App\Mail\NewOrderForAdmin;
 use App\Models\Order\Payment;
 use App\Services\OrderService;
@@ -56,6 +58,7 @@ class PaymentService
         if ($confirmed) {
             $order = $payment->order->fresh(['items', 'payment', 'user']);
             Mail::to($this->orders->shopEmail())->queue(new NewOrderForAdmin($order));
+            SendOrderWhatsApp::dispatchFor($order, WhatsAppTemplate::PaymentConfirmed);
         }
 
         return $confirmed;

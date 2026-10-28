@@ -14,13 +14,37 @@ use Illuminate\Support\Str;
 enum WhatsAppTemplate: string
 {
     case OrderConfirmed = 'commande_confirmee';
+    case PaymentConfirmed = 'paiement_confirme';
+    case OrderShipped = 'commande_expediee';
+    case OrderDelivered = 'commande_livree';
+    case OrderCancelled = 'commande_annulee';
+
+    /**
+     * Modèle à envoyer quand la commande passe à ce statut. Rien pour « En
+     * préparation » : trop rapproché de la confirmation.
+     */
+    public static function forStatus(OrderStatus $status): ?self
+    {
+        return match ($status) {
+            OrderStatus::Shipped => self::OrderShipped,
+            OrderStatus::Delivered => self::OrderDelivered,
+            OrderStatus::Cancelled => self::OrderCancelled,
+            default => null,
+        };
+    }
 
     /** @return list<string> */
     public function bodyParameters(Order $order): array
     {
         return match ($this) {
             // Bonjour {{1}}, merci pour votre commande {{2}} d'un montant de {{3}}…
-            self::OrderConfirmed => [self::firstName($order), $order->number, self::amount($order->total)],
+            self::OrderConfirmed,
+            // Bonjour {{1}}, nous avons bien reçu le paiement de votre commande {{2}} ({{3}})…
+            self::PaymentConfirmed => [self::firstName($order), $order->number, self::amount($order->total)],
+            // Bonjour {{1}}, votre commande {{2}} est en route / livrée / annulée…
+            self::OrderShipped,
+            self::OrderDelivered,
+            self::OrderCancelled => [self::firstName($order), $order->number],
         };
     }
 

@@ -186,12 +186,14 @@ class OrderService
         // Après commit uniquement : un rollback ne doit jamais avoir envoyé
         // d'email. File d'attente (phase 3) : le tunnel ne bloque pas dessus.
         Mail::to($order->user)->queue(new OrderPlaced($order));
-        SendOrderWhatsApp::dispatchFor($order, WhatsAppTemplate::OrderConfirmed);
 
         // Paiement en ligne : la boutique sera alertée à la confirmation
         // (PaymentService::confirm), pas pour un panier qui peut être abandonné.
+        // Même règle pour WhatsApp : « paiement confirmé » tiendra lieu de
+        // confirmation (décision Ahmed, 2026-10-28).
         if (! $provider->isOnline()) {
             Mail::to($this->shopEmail())->queue(new NewOrderForAdmin($order));
+            SendOrderWhatsApp::dispatchFor($order, WhatsAppTemplate::OrderConfirmed);
         }
 
         return $order;
@@ -241,7 +243,21 @@ class OrderService
 
         Mail::to($order->user)->queue(new OrderStatusChanged($order, $to));
 
+        if (($template = WhatsAppTemplate::forStatus($to)) && ! $this->isAbandonedOnlinePayment($order)) {
+            SendOrderWhatsApp::dispatchFor($order, $template);
+        }
+
         return $order;
+    }
+
+    /**
+     * Commande payable en ligne jamais payée : le client n'a reçu aucune
+     * confirmation WhatsApp, son annulation ne lui est donc pas annoncée.
+     */
+    private function isAbandonedOnlinePayment(Order $order): bool
+    {
+        return $this->payments->find((string) $order->payment?->provider)?->isOnline()
+            && $order->payment_status !== PaymentStatus::Confirmed;
     }
 
     /**
