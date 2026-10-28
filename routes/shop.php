@@ -7,6 +7,7 @@ use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\CollectionController;
 use App\Http\Controllers\Shop\ContactController;
 use App\Http\Controllers\Shop\JournalController;
+use App\Http\Controllers\Shop\LookbookController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\ReviewController;
 use App\Http\Controllers\Shop\WishlistController;
@@ -24,6 +25,8 @@ Route::get('produits/{product:slug}', [ProductController::class, 'show'])->name(
 // Liste d'envies 2.2C, Journal 2.2D) : plus aucune page d'attente.
 Route::get('collections', [CollectionController::class, 'index'])->name('shop.collections');
 Route::get('collections/{collection:slug}', [CollectionController::class, 'show'])->name('shop.collection');
+Route::get('lookbook', [LookbookController::class, 'index'])->name('shop.lookbook');
+Route::get('lookbook/{look:slug}', [LookbookController::class, 'show'])->name('shop.lookbook.look');
 
 Route::get('journal', [JournalController::class, 'index'])->name('shop.journal');
 Route::get('journal/{post:slug}', [JournalController::class, 'show'])->name('shop.post');

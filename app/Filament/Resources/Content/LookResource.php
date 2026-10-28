@@ -17,6 +17,7 @@ use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
@@ -52,7 +53,7 @@ class LookResource extends Resource
 
     protected static ?string $navigationGroup = 'Contenu du site';
 
-    protected static ?string $navigationLabel = 'Le Look (accueil)';
+    protected static ?string $navigationLabel = 'Lookbook';
 
     protected static ?string $modelLabel = 'look';
 
@@ -138,6 +139,29 @@ class LookResource extends Resource
                             ->placeholder('Ex. : Un hijab satiné, un col perlé, un parfum boisé.')
                             ->maxLength(160),
 
+                        TextInput::make('chapter')
+                            ->label('Chapitre (facultatif)')
+                            ->placeholder('Ex. : Korité 2026')
+                            ->helperText('Regroupe les looks d\'une même saison dans le Lookbook.')
+                            ->maxLength(60),
+
+                        TextInput::make('slug')
+                            ->label('Adresse de la page')
+                            ->prefix('/lookbook/')
+                            ->helperText('Créée à partir du titre ; c\'est le lien à partager.')
+                            ->visibleOn('edit')
+                            ->required()
+                            ->alphaDash()
+                            ->maxLength(80)
+                            ->unique(ignoreRecord: true),
+
+                        Textarea::make('mood')
+                            ->label('Texte d\'ambiance du Lookbook (facultatif)')
+                            ->placeholder('Ex. : La lumière de fin d\'après-midi, une soie qui accroche le soleil…')
+                            ->rows(2)
+                            ->maxLength(300)
+                            ->columnSpanFull(),
+
                         TextInput::make('position')
                             ->label("Ordre d'affichage")
                             ->numeric()
@@ -145,7 +169,13 @@ class LookResource extends Resource
                             ->required(),
 
                         Toggle::make('is_active')
-                            ->label("Visible sur l'accueil")
+                            ->label('Visible sur le site (Lookbook)')
+                            ->default(true)
+                            ->inline(false),
+
+                        Toggle::make('show_on_home')
+                            ->label("Aussi sur l'accueil")
+                            ->helperText("L'accueil en montre un aperçu ; tous les looks visibles sont dans le Lookbook.")
                             ->default(true)
                             ->inline(false),
                     ]),
@@ -272,6 +302,8 @@ class LookResource extends Resource
                 TextColumn::make('hotspots_count')->label('Pièces')->counts('hotspots'),
                 TextColumn::make('position')->label('Ordre')->sortable(),
                 IconColumn::make('is_active')->label('Visible')->boolean(),
+                IconColumn::make('show_on_home')->label('Accueil')->boolean(),
+                TextColumn::make('chapter')->label('Chapitre')->placeholder('—')->toggleable(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

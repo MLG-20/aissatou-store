@@ -39,9 +39,10 @@ class HomeController extends Controller
                 ->active()
                 // Une vidéo encore en préparation attend son tour.
                 ->displayable()
+                // Aperçu du Lookbook : les looks choisis pour l'accueil.
+                ->where('show_on_home', true)
                 ->orderBy('position')
-                ->with(['hotspots' => fn ($query) => $query->whereHas('product', fn ($query) => $query->active()),
-                    'hotspots.product' => fn ($query) => $query->with(['category', 'images', 'variants' => fn ($query) => $query->active()])])
+                ->withLivePieces()
                 ->get()
                 ->filter(fn (Look $look) => $look->hotspots->isNotEmpty())
                 ->values(),

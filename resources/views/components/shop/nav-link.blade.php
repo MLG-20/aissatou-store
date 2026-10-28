@@ -17,7 +17,7 @@
 
     $labelClasses = $editorial
         ? 'font-display italic normal-case tracking-normal text-[0.85rem] xl:text-base'
-        : 'uppercase font-medium text-[0.62rem] xl:text-[0.7rem] tracking-[0.12em] xl:tracking-[0.16em]';
+        : 'uppercase font-medium text-[0.62rem] xl:text-[0.7rem] tracking-[0.09em] xl:tracking-[0.16em]';
 
     $underline = 'pointer-events-none absolute inset-x-0 -bottom-0.5 h-px origin-center bg-brand-accent transition-transform duration-500 ease-out '
         .($active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100 group-focus-visible:scale-x-100');

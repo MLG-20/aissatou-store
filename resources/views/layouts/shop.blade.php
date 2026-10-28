@@ -7,6 +7,20 @@
 
         <title>{{ $title ?? config('app.name') }}</title>
 
+        @if ($description)
+            <meta name="description" content="{{ $description }}">
+        @endif
+        {{-- Aperçu d'un lien partagé (WhatsApp, réseaux sociaux). --}}
+        @if ($image)
+            <meta property="og:type" content="website">
+            <meta property="og:title" content="{{ $title ?? config('app.name') }}">
+            @if ($description)
+                <meta property="og:description" content="{{ $description }}">
+            @endif
+            <meta property="og:image" content="{{ url($image) }}">
+            <meta property="og:url" content="{{ url()->current() }}">
+        @endif
+
         {{-- Favicon dérivé du symbole de la marque (cf. public/brand/). --}}
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" type="image/png" href="/brand/favicon-32.png" sizes="32x32">
@@ -58,6 +72,7 @@
 
             // Le récit de la marque (rapport p.3), distinct de l'offre : séparé
             // des rayons dans l'en-tête et composé autrement.
+            $navLinks[] = ['label' => 'Lookbook', 'url' => route('shop.lookbook'), 'children' => [], 'active' => request()->routeIs('shop.lookbook*'), 'editorial' => true];
             $navLinks[] = ['label' => 'Collections', 'url' => route('shop.collections'), 'children' => [], 'active' => request()->routeIs('shop.collection*'), 'editorial' => true];
             $navLinks[] = ['label' => 'Journal', 'url' => route('shop.journal'), 'children' => [], 'active' => request()->routeIs('shop.journal', 'shop.post'), 'editorial' => true];
         @endphp
@@ -111,7 +126,7 @@
                 ></div>
             @endif
 
-            <div class="relative max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
+            <div class="relative max-w-shell mx-auto px-4 sm:px-6 lg:px-7 xl:px-12">
                 {{-- Structure de la maquette (p.10, p.11 et p.12) : LA NAVIGATION
                      EST D'UN SEUL TENANT, alignée sur la marge de gauche, la
                      signature vient après elle, et les icônes ferment à droite.
@@ -130,8 +145,8 @@
                 {{-- Sous `lg`, la navigation disparaît au profit du burger : on
                      repasse alors en grille à trois colonnes pour que la signature
                      reste centrée entre le burger et les icônes. --}}
-                <div class="grid grid-cols-[minmax(0,1fr),auto,minmax(0,1fr)] items-center h-20 gap-2 sm:gap-4 lg:flex lg:justify-start lg:gap-6">
-                    <nav class="hidden lg:flex items-center gap-3 xl:gap-6 whitespace-nowrap" aria-label="Navigation principale">
+                <div class="grid grid-cols-[minmax(0,1fr),auto,minmax(0,1fr)] items-center h-20 gap-2 sm:gap-4 lg:flex lg:justify-start lg:gap-5">
+                    <nav class="hidden lg:flex items-center gap-2.5 xl:gap-5 whitespace-nowrap" aria-label="Navigation principale">
                         @foreach ($navLinks as $link)
                             {{-- Filet vertical entre l'offre et le récit de la marque. --}}
                             @if ($link['editorial'] && ! ($navLinks[$loop->index - 1]['editorial'] ?? true))
@@ -168,7 +183,7 @@
 
                     <x-shop.signature variant="vertical" :with-slogan="false" class="justify-self-center" />
 
-                    <div class="flex items-center justify-self-end gap-3 sm:gap-5 lg:gap-4 xl:gap-5 lg:ml-auto">
+                    <div class="flex items-center justify-self-end gap-3 sm:gap-5 lg:gap-3.5 xl:gap-5 lg:ml-auto">
                         {{-- Recherche : la maquette montre une loupe ; le champ vit
                              sur le catalogue depuis la sous-étape 3, on y renvoie.
                              Sous 360 px, loupe + cœur + panier ne tiennent plus à
@@ -186,20 +201,10 @@
                             </svg>
                         </a>
 
-                        {{-- Contact : combiné téléphone + enveloppe (même style de
-                             trait que les autres icônes), lien vers la page. --}}
-                        {{-- Masqué de 1024 à 1279 px, où les 9 onglets prennent
-                             toute la place : Contact reste dans le pied de page. --}}
-                        <a href="{{ route('shop.contact') }}" class="hidden sm:inline-block lg:hidden xl:inline-block text-current transition hover:text-brand-accent" aria-label="Nous contacter">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <g transform="translate(-0.5,5.6) scale(0.65)">
-                                    <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.362-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                                </g>
-                                <g transform="translate(10.7,-1.5) scale(0.56)">
-                                    <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                                </g>
-                            </svg>
-                        </a>
+                        {{-- Pas d'icône Contact : depuis l'arrivée du Lookbook, elle
+                             faisait déborder l'en-tête de 1 024 à 1 300 px ; le
+                             contact reste au pied de page, dans le menu mobile et
+                             via la bulle WhatsApp. --}}
 
                         {{-- Liste d'envies : icône cœur de la maquette (p.10-12), avec
                              compteur comme le panier. Visible aussi sur mobile. --}}
@@ -237,7 +242,12 @@
         écho au hero — referme la page sur la même identité forte. Accroche
         et réseaux sociaux éditables depuis Filament > Contenu du site >
         Réglages du site. --}}
-        <footer class="relative mt-16 bg-brand-ink text-brand-surface border-t-2 border-brand-signature overflow-hidden">
+        {{-- Pas de marge au-dessus sur le Lookbook : sa dernière section, sombre
+             et plein écran, enchaîne directement (sinon une bande claire). --}}
+        <footer @class([
+            'relative bg-brand-ink text-brand-surface border-t-2 border-brand-signature overflow-hidden',
+            'mt-16' => ! request()->routeIs('shop.lookbook*'),
+        ])>
             {{-- Filigrane et colonnes superposés dans la MÊME cellule de grille
                  (et non en absolu) : le pied de page prend la hauteur du plus
                  grand des deux, donc le filet du © passe toujours sous « STORE ». --}}
@@ -330,8 +340,10 @@
         {{-- WhatsApp flottant : discussion directe, numéro depuis les réglages.
              Il s'efface tant qu'un appel WhatsApp de la page est à l'écran
              (`data-whatsapp-cta`, ex. « Écrire à une conseillère » sur
-             l'accueil) : jamais deux boutons WhatsApp côte à côte. --}}
-        @if ($footerSettings->contact_whatsapp)
+             l'accueil) : jamais deux boutons WhatsApp côte à côte. Absent du
+             Lookbook, plein écran : il y couvrirait l'image (la fin de la page
+             et le panneau des pièces proposent déjà WhatsApp). --}}
+        @if ($footerSettings->contact_whatsapp && ! request()->routeIs('shop.lookbook*'))
             <a
                 href="{{ route('shop.whatsapp') }}"
                 target="_blank"
