@@ -117,7 +117,9 @@
                     aria-label="{{ $look->title }}"
                 >
                     {{-- Fond tiré de la même image (ordinateur). --}}
-                    <img src="{{ $look->sizedUrl('medium') }}" alt="" loading="lazy" class="absolute inset-0 hidden h-full w-full scale-110 object-cover opacity-50 blur-3xl lg:block">
+                    @if ($look->image_path)
+                        <img src="{{ $look->sizedUrl('medium') }}" alt="" loading="lazy" class="absolute inset-0 hidden h-full w-full scale-110 object-cover opacity-50 blur-3xl lg:block">
+                    @endif
                     <div class="absolute inset-0 hidden bg-brand-ink/50 lg:block"></div>
 
                     {{-- L'image : plein écran sur téléphone, colonne centrale sur ordinateur. --}}
@@ -134,6 +136,40 @@
                             aria-label="{{ $look->title }}"
                             class="{{ $mediaClass }}"
                         ></video>
+                    @elseif ($look->isYouTube())
+                        {{-- YouTube : l'image d'aperçu d'abord, le lecteur seulement
+                             quand le look est à l'écran (il pèse plus lourd qu'une
+                             vidéo envoyée). Lecteur agrandi pour couvrir le cadre
+                             comme une vidéo, et inerte : le geste fait défiler les
+                             looks, il n'ouvre pas les menus de YouTube. --}}
+                        <div class="{{ $mediaClass }} overflow-hidden bg-brand-ink">
+                            @if ($look->image_path)
+                                <img src="{{ $look->sizedUrl('large') }}" alt="{{ $look->title }}" loading="lazy" class="absolute inset-0 h-full w-full object-cover">
+                            @endif
+                            <template x-if="active === {{ $index }} && ! still">
+                                <iframe
+                                    src="{{ \App\Support\YouTube::embedUrl($look->youtube_id) }}"
+                                    title="{{ $look->title }}"
+                                    allow="autoplay; encrypted-media; picture-in-picture"
+                                    tabindex="-1"
+                                    class="pointer-events-none absolute left-1/2 top-1/2 h-[max(100%,177.78vw)] w-[max(100%,56.25svh)] -translate-x-1/2 -translate-y-1/2 border-0 lg:h-full lg:w-full"
+                                ></iframe>
+                            </template>
+                            {{-- Animations réduites / économie de données : lecture à la demande. --}}
+                            <a
+                                x-show="still"
+                                x-cloak
+                                href="{{ \App\Support\YouTube::watchUrl($look->youtube_id) }}"
+                                target="_blank"
+                                rel="noopener"
+                                class="absolute inset-0 flex items-center justify-center"
+                                aria-label="Regarder la vidéo « {{ $look->title }} » sur YouTube"
+                            >
+                                <span class="flex h-16 w-16 items-center justify-center rounded-full bg-brand-ink/60 backdrop-blur">
+                                    <svg class="ml-1 h-7 w-7" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11.04-6.86a1 1 0 0 0 0-1.72L9.5 4.28A1 1 0 0 0 8 5.14z" /></svg>
+                                </span>
+                            </a>
+                        </div>
                     @else
                         <div class="{{ $mediaClass }} overflow-hidden">
                             <img
@@ -215,36 +251,29 @@
             @endif
         </div>
 
-        {{-- Navigation à droite : look précédent / suivant, et entre les deux
-             (ordinateur) un trait par look, celui à l'écran plus long. --}}
+        {{-- Navigation à droite : look précédent / suivant (le grand numéro du
+             look, en marge, dit déjà où l'on en est). --}}
         @if ($total)
-            <nav class="absolute right-3 top-1/2 z-10 flex -translate-y-1/2 flex-col items-center gap-3 sm:right-5" aria-label="Passer d'un look à l'autre">
+            <nav class="absolute right-3 top-1/2 z-10 flex -translate-y-1/2 flex-col items-center gap-3 sm:right-5 lg:right-8" aria-label="Passer d'un look à l'autre">
                 <button
                     type="button"
                     @click="go(-1)"
                     :disabled="active <= -1"
-                    class="flex h-10 w-10 items-center justify-center rounded-full border border-brand-surface/30 bg-brand-ink/30 text-brand-surface backdrop-blur transition hover:border-brand-surface hover:bg-brand-surface hover:text-brand-ink disabled:pointer-events-none disabled:opacity-25"
+                    class="flex h-12 w-12 items-center justify-center rounded-full border border-brand-surface/50 bg-brand-ink/40 text-brand-surface shadow-lg backdrop-blur transition hover:scale-105 hover:border-brand-surface hover:bg-brand-surface hover:text-brand-ink disabled:pointer-events-none disabled:opacity-25 lg:h-16 lg:w-16"
                     aria-label="Look précédent"
                 >
-                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
+                    <svg class="h-5 w-5 lg:h-6 lg:w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" /></svg>
                 </button>
 
-                @if ($total > 1)
-                    <div class="hidden flex-col items-center gap-2 py-1 lg:flex" aria-hidden="true">
-                        @foreach ($looks as $index => $look)
-                            <span class="h-6 w-px bg-brand-surface/25 transition-all duration-500" :class="active === {{ $index }} && '!h-10 !bg-brand-surface'"></span>
-                        @endforeach
-                    </div>
-                @endif
 
                 <button
                     type="button"
                     @click="go(1)"
                     :disabled="active >= {{ $total }}"
-                    class="flex h-10 w-10 items-center justify-center rounded-full border border-brand-surface/30 bg-brand-ink/30 text-brand-surface backdrop-blur transition hover:border-brand-surface hover:bg-brand-surface hover:text-brand-ink disabled:pointer-events-none disabled:opacity-25"
+                    class="flex h-12 w-12 items-center justify-center rounded-full border border-brand-surface/50 bg-brand-ink/40 text-brand-surface shadow-lg backdrop-blur transition hover:scale-105 hover:border-brand-surface hover:bg-brand-surface hover:text-brand-ink disabled:pointer-events-none disabled:opacity-25 lg:h-16 lg:w-16"
                     aria-label="Look suivant"
                 >
-                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+                    <svg class="h-5 w-5 lg:h-6 lg:w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                 </button>
             </nav>
         @endif

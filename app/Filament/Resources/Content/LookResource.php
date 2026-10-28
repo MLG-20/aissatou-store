@@ -10,6 +10,7 @@ use App\Models\Catalogue\Product;
 use App\Models\Content\Look;
 use App\Services\VideoProcessor;
 use App\Support\ImageSlot;
+use App\Support\YouTube;
 use Closure;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
@@ -69,7 +70,7 @@ class LookResource extends Resource
                     ->schema([
                         Radio::make('media_type')
                             ->label('Type')
-                            ->options(['image' => 'Photo', 'video' => 'Vidéo (30 s maximum)'])
+                            ->options(['image' => 'Photo', 'video' => 'Vidéo (30 s maximum)', 'youtube' => 'Lien YouTube'])
                             ->default('image')
                             ->inline()
                             ->live()
@@ -84,8 +85,8 @@ class LookResource extends Resource
                             ->disk('public')
                             ->directory('looks')
                             ->visibility('public')
-                            ->visible(fn (Get $get): bool => $get('media_type') !== 'video')
-                            ->required(fn (string $operation, Get $get): bool => $operation === 'create' && $get('media_type') !== 'video')
+                            ->visible(fn (Get $get): bool => ! in_array($get('media_type'), ['video', 'youtube'], true))
+                            ->required(fn (string $operation, Get $get): bool => $operation === 'create' && $get('media_type') === 'image')
                             // Même logique que le hero : vide en édition = on garde
                             // la photo actuelle (montrée dans l'aperçu plus bas).
                             ->formatStateUsing(fn (string $operation, $state) => $operation === 'edit' ? null : $state)
@@ -120,6 +121,34 @@ class LookResource extends Resource
                             ->dehydrated(fn ($state): bool => filled($state))
                             ->helperText(fn (string $operation): string => ($operation === 'edit' ? 'Laissez vide pour conserver la vidéo actuelle. ' : '')
                                 .'MP4 ou MOV, 30 secondes et 60 Mo maximum. Elle est allégée automatiquement pour le site (environ une minute) ; le look apparaît sur l\'accueil dès qu\'elle est prête.')
+                            ->columnSpanFull(),
+
+                        // On garde l'identifiant, on affiche le lien : la cliente
+                        // colle ce que YouTube lui donne (Short, vidéo, lien court).
+                        TextInput::make('youtube_id')
+                            ->label('Lien de la vidéo YouTube')
+                            ->placeholder('Ex. : https://youtube.com/shorts/…')
+                            ->formatStateUsing(fn (?string $state): ?string => $state ? YouTube::watchUrl($state) : null)
+                            ->dehydrateStateUsing(fn (?string $state): ?string => YouTube::idFrom($state))
+                            ->rules([fn (): Closure => function (string $attribute, $value, Closure $fail): void {
+                                if (! YouTube::idFrom($value)) {
+                                    $fail('Ce n\'est pas un lien YouTube valide. Copiez le lien depuis le bouton « Partager » de la vidéo.');
+                                }
+                            }])
+                            ->visible(fn (Get $get): bool => $get('media_type') === 'youtube')
+                            ->required(fn (Get $get): bool => $get('media_type') === 'youtube')
+                            ->helperText(new HtmlString('Un Short (vertical) rend le mieux en plein écran. Il se joue sans son, en boucle. '
+                                .'<strong>Uniquement les vidéos de la boutique, ou avec l\'accord écrit de leur créatrice</strong> : '
+                                .'la vidéo de quelqu\'un d\'autre présentée avec nos pièces, c\'est son image utilisée pour vendre, et elle peut la retirer à tout moment.'))
+                            ->columnSpanFull(),
+
+                        Placeholder::make('youtube_preview')
+                            ->label('Aperçu')
+                            ->visible(fn (Get $get, ?Look $record): bool => $get('media_type') === 'youtube' && filled($record?->youtube_id))
+                            ->content(fn (?Look $record): HtmlString => new HtmlString(
+                                '<iframe src="'.e(YouTube::embedUrl((string) $record?->youtube_id)).'" allow="autoplay; encrypted-media" '
+                                .'style="display:block;width:236px;height:420px;border:0;border-radius:.5rem;"></iframe>'
+                            ))
                             ->columnSpanFull(),
 
                         Placeholder::make('video_state')
@@ -287,22 +316,26 @@ class LookResource extends Resource
                     ->label('Type')
                     ->badge()
                     ->formatStateUsing(fn (Look $record): string => match (true) {
+                        $record->media_type === 'youtube' => 'YouTube',
                         ! $record->isVideo() => 'Photo',
                         $record->video_status === Look::VIDEO_PROCESSING => 'Vidéo en préparation',
                         $record->video_status === Look::VIDEO_FAILED => 'Vidéo en échec',
                         default => 'Vidéo',
                     })
                     ->color(fn (Look $record): string => match (true) {
+                        $record->media_type === 'youtube' => 'danger',
                         ! $record->isVideo() => 'gray',
                         $record->video_status === Look::VIDEO_PROCESSING => 'warning',
                         $record->video_status === Look::VIDEO_FAILED => 'danger',
                         default => 'info',
                     }),
-                ImageSlot::Look->qualityColumn(fn (Look $look) => $look->image_path),
+                // Seules les photos envoyées par la boutique relèvent de la charte :
+                // l'aperçu d'une vidéo ou d'un lien YouTube n'est pas affiché en grand.
+                ImageSlot::Look->qualityColumn(fn (Look $look) => $look->media_type === 'image' ? $look->image_path : null),
                 TextColumn::make('hotspots_count')->label('Pièces')->counts('hotspots'),
                 TextColumn::make('position')->label('Ordre')->sortable(),
                 IconColumn::make('is_active')->label('Visible')->boolean(),
-                IconColumn::make('show_on_home')->label('Accueil')->boolean(),
+                IconColumn::make('show_on_home')->label('Sur l\'accueil')->boolean()->tooltip(fn (Look $record): string => $record->show_on_home ? 'Affiché aussi sur l\'accueil' : 'Seulement dans le Lookbook'),
                 TextColumn::make('chapter')->label('Chapitre')->placeholder('—')->toggleable(),
             ])
             ->actions([

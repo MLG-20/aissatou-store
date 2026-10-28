@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Jobs\ProcessLookVideo;
 use App\Models\Content\Look;
 use App\Services\ImageVariantGenerator;
+use App\Support\YouTube;
 use Illuminate\Support\Facades\Storage;
 
 class LookObserver
@@ -28,6 +29,17 @@ class LookObserver
 
         if ($look->video_source_path && ($look->wasRecentlyCreated || $look->wasChanged('video_source_path'))) {
             ProcessLookVideo::dispatch($look);
+        }
+
+        // Lien YouTube : son image d'aperçu sert à l'accueil et au partage.
+        if ($look->isYouTube() && ($look->wasRecentlyCreated || $look->wasChanged('youtube_id'))) {
+            // Enregistrement silencieux : un `update()` relancerait cet
+            // observateur, et pour un look tout juste créé, sans fin.
+            if ($poster = YouTube::storePoster($look->youtube_id)) {
+                $look->image_path = $poster;
+                $look->saveQuietly();
+                $this->variants->generate($poster);
+            }
         }
     }
 

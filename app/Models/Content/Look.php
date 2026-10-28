@@ -19,8 +19,9 @@ use Illuminate\Support\Str;
  *
  * Vidéo : `video_source_path` est le fichier envoyé, `video_path` sa version
  * web (ProcessLookVideo), `image_path` l'image d'aperçu qui en est tirée.
+ * YouTube : `youtube_id`, et son image d'aperçu copiée en `image_path`.
  */
-#[Fillable(['title', 'slug', 'subtitle', 'chapter', 'mood', 'show_on_home', 'media_type', 'image_path', 'video_source_path', 'video_path', 'video_status', 'video_error', 'position', 'is_active'])]
+#[Fillable(['title', 'slug', 'subtitle', 'chapter', 'mood', 'show_on_home', 'media_type', 'image_path', 'video_source_path', 'video_path', 'video_status', 'video_error', 'youtube_id', 'position', 'is_active'])]
 class Look extends Model
 {
     public const VIDEO_PROCESSING = 'processing';
@@ -67,12 +68,13 @@ class Look extends Model
         return $query->where('is_active', true);
     }
 
-    /** Affichable : une photo, ou une vidéo dont la version web est prête. */
+    /** Affichable : une photo, une vidéo dont la version web est prête, ou un lien YouTube. */
     public function scopeDisplayable(Builder $query): Builder
     {
         return $query->where(fn (Builder $query) => $query
             ->where('media_type', 'image')->whereNotNull('image_path')
-            ->orWhere(fn (Builder $query) => $query->where('media_type', 'video')->where('video_status', self::VIDEO_READY)));
+            ->orWhere(fn (Builder $query) => $query->where('media_type', 'video')->where('video_status', self::VIDEO_READY))
+            ->orWhere(fn (Builder $query) => $query->where('media_type', 'youtube')->whereNotNull('youtube_id')));
     }
 
     /** Pièces encore en ligne, avec ce qu'il faut pour les afficher et les acheter. */
@@ -87,6 +89,11 @@ class Look extends Model
     public function isVideo(): bool
     {
         return $this->media_type === 'video';
+    }
+
+    public function isYouTube(): bool
+    {
+        return $this->media_type === 'youtube' && filled($this->youtube_id);
     }
 
     public function videoUrl(): ?string

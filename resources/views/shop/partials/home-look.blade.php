@@ -106,6 +106,17 @@
                                             aria-label="{{ $look->title }}"
                                             class="block aspect-[2/3] w-full object-cover transition duration-[1400ms] ease-out motion-safe:group-hover:scale-[1.04]"
                                         ></video>
+                                    @elseif ($look->isYouTube())
+                                        {{-- YouTube : l'aperçu seulement (l'accueil reste
+                                             léger) ; la vidéo se regarde dans le Lookbook. --}}
+                                        <a href="{{ route('shop.lookbook.look', $look) }}" class="relative block aspect-[2/3] w-full bg-brand-surface/5" aria-label="Voir la vidéo « {{ $look->title }} » dans le Lookbook">
+                                            @if ($look->image_path)
+                                                <img src="{{ $look->sizedUrl('large') }}" alt="{{ $look->title }}" loading="lazy" class="h-full w-full object-cover transition duration-[1400ms] ease-out motion-safe:group-hover:scale-[1.04]">
+                                            @endif
+                                            <span class="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-ink/60 text-brand-surface backdrop-blur">
+                                                <svg class="ml-1 h-7 w-7" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11.04-6.86a1 1 0 0 0 0-1.72L9.5 4.28A1 1 0 0 0 8 5.14z" /></svg>
+                                            </span>
+                                        </a>
                                     @else
                                         <img
                                             src="{{ $look->sizedUrl('large') }}"
