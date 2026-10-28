@@ -10,7 +10,6 @@ use App\Models\Content\Look;
 use App\Models\Content\Post;
 use App\Models\Content\Review;
 use App\Models\Content\SiteSetting;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class HomeController extends Controller
@@ -65,11 +64,10 @@ class HomeController extends Controller
             // Note moyenne des avis notés (la note est facultative).
             'reviewsAverage' => $reviews->whereNotNull('rating')->avg('rating'),
             'reviewsRated' => $reviews->whereNotNull('rating')->count(),
-            // Photo de « La Maison » : son propre réglage (Réglages du site),
-            // sinon la première image du hero.
-            'storyImage' => $settings->story_image_path
-                ? Storage::disk('public')->url($settings->story_image_path)
-                : $slides->first(fn (HeroSlide $slide) => $slide->image_path)?->sizedUrl('large'),
+            // Diaporama de « La Maison » (Réglages du site), sinon la première
+            // image du hero.
+            'storyImages' => $settings->storyImageUrls()
+                ?: array_filter([$slides->first(fn (HeroSlide $slide) => $slide->image_path)?->sizedUrl('large')]),
         ]);
     }
 

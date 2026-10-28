@@ -364,30 +364,59 @@
             <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-20 sm:py-28 grid items-center gap-16 lg:grid-cols-2 lg:gap-24">
                 <div class="group relative mx-3 sm:mx-5" data-reveal>
                     <div class="relative aspect-[4/5] overflow-hidden bg-brand-ink">
-                        @if ($storyImage)
-                            {{-- La photo glisse doucement au défilement (léger
-                                 décalage de profondeur, agrandie juste assez pour
-                                 ne jamais montrer de bord) et zoome au survol —
-                                 sauf animations réduites. --}}
-                            <div class="h-full w-full transition duration-[1400ms] ease-out motion-safe:group-hover:scale-[1.04]">
-                                <img
-                                    src="{{ $storyImage }}"
-                                    alt=""
-                                    loading="lazy"
-                                    class="h-full w-full object-cover object-center will-change-transform"
-                                    x-data="{ shift: 0 }"
-                                    x-init="
-                                        if (! matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                                            const update = () => {
-                                                const box = $el.parentElement.getBoundingClientRect();
-                                                shift = Math.max(-32, Math.min(32, (innerHeight / 2 - (box.top + box.height / 2)) * 0.08));
-                                            };
-                                            update();
-                                            addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+                        @if ($storyImages)
+                            {{-- Diaporama : fondu toutes les 5 s et zoom très lent
+                                 sur la photo à l'écran, seulement quand la section
+                                 est visible. Chaque photo ne se télécharge qu'au
+                                 moment d'arriver (la suivante est préparée en
+                                 avance). L'ensemble glisse doucement au défilement
+                                 (profondeur) et zoome au survol. Animations
+                                 réduites : première photo, fixe. --}}
+                            <div
+                                class="relative h-full w-full transition duration-[1400ms] ease-out motion-safe:group-hover:scale-[1.04]"
+                                x-data="{
+                                    shift: 0, current: 0, loaded: [0, 1], count: {{ count($storyImages) }}, visible: false,
+                                    show(index) {
+                                        this.loaded.push(index, (index + 1) % this.count);
+                                        this.current = index;
+                                    },
+                                }"
+                                x-init="
+                                    if (! matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                                        const update = () => {
+                                            const box = $el.getBoundingClientRect();
+                                            shift = Math.max(-32, Math.min(32, (innerHeight / 2 - (box.top + box.height / 2)) * 0.08));
+                                        };
+                                        update();
+                                        addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+
+                                        if (count > 1) {
+                                            new IntersectionObserver(([entry]) => visible = entry.isIntersecting, { threshold: 0.3 }).observe($el);
+                                            setInterval(() => visible && show((current + 1) % count), 5000);
                                         }
-                                    "
-                                    :style="`transform: translateY(${shift}px) scale(1.12)`"
-                                >
+                                    }
+                                "
+                            >
+                                <div class="relative h-full w-full will-change-transform" :style="`transform: translateY(${shift}px) scale(1.12)`">
+                                    @foreach ($storyImages as $index => $url)
+                                        <img
+                                            @if ($index === 0) src="{{ $url }}" @else x-bind:src="loaded.includes({{ $index }}) ? @js($url) : null" @endif
+                                            alt=""
+                                            loading="lazy"
+                                            class="absolute inset-0 h-full w-full object-cover object-center"
+                                            style="transition: opacity 1.2s ease, transform 6s linear"
+                                            :class="current === {{ $index }} ? 'opacity-100 motion-safe:scale-[1.08]' : 'opacity-0'"
+                                        >
+                                    @endforeach
+                                </div>
+
+                                @if (count($storyImages) > 1)
+                                    <div class="absolute bottom-4 left-4 flex gap-1.5" aria-hidden="true">
+                                        @foreach ($storyImages as $index => $url)
+                                            <span class="h-0.5 w-5 bg-brand-surface/40 transition duration-500" :class="current === {{ $index }} && '!bg-brand-surface'"></span>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </div>
                         @else
                             <x-shop.fold-backdrop :cut="false" />

@@ -2,14 +2,16 @@
 
 namespace App\Models\Content;
 
+use App\Services\ImageVariantGenerator;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 #[Fillable([
     'trust_items', 'marquee_items', 'about_story', 'about_quote', 'about_values',
     'contact_whatsapp', 'contact_email', 'contact_address', 'contact_hours',
     'footer_tagline', 'social_instagram', 'social_facebook', 'social_tiktok',
-    'auth_title', 'auth_subtitle', 'auth_image_path', 'story_image_path',
+    'auth_title', 'auth_subtitle', 'auth_image_path', 'story_images',
     'low_stock_threshold',
 ])]
 class SiteSetting extends Model
@@ -28,8 +30,27 @@ class SiteSetting extends Model
             'trust_items' => 'array',
             'marquee_items' => 'array',
             'about_values' => 'array',
+            'story_images' => 'array',
             'low_stock_threshold' => 'integer',
         ];
+    }
+
+    /**
+     * Diaporama « La Maison », dans l'ordre choisi : la variante WebP
+     * `large` si elle existe, sinon l'original.
+     *
+     * @return list<string>
+     */
+    public function storyImageUrls(): array
+    {
+        $disk = Storage::disk('public');
+        $variants = app(ImageVariantGenerator::class);
+
+        return collect($this->story_images ?? [])
+            ->filter()
+            ->map(fn (string $path): string => $disk->exists($sized = $variants->sizedPath($path, 'large')) ? $disk->url($sized) : $disk->url($path))
+            ->values()
+            ->all();
     }
 
     /**
@@ -68,7 +89,7 @@ class SiteSetting extends Model
             'auth_title' => "L'élégance voilée, pensée pour vous.",
             'auth_subtitle' => 'Suivez vos commandes, gérez vos adresses et retrouvez votre univers en un instant.',
             'auth_image_path' => null,
-            'story_image_path' => null,
+            'story_images' => null,
         ]);
     }
 }

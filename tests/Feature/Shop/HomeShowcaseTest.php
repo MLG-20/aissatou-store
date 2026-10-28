@@ -40,10 +40,24 @@ class HomeShowcaseTest extends TestCase
     {
         SiteSetting::current()->update([
             'auth_image_path' => 'auth/connexion.jpg',
-            'story_image_path' => 'story/maison.jpg',
+            'story_images' => ['story/maison.jpg'],
         ]);
 
         $this->get('/')->assertOk()->assertSee('story/maison.jpg', false)->assertDontSee('auth/connexion.jpg', false);
+    }
+
+    public function test_la_maison_shows_its_photos_in_order_loading_them_as_they_come(): void
+    {
+        SiteSetting::current()->update(['story_images' => ['story/un.jpg', 'story/deux.jpg', 'story/trois.jpg']]);
+
+        $html = $this->get('/')->assertOk()->getContent();
+
+        // La première tout de suite, les suivantes seulement à leur tour.
+        $this->assertStringContainsString('src="/storage/story/un.jpg"', $html);
+        $this->assertStringContainsString('x-bind:src="loaded.includes(1) ? \'\/storage\/story\/deux.jpg\' : null"', $html);
+        $this->assertStringNotContainsString('src="/storage/story/trois.jpg"', $html);
+        $this->assertLessThan(strpos($html, 'story\/trois.jpg'), strpos($html, 'story\/deux.jpg'));
+        $this->assertStringContainsString('count: 3', $html);
     }
 
     public function test_the_look_shows_its_pieces_and_the_full_outfit_price(): void

@@ -16,6 +16,7 @@ use App\Observers\HeroSlideObserver;
 use App\Observers\LookObserver;
 use App\Observers\PostObserver;
 use App\Observers\ProductImageObserver;
+use App\Observers\SiteSettingObserver;
 use App\Services\AdminAudit;
 use App\Services\CartService;
 use App\Services\WishlistService;
@@ -47,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
         Category::observe(CategoryObserver::class);
         Collection::observe(CollectionObserver::class);
         Post::observe(PostObserver::class);
+        SiteSetting::observe(SiteSettingObserver::class);
 
         // Journal d'activité admin (Phase 6A) : connexions au back-office,
         // réussies ou non (un échec ne connaît que l'email tenté).

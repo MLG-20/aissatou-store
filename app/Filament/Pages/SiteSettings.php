@@ -44,7 +44,7 @@ class SiteSettings extends Page implements HasForms
     public ?array $data = [];
 
     /** Images des réglages : laissées vides à l'enregistrement = conservées. */
-    private const IMAGE_FIELDS = ['auth_image_path', 'story_image_path'];
+    private const IMAGE_FIELDS = ['auth_image_path'];
 
     public function mount(): void
     {
@@ -127,20 +127,18 @@ class SiteSettings extends Page implements HasForms
                     ]),
 
                 Section::make('Accueil — section « La Maison »')
-                    ->description("La photo à côté de la citation de la marque, sur la page d'accueil. Le texte vient de « Page À propos » ci-dessous.")
+                    ->description("Les photos à côté de la citation de la marque, sur la page d'accueil : elles défilent en fondu toutes les 5 secondes. Le texte vient de « Page À propos » ci-dessous.")
                     ->schema([
-                        Placeholder::make('story_image_preview')
-                            ->label('Image actuelle')
-                            ->content(fn (): HtmlString => self::imagePreview(
-                                SiteSetting::current()->story_image_path,
-                                'Aucune image — la section reprend la première photo du hero.'
-                            )),
-
                         ImageSlot::Story->configure(
-                            FileUpload::make('story_image_path'),
-                            'Laissez vide pour conserver l\'image ci-dessus.'
+                            FileUpload::make('story_images'),
+                            "Jusqu'à 10 photos ; faites-les glisser pour choisir l'ordre. Sans photo, la section reprend la première photo du hero."
                         )
-                            ->label("Changer l'image")
+                            ->label('Photos')
+                            ->multiple()
+                            ->reorderable()
+                            ->appendFiles()
+                            ->maxFiles(10)
+                            ->panelLayout('grid')
                             ->disk('public')
                             ->directory('story')
                             ->visibility('public'),
@@ -213,6 +211,8 @@ class SiteSettings extends Page implements HasForms
             ->filter()
             ->values()
             ->all();
+        // Diaporama « La Maison » : l'ordre affiché en admin est l'ordre stocké.
+        $state['story_images'] = array_values($state['story_images'] ?? []);
 
         // Image laissée vide => on conserve l'existante (on ne l'écrase pas
         // avec null). Une nouvelle image déposée remplace.
