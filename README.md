@@ -6,19 +6,24 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 
 **Site client**
 - Catalogue avec catégories, collections, matières, recherche et filtres AJAX, images WebP responsives
-- Accueil éditorial : hero en carrousel (photo paysage plein écran au format 16:9 ; photo portrait sur la moitié droite, texte sur fond clair ; version téléphone dédiée), bandeau défilant facultatif, univers en mosaïque, nouveautés, « Le Look » (pièces d'une tenue mises en avant tour à tour), « La Maison » (photo à effet de profondeur), parcours « L'expérience Aissatou », avis clients avec note moyenne ; apparition douce au défilement et zoom des photos au survol (désactivés en « animations réduites »)
+- Accueil éditorial : hero en carrousel (photo paysage plein écran au format 16:9 ; photo portrait sur la moitié droite, texte sur fond clair ; version téléphone dédiée), bandeau défilant facultatif, univers en mosaïque, nouveautés, « Le Look » (une tenue par photo ou vidéo de 30 s au plus, pièces mises en avant tour à tour, défilement automatique : une vidéo passe au look suivant à sa fin), « La Maison » (diaporama de 10 photos au plus, fondu et zoom lent, effet de profondeur), parcours « L'expérience Aissatou », avis clients avec note moyenne ; apparition douce au défilement et zoom des photos au survol (désactivés en « animations réduites »)
 - Collections en chapitres (sommaire, photo, aperçu des pièces) et journal en magazine (article à la une, temps de lecture, partage WhatsApp)
+- Filtre prix en saisie libre (de / à) ; guide « L'art d'offrir » dont les tranches de budget sont calculées sur les prix réels du catalogue
 - Panier invité et compte (fusion à la connexion), liste d'envies, avis clients
-- **Espace cliente** : salutation selon l'heure de son appareil, badge « Cliente fidèle », commande en cours avec frise de suivi datée, coups de cœur, profil à compléter, adresses, historique des commandes, déconnexion
+- Sur téléphone, compte accessible depuis l'en-tête (à côté du menu) et boutons « Se connecter / Créer un compte » en tête du menu
+- **Espace cliente** : salutation selon l'heure de son appareil, badge « Cliente fidèle », commande en cours avec frise de suivi datée, coups de cœur, profil à compléter, adresses (numéro sénégalais vérifié), historique des commandes, déconnexion
 - Page contact : WhatsApp, e-mail, formulaire, réseaux sociaux ; afficher/masquer le mot de passe sur tous les formulaires
 - Tunnel de commande : récapitulatif, code promo, frais de livraison par zone calculés côté serveur, choix du paiement
 - **Paiement en ligne PayTech** : redirection, page d'attente qui revérifie le statut côté serveur, nouvel essai en cas d'échec, annulation automatique (et remise en stock) des commandes impayées après 30 min
+- **Suivi de commande sur WhatsApp** (API WhatsApp Cloud de Meta), seulement si la cliente coche la case au checkout (décochée par défaut) : commande confirmée (paiement à la livraison) ou paiement confirmé (en ligne), expédiée, livrée, annulée ; rien pour un paiement en ligne abandonné. Envoi en file, sans jamais bloquer la commande
+- **Liens WhatsApp pré-remplis** (gratuits, sans l'API) : fiche produit, panier (articles et total), page d'une commande (numéro)
 
 **Back-office (`/admin`, Filament)**
 - **Tableau de bord** : chiffre d'affaires encaissé, commandes payées, panier moyen, taux de conversion (compteur de visites maison et anonyme, sans cookie ni IP stockée), paniers abandonnés, meilleures ventes, comparaison à la période précédente ; agrégats quotidiens pour rester rapide quel que soit l'historique
-- Catalogue, contenu éditorial, réglages du site (photos distinctes pour la connexion et « La Maison », bandeau défilant masqué quand il est vide), zones de livraison, messages reçus
+- Catalogue, contenu éditorial, réglages du site (photo de connexion, photos de « La Maison » réordonnables par glisser-déposer, bandeau défilant masqué quand il est vide), zones de livraison, messages reçus
+- **Vidéos du Look** : 30 s maximum vérifiées à l'envoi, allégées en arrière-plan par ffmpeg (version web 720 px sans son, image d'aperçu tirée de la vidéo) ; le look n'apparaît qu'une fois la vidéo prête, son état est affiché en admin
 - **Charte photo** : un format et un minimum par emplacement (refus des photos trop petites, badge « À remplacer »), point focal réglable avec aperçu de chaque recadrage
-- Commandes : statuts avec transitions contrôlées et historique, facture PDF, organisation de la livraison
+- Commandes : statuts avec transitions contrôlées et historique, facture PDF, organisation de la livraison, bloc WhatsApp (accord de la cliente, messages envoyés et leur état : envoyé, reçu, lu, échec avec la raison)
 - **Paiements** : une ligne par paiement en ligne ; la fiche donne le statut réel, la référence de transaction et tout le déroulement expliqué en français (journal immuable), vérification auprès du fournisseur ; onglet « Messages suspects » pour les notifications rejetées
 - **Codes promo** : pourcentage ou montant fixe, validité, minimum d'achat, ciblage produits/catégories, plafond d'utilisations (compteur atomique, revalidation complète à la validation de la commande), utilisation rendue si la commande est annulée
 - **Stock** : inventaire par catégorie, fiche par déclinaison avec son historique, ajustement manuel avec motif obligatoire, journal immuable des mouvements, alertes email de stock faible (seuil global ou par déclinaison) avec lien vers la fiche de l'article
@@ -48,6 +53,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - **Rôles et permissions** : spatie/laravel-permission
 - **PDF** : barryvdh/laravel-dompdf
 - **Paiement en ligne** : PayTech (API REST + notifications IPN signées HMAC)
+- **Messages WhatsApp** : API WhatsApp Cloud de Meta (modèles de messages validés par Meta, webhook signé `X-Hub-Signature-256`)
 
 ## Architecture
 
@@ -66,6 +72,7 @@ flowchart TB
             filament["Back-office /admin<br/>Filament 3"]
             api["API /api/v1<br/>Sanctum"]
             ipn["IPN PayTech<br/>signature HMAC"]
+            hook["Webhook WhatsApp<br/>signature Meta"]
         end
 
         subgraph metier["Services métier (app/Services)"]
@@ -80,7 +87,7 @@ flowchart TB
         end
 
         subgraph fond["Arrière-plan"]
-            queue["queue:work<br/>emails"]
+            queue["queue:work<br/>emails · messages WhatsApp"]
             sched["schedule:work<br/>payments:expire · stats:aggregate<br/>carts:detect-abandoned"]
         end
     end
@@ -89,6 +96,7 @@ flowchart TB
     paytech["PayTech<br/>Wave · Orange Money · carte"]
     yango["Yango<br/>(inactif sans clés)"]
     smtp["Serveur mail"]
+    meta["Meta<br/>API WhatsApp Cloud"]
 
     cliente --> shop
     gerante --> filament
@@ -107,7 +115,11 @@ flowchart TB
 
     metier --> db
     order & stock -->|"mails en file"| queue
+    order & payment -->|"WhatsApp si accord"| queue
     queue --> smtp
+    queue -->|"modèles de messages"| meta
+    meta -->|"reçu · lu · échec"| hook
+    hook --> db
     sched --> order & payment & stats
 ```
 
@@ -181,7 +193,7 @@ PHP_CLI_SERVER_WORKERS=8 php artisan serve --no-reload
 Processus d'arrière-plan à lancer à côté du serveur :
 
 ```bash
-php artisan queue:work            # emails (commandes, statuts, alertes de stock)
+php artisan queue:work            # emails, messages WhatsApp, vidéos du Look
 php artisan schedule:work         # tâches planifiées (impayés PayTech, agrégats statistiques, paniers abandonnés)
 ```
 
@@ -200,6 +212,13 @@ php artisan schedule:work         # tâches planifiées (impayés PayTech, agré
 | `PAYMENT_EXPIRE_MINUTES` | Délai avant annulation d'une commande payable en ligne non payée (défaut 30) |
 | `TRUSTED_PROXIES` | IP des proxies de confiance (vide par défaut ; `127.0.0.1` derrière ngrok en local) |
 | `YANGO_CLIENT_ID`, `YANGO_KEY` | Transporteur Yango. Vides = livraison manuelle uniquement |
+| `FFMPEG_BINARY`, `FFPROBE_BINARY` | Chemins de ffmpeg / ffprobe pour les vidéos du Look (défaut : `ffmpeg`, `ffprobe`) |
+| `WHATSAPP_ENABLED` | `true` active le suivi WhatsApp (et la case d'accord au checkout). `false` par défaut |
+| `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID` | Identifiants du numéro et du compte WhatsApp Business (app Meta) |
+| `WHATSAPP_ACCESS_TOKEN` | Jeton d'accès Meta : jeton d'un utilisateur système en production (le jeton temporaire du tableau de bord expire en une à deux heures) |
+| `WHATSAPP_APP_SECRET` | Clé secrète de l'app Meta, vérifie la signature des notifications du webhook |
+| `WHATSAPP_VERIFY_TOKEN` | Jeton libre, à saisir aussi dans Meta lors de la déclaration du webhook |
+| `WHATSAPP_API_VERSION`, `WHATSAPP_TEMPLATE_LANGUAGE` | Version de l'API Graph (ex. `v25.0`) et langue des modèles (`fr`) |
 
 Les secrets ne vont que dans `.env`, jamais dans le dépôt.
 
@@ -215,6 +234,16 @@ Puis dans `.env` : `APP_URL=https://xxxx.ngrok-free.app`, `PAYTECH_IPN_URL=https
 
 En sandbox (`PAYTECH_ENV=test`), PayTech débite réellement 100 à 150 FCFA sur le compte payeur, quel que soit le montant de la commande.
 
+Les images utilisent des adresses relatives (`/storage/…`) : elles s'affichent aussi bien en local que via ngrok, sans dépendre d'`APP_URL`.
+
+### Tester WhatsApp en local (bac à sable Meta)
+
+1. Créer une app Meta (cas d'usage WhatsApp) : Meta fournit un numéro de test qui peut écrire à 5 numéros vérifiés au maximum.
+2. Créer dans le Gestionnaire WhatsApp les 5 modèles, catégorie Utilité, langue français, sous ces noms exacts : `commande_confirmee`, `paiement_confirme`, `commande_expediee`, `commande_livree`, `commande_annulee`. Variables et bouton « Suivre ma commande » (URL dynamique `…/compte/commandes/{{1}}`) : voir `App\Enums\Order\WhatsAppTemplate`.
+3. Remplir les variables `WHATSAPP_*` dans `.env`, puis `php artisan config:clear`.
+4. Avec le tunnel ngrok, déclarer le webhook dans l'app Meta : URL `https://xxxx.ngrok-free.dev/webhooks/whatsapp`, jeton = `WHATSAPP_VERIFY_TOKEN`, champ `messages` abonné.
+5. Passer une commande en cochant la case WhatsApp : le message part via `queue:work`, son état apparaît dans la fiche commande du back-office.
+
 ## Déploiement
 
 À chaque mise en production, après `php artisan migrate --force` :
@@ -227,7 +256,11 @@ Sans cette étape, aucun compte admin n'a accès au back-office : en cas de dout
 
 Prévoir aussi un worker de file (`queue:work`, supervisé) et la tâche cron `* * * * * php artisan schedule:run`.
 
+Vidéos du Look : `ffmpeg` et `ffprobe` installés sur le serveur (chemins réglables par `FFMPEG_BINARY` / `FFPROBE_BINARY`), sinon l'option « Vidéo » est désactivée en admin ; `upload_max_filesize` et `post_max_size` à 64M au moins dans le `php.ini` (vidéos jusqu'à 60 Mo).
+
 Serveur : PHP 8.4.27 ou plus (`composer install` refuse une version plus ancienne, exposée aux CVE-2026-109618/109619), et `session.upload_progress.enabled=0` dans le `php.ini` (précaution recommandée pour CVE-2026-115560). L'envoi d'e-mails (`MAIL_*`) doit être configuré : une nouvelle cliente doit vérifier son adresse avant de commander.
+
+WhatsApp en production : entreprise de la cliente vérifiée chez Meta, numéro de la boutique enregistré, moyen de paiement ajouté, jeton d'utilisateur système, nouveaux `WHATSAPP_APP_SECRET` / `WHATSAPP_VERIFY_TOKEN`, modèles recréés avec l'URL du site en production, webhook redéclaré sur le domaine définitif.
 
 ## Tests et qualité
 
@@ -236,7 +269,7 @@ php artisan test
 ./vendor/bin/pint --test          # style de code
 ```
 
-Les tests tournent sur une base MySQL dédiée (`phpunit.xml` ne surcharge que `DB_CONNECTION` / `DB_DATABASE` ; les identifiants viennent de `.env`). Aucun appel réseau réel : PayTech est simulé (`Http::fake`, `preventStrayRequests`).
+Les tests tournent sur une base MySQL dédiée (`phpunit.xml` ne surcharge que `DB_CONNECTION` / `DB_DATABASE` ; les identifiants viennent de `.env`). Aucun appel réseau réel : PayTech et Meta (WhatsApp) sont simulés (`Http::fake`, `preventStrayRequests`).
 
 GitHub Actions (`.github/workflows/ci.yml`) exécute à chaque push et PR sur `main` : Pint, migrations sur MySQL 8, suite de tests complète.
 
@@ -250,6 +283,7 @@ app/
 │   │   ├── Account/           espace cliente (tableau de bord, commandes, adresses)
 │   │   ├── Auth/              inscription, connexion, mot de passe (guard web)
 │   │   ├── Payment/           IPN PayTech (signature HMAC)
+│   │   ├── WhatsApp/          webhook Meta (vérification d'abonnement, statuts signés)
 │   │   ├── Admin/             facture PDF
 │   │   └── Api/V1/            catalogue et authentification par jeton (Sanctum)
 │   └── Middleware/TrackVisit  compteur de visites anonyme
@@ -262,13 +296,19 @@ app/
 │   ├── StatisticsService, VisitTracker   tableau de bord et visites
 │   ├── AdminAccountService, AdminAudit   comptes admin et journal d'activité
 │   ├── ImageVariantGenerator  variantes WebP responsives (480 → 2 400 px)
+│   ├── VideoProcessor         vidéos du Look via ffmpeg : durée, version web, image d'aperçu
 │   ├── Payment/               contrat PaymentProvider → CodProvider, PayTechProvider ;
 │   │                          PaymentManager (choix), PaymentService (confirmation idempotente)
-│   └── Delivery/              contrat DeliveryProvider → Manual, Yango ; DeliveryManager
+│   ├── Delivery/              contrat DeliveryProvider → Manual, Yango ; DeliveryManager
+│   └── WhatsApp/              WhatsAppClient (envoi d'un modèle à l'API Cloud), WhatsAppException
 │
+├── Jobs/                      SendOrderWhatsApp (message de suivi en file : accord vérifié, journalisé,
+│                              nouvelles tentatives sur panne passagère, jamais envoyé deux fois),
+│                              ProcessLookVideo (vidéo du Look allégée en arrière-plan)
 ├── Models/                    par domaine
 │   ├── Catalogue/             produits, déclinaisons, images, catégories, collections, matières, mouvements de stock
-│   ├── Order/                 commandes, lignes, historique de statut, paiements, journal des paiements, codes promo
+│   ├── Order/                 commandes, lignes, historique de statut, paiements, journal des paiements, codes promo,
+│   │                          messages WhatsApp
 │   ├── Cart/, Wishlist/, Customer/ (adresses), Delivery/ (zones)
 │   ├── Content/, Contact/     accueil (hero, « Le Look »), journal, avis, réglages, messages
 │   ├── User                   clientes (guard web)
@@ -281,18 +321,20 @@ app/
 │   ├── Forms/                 champs réutilisables (point focal avec aperçu des recadrages)
 │   └── Concerns/              traits de contrôle d'accès par permission
 │
-├── Enums/                     statuts (commande, paiement…), permissions admin (AdminPermission)
+├── Enums/                     statuts (commande, paiement, message WhatsApp…), modèles WhatsApp, permissions admin
+├── Rules/SenegalPhone         numéro sénégalais à 9 chiffres (adresses, profil)
 ├── Support/                   AdminRoles (rôles, le code fait foi), ImageSlot (charte photo : format, minimum,
-│                              recadrage par emplacement), textes lisibles des journaux, périodes de stats
+│                              recadrage par emplacement), PhoneNumber (format international +221),
+│                              textes lisibles des journaux, périodes de stats
 ├── Mail/                      emails en file : commande, statut, alerte boutique, stock faible
-├── Observers/                 génération d'images à l'enregistrement du contenu
+├── Observers/                 variantes d'images à l'enregistrement du contenu, lancement du traitement vidéo
 └── Console/Commands/          payments:expire (5 min), stats:aggregate (nuit, --from=AAAA-MM-JJ),
                                carts:detect-abandoned (heure), images:generate-variants
 
 routes/        web.php · shop.php · account.php · auth.php · api.php · console.php (planification)
 resources/     views/ (shop, account, auth, emails, pdfs, filament…), css/, js/ (Tailwind, Alpine, Vite)
 database/      migrations, factories, seeders (rôles et permissions, admin, catalogue et commandes de démo)
-tests/Feature/ par domaine : Shop, Account, Order, Payment, Delivery, Catalogue, Admin, Api, Auth
+tests/Feature/ par domaine : Shop, Account, Order, Payment, Delivery, Catalogue, Admin, Api, Auth, WhatsApp
 ```
 
 La documentation interne (cahier des charges, journaux de phase) est conservée hors dépôt.
