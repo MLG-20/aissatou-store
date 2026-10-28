@@ -65,11 +65,12 @@ return [
 
     'temporary_file_upload' => [
         'disk' => null,        // Example: 'local', 's3'              | Default: 'default'
-        // Plafond relevé à 16 Mo pour dépasser la limite de 15 Mo des champs
-        // FileUpload (hero, produits). Ainsi une photo trop lourde est rejetée
-        // par Filament avec un message clair au lieu de planter en silence à
-        // l'étape d'upload temporaire de Livewire (défaut : 12 Mo).
-        'rules' => ['required', 'file', 'max:16384'], // 16 Mo
+        // Plafond relevé à 60 Mo, au-dessus des limites des champs FileUpload
+        // (photos : 15 Mo ; vidéos du Look : 60 Mo, config/media.php). Ainsi
+        // un fichier trop lourd est rejeté par Filament avec un message clair
+        // au lieu de planter en silence à l'étape d'upload temporaire de
+        // Livewire (défaut : 12 Mo).
+        'rules' => ['required', 'file', 'max:61440'], // 60 Mo
         'directory' => null,   // Example: 'tmp'                      | Default: 'livewire-tmp'
         'middleware' => null,  // Example: 'throttle:5,1'             | Default: 'throttle:60,1'
         'preview_mimes' => [   // Supported file types for temporary pre-signed file URLs...

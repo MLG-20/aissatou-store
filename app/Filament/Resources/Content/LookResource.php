@@ -8,9 +8,12 @@ use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Content\LookResource\Pages;
 use App\Models\Catalogue\Product;
 use App\Models\Content\Look;
+use App\Services\VideoProcessor;
 use App\Support\ImageSlot;
+use Closure;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -59,16 +62,29 @@ class LookResource extends Resource
     {
         return $form
             ->schema([
-                Section::make('La photo')
-                    ->description('Une photo de mannequin qui porte plusieurs pièces de la boutique, en pied ou à mi-corps, sujet bien visible.')
+                Section::make('Photo ou vidéo')
+                    ->description('Un mannequin qui porte plusieurs pièces de la boutique, en pied ou à mi-corps, sujet bien visible. En vidéo : 30 secondes au plus, filmée en hauteur ; le son n\'est pas diffusé.')
                     ->columns(2)
                     ->schema([
+                        Radio::make('media_type')
+                            ->label('Type')
+                            ->options(['image' => 'Photo', 'video' => 'Vidéo (30 s maximum)'])
+                            ->default('image')
+                            ->inline()
+                            ->live()
+                            ->disableOptionWhen(fn (string $value): bool => $value === 'video' && ! app(VideoProcessor::class)->available())
+                            ->helperText(fn (): ?string => app(VideoProcessor::class)->available()
+                                ? null
+                                : 'Vidéo indisponible : l\'outil de traitement vidéo (ffmpeg) n\'est pas installé sur le serveur.')
+                            ->columnSpanFull(),
+
                         ImageSlot::Look->configure(FileUpload::make('image_path'))
                             ->label(fn (string $operation): string => $operation === 'create' ? 'Photo' : 'Changer la photo')
                             ->disk('public')
                             ->directory('looks')
                             ->visibility('public')
-                            ->required(fn (string $operation): bool => $operation === 'create')
+                            ->visible(fn (Get $get): bool => $get('media_type') !== 'video')
+                            ->required(fn (string $operation, Get $get): bool => $operation === 'create' && $get('media_type') !== 'video')
                             // Même logique que le hero : vide en édition = on garde
                             // la photo actuelle (montrée dans l'aperçu plus bas).
                             ->formatStateUsing(fn (string $operation, $state) => $operation === 'edit' ? null : $state)
@@ -76,6 +92,39 @@ class LookResource extends Resource
                             ->helperText(fn (string $operation): HtmlString => ImageSlot::Look->helperText(
                                 $operation === 'edit' ? 'Laissez vide pour conserver la photo actuelle.' : null
                             ))
+                            ->columnSpanFull(),
+
+                        FileUpload::make('video_source_path')
+                            ->label(fn (string $operation): string => $operation === 'create' ? 'Vidéo' : 'Changer la vidéo')
+                            ->disk('public')
+                            ->directory('looks/videos/sources')
+                            ->visibility('public')
+                            // `application/mp4` : type que le stockage temporaire
+                            // de Livewire attribue à certains MP4 parfaitement valides.
+                            ->acceptedFileTypes(['video/mp4', 'application/mp4', 'video/x-m4v', 'video/quicktime', 'video/webm', 'video/3gpp'])
+                            ->maxSize(config('media.video_max_kilobytes'))
+                            ->rules([fn (): Closure => function (string $attribute, $file, Closure $fail): void {
+                                $duration = app(VideoProcessor::class)->duration($file->getRealPath());
+                                $max = config('media.video_max_seconds');
+
+                                if ($duration === null) {
+                                    $fail('Cette vidéo est illisible. Envoyez-la au format MP4 ou MOV.');
+                                } elseif ($duration > $max + 0.5) {
+                                    $fail('Vidéo trop longue ('.(int) round($duration).' s) : '.$max.' secondes maximum. Coupez-la sur le téléphone avant de l\'envoyer.');
+                                }
+                            }])
+                            ->visible(fn (Get $get): bool => $get('media_type') === 'video')
+                            ->required(fn (string $operation, Get $get, ?Look $record): bool => $get('media_type') === 'video' && ! $record?->video_path && ! $record?->video_source_path)
+                            ->formatStateUsing(fn (string $operation, $state) => $operation === 'edit' ? null : $state)
+                            ->dehydrated(fn ($state): bool => filled($state))
+                            ->helperText(fn (string $operation): string => ($operation === 'edit' ? 'Laissez vide pour conserver la vidéo actuelle. ' : '')
+                                .'MP4 ou MOV, 30 secondes et 60 Mo maximum. Elle est allégée automatiquement pour le site (environ une minute) ; le look apparaît sur l\'accueil dès qu\'elle est prête.')
+                            ->columnSpanFull(),
+
+                        Placeholder::make('video_state')
+                            ->label('Vidéo actuelle')
+                            ->visible(fn (Get $get, ?Look $record): bool => $get('media_type') === 'video' && filled($record?->video_status))
+                            ->content(fn (?Look $record): HtmlString => self::videoState($record))
                             ->columnSpanFull(),
 
                         TextInput::make('title')
@@ -152,6 +201,20 @@ class LookResource extends Resource
             ]);
     }
 
+    /** État de la vidéo, en clair : en préparation, prête (avec lecteur) ou en échec. */
+    private static function videoState(?Look $record): HtmlString
+    {
+        return match ($record?->video_status) {
+            Look::VIDEO_PROCESSING => new HtmlString('<span style="color:#b45309;">En préparation… Revenez sur cette page dans une minute.</span>'),
+            Look::VIDEO_FAILED => new HtmlString('<span style="color:#b91c1c;">La préparation a échoué. Renvoyez la vidéo (MP4 ou MOV).</span>'),
+            Look::VIDEO_READY => new HtmlString(
+                '<video src="'.e($record->videoUrl()).'" poster="'.e((string) $record->sizedUrl('medium')).'" muted loop playsinline controls '
+                .'style="display:block;max-width:100%;max-height:420px;border-radius:.5rem;"></video>'
+            ),
+            default => new HtmlString(''),
+        };
+    }
+
     /**
      * Photo du look avec les points numérotés dans l'ordre de la liste.
      *
@@ -160,7 +223,9 @@ class LookResource extends Resource
     private static function preview(?Look $record, array $hotspots): HtmlString
     {
         if (! $record?->image_path) {
-            return new HtmlString('<span style="color:#6b7280;">Enregistrez d\'abord une photo.</span>');
+            return new HtmlString('<span style="color:#6b7280;">'.($record?->isVideo()
+                ? 'L\'aperçu apparaîtra quand la vidéo sera prête.'
+                : 'Enregistrez d\'abord une photo.').'</span>');
         }
 
         $dots = collect(array_values($hotspots))->map(function (array $spot, int $index): string {
@@ -186,8 +251,23 @@ class LookResource extends Resource
         return $table
             ->defaultSort('position')
             ->columns([
-                ImageColumn::make('image_path')->label('Photo')->disk('public'),
+                ImageColumn::make('image_path')->label('Aperçu')->disk('public'),
                 TextColumn::make('title')->label('Titre')->searchable(),
+                TextColumn::make('media_type')
+                    ->label('Type')
+                    ->badge()
+                    ->formatStateUsing(fn (Look $record): string => match (true) {
+                        ! $record->isVideo() => 'Photo',
+                        $record->video_status === Look::VIDEO_PROCESSING => 'Vidéo en préparation',
+                        $record->video_status === Look::VIDEO_FAILED => 'Vidéo en échec',
+                        default => 'Vidéo',
+                    })
+                    ->color(fn (Look $record): string => match (true) {
+                        ! $record->isVideo() => 'gray',
+                        $record->video_status === Look::VIDEO_PROCESSING => 'warning',
+                        $record->video_status === Look::VIDEO_FAILED => 'danger',
+                        default => 'info',
+                    }),
                 ImageSlot::Look->qualityColumn(fn (Look $look) => $look->image_path),
                 TextColumn::make('hotspots_count')->label('Pièces')->counts('hotspots'),
                 TextColumn::make('position')->label('Ordre')->sortable(),

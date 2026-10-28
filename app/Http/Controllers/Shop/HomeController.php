@@ -37,6 +37,8 @@ class HomeController extends Controller
             // « Le Look » : seuls les points dont la pièce est encore en ligne.
             'looks' => Look::query()
                 ->active()
+                // Une vidéo encore en préparation attend son tour.
+                ->displayable()
                 ->orderBy('position')
                 ->with(['hotspots' => fn ($query) => $query->whereHas('product', fn ($query) => $query->active()),
                     'hotspots.product' => fn ($query) => $query->with(['category', 'images', 'variants' => fn ($query) => $query->active()])])

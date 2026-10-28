@@ -1,4 +1,7 @@
-{{-- LE LOOK — une photo de mise en situation et la liste des pièces portées.
+{{-- LE LOOK — une photo ou une vidéo (30 s au plus, muette) de mise en
+     situation et la liste des pièces portées. Les looks défilent seuls : une
+     vidéo passe au suivant à sa fin, une photo quand ses pièces se sont toutes
+     allumées (6 s au moins).
      C'est la vitrine « magazine » de l'accueil : on ne regarde plus un
      produit isolé mais une tenue, et chaque pièce est à un clic.
 
@@ -20,16 +23,47 @@
         x-data="{
             look: 0, spot: null, count: {{ $looks->count() }},
             spots: @js($looks->map(fn ($look) => $look->hotspots->count())->values()),
-            paused: false, visible: false,
-            go(step) { this.spot = null; this.look = (this.look + step + this.count) % this.count; },
+            kinds: @js($looks->map(fn ($look) => $look->isVideo() ? 'video' : 'image')->values()),
+            paused: false, visible: false, onLook: 0,
+            // Animations réduites ou économie de données : ni lecture
+            // automatique ni défilement, l'image d'aperçu reste affichée.
+            still: matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData === true,
+            go(step) {
+                this.spot = null;
+                this.onLook = 0;
+                this.look = (this.look + step + this.count) % this.count;
+                this.$nextTick(() => this.play(true));
+            },
             next() {
                 if (this.paused || ! this.visible || ! this.spots[this.look]) return;
                 this.spot = this.spot === null ? 0 : (this.spot + 1) % this.spots[this.look];
             },
+            // Seule la vidéo du look affiché joue, et seulement à l'écran ;
+            // elle ne se télécharge qu'à ce moment-là (preload none).
+            play(restart) {
+                this.$root.querySelectorAll('video').forEach((video) => +video.dataset.look === this.look || video.pause());
+                const video = this.$refs['video' + this.look];
+                if (! video || this.still || ! this.visible) return;
+                if (restart) video.currentTime = 0;
+                video.play().catch(() => {});
+            },
+            // Fin de la vidéo : look suivant, ou on la rejoue (look unique,
+            // ou visiteuse en train de regarder la section).
+            ended() { this.count > 1 && ! this.paused ? this.go(1) : this.play(true); },
+            // Look en photo : affiché le temps que ses pièces s'allument
+            // toutes, 6 s au moins.
+            tick() {
+                if (this.still || this.paused || ! this.visible || this.count < 2 || this.kinds[this.look] !== 'image') return;
+                if (++this.onLook >= Math.max(6, Math.ceil(this.spots[this.look] * 2.8))) this.go(1);
+            },
         }"
         x-init="
-            new IntersectionObserver(([entry]) => visible = entry.isIntersecting, { threshold: 0.4 }).observe($el);
+            new IntersectionObserver(([entry]) => {
+                visible = entry.isIntersecting;
+                visible ? play(false) : $root.querySelectorAll('video').forEach((video) => video.pause());
+            }, { threshold: 0.4 }).observe($el);
             setInterval(() => next(), 2800);
+            setInterval(() => tick(), 1000);
         "
         @mouseenter="paused = true"
         @mouseleave="paused = false"
@@ -54,14 +88,34 @@
                             <div class="relative">
                                 {{-- Lent zoom de la photo au survol. --}}
                                 <div class="overflow-hidden rounded-sm">
-                                    <img
-                                        src="{{ $look->sizedUrl('large') }}"
-                                        srcset="{{ $look->sizedUrl('medium') }} 800w, {{ $look->sizedUrl('large') }} 1400w"
-                                        sizes="(min-width: 1024px) 40vw, 100vw"
-                                        alt="{{ $look->title }}"
-                                        loading="lazy"
-                                        class="block h-auto w-full transition duration-[1400ms] ease-out motion-safe:group-hover:scale-[1.04]"
-                                    >
+                                    @if ($look->isVideo())
+                                        {{-- Muette (condition de la lecture automatique
+                                             sur téléphone), cadrée au format du look ;
+                                             sans lecture automatique, les commandes
+                                             permettent de la lancer soi-même. --}}
+                                        <video
+                                            x-ref="video{{ $lookIndex }}"
+                                            data-look="{{ $lookIndex }}"
+                                            src="{{ $look->videoUrl() }}"
+                                            poster="{{ $look->sizedUrl('large') }}"
+                                            muted
+                                            playsinline
+                                            preload="none"
+                                            :controls="still"
+                                            @ended="ended()"
+                                            aria-label="{{ $look->title }}"
+                                            class="block aspect-[2/3] w-full object-cover transition duration-[1400ms] ease-out motion-safe:group-hover:scale-[1.04]"
+                                        ></video>
+                                    @else
+                                        <img
+                                            src="{{ $look->sizedUrl('large') }}"
+                                            srcset="{{ $look->sizedUrl('medium') }} 800w, {{ $look->sizedUrl('large') }} 1400w"
+                                            sizes="(min-width: 1024px) 40vw, 100vw"
+                                            alt="{{ $look->title }}"
+                                            loading="lazy"
+                                            class="block h-auto w-full transition duration-[1400ms] ease-out motion-safe:group-hover:scale-[1.04]"
+                                        >
+                                    @endif
                                 </div>
 
                                 {{-- Fiche express de la pièce, posée en bas de la
