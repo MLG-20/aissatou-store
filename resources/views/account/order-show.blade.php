@@ -106,5 +106,18 @@
                 @endif
             </p>
         </div>
+
+        {{-- Le n° de commande part pré-rempli : la boutique retrouve la
+             commande sans avoir à le demander. --}}
+        @if (filled(\App\Models\Content\SiteSetting::current()->contact_whatsapp))
+            <a
+                href="{{ route('shop.whatsapp', ['texte' => 'Bonjour, j\'ai une question sur ma commande '.$order->number.'.']) }}"
+                target="_blank"
+                rel="noopener"
+                class="mt-6 inline-block text-sm underline text-brand-muted hover:text-brand-signature"
+            >
+                Une question sur cette commande ? Écrivez-nous sur WhatsApp
+            </a>
+        @endif
     </div>
 </x-account-layout>

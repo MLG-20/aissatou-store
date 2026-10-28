@@ -98,6 +98,27 @@
                 <x-shop.cta href="{{ route('shop.checkout') }}" variant="primary" class="w-full sm:w-auto text-center">
                     Passer commande
                 </x-shop.cta>
+
+                {{-- Alternative pour qui préfère commander en discutant : le
+                     panier part pré-rempli (total d'abord, au cas où le texte
+                     serait tronqué par /whatsapp). --}}
+                @if (filled(\App\Models\Content\SiteSetting::current()->contact_whatsapp))
+                    @php
+                        $whatsappText = "Bonjour, je souhaite commander ces articles (total ".number_format($cart->total(), 0, ',', ' ')." FCFA) :\n"
+                            .$cart->items->map(fn ($item) => '- '.$item->product->name
+                                .($item->variant?->attributes ? ' ('.collect($item->variant->attributes)->implode(', ').')' : '')
+                                .' × '.$item->quantity)->implode("\n");
+                    @endphp
+                    <a
+                        href="{{ route('shop.whatsapp', ['texte' => $whatsappText]) }}"
+                        target="_blank"
+                        rel="noopener"
+                        data-whatsapp-cta
+                        class="text-sm underline text-brand-muted hover:text-brand-signature"
+                    >
+                        Vous préférez commander sur WhatsApp ?
+                    </a>
+                @endif
             </div>
         @endif
     </div>
