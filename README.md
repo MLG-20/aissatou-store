@@ -8,6 +8,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - Catalogue avec catégories, collections, matières, recherche et filtres AJAX, images WebP responsives
 - Accueil éditorial : hero en carrousel (photo paysage plein écran au format 16:9 ; photo portrait sur la moitié droite, texte sur fond clair ; version téléphone dédiée), bandeau défilant facultatif, univers en mosaïque, nouveautés, « Le Look » (une tenue par photo ou vidéo de 30 s au plus, pièces mises en avant tour à tour, défilement automatique : une vidéo passe au look suivant à sa fin), « La Maison » (diaporama de 10 photos au plus, fondu et zoom lent, effet de profondeur), parcours « L'expérience Aissatou », avis clients avec note moyenne ; apparition douce au défilement et zoom des photos au survol (désactivés en « animations réduites »)
 - Collections en chapitres (sommaire, photo, aperçu des pièces) et journal en magazine (article à la une, temps de lecture, partage WhatsApp)
+- **Lookbook** (`/lookbook`) : tous les looks en plein écran, l'un après l'autre (défilement aimanté), ouverture et fin éditoriales ; seule la vidéo à l'écran joue ; panneau « Les pièces du look » (ajout au panier, ou commande du look entier sur WhatsApp) ; une adresse par look (`/lookbook/lumiere-doree`) avec image d'aperçu pour le partage ; chapitres facultatifs (« Korité 2026 »…) ; l'accueil n'en montre que les looks choisis
 - Filtre prix en saisie libre (de / à) ; guide « L'art d'offrir » dont les tranches de budget sont calculées sur les prix réels du catalogue
 - Panier invité et compte (fusion à la connexion), liste d'envies, avis clients
 - Sur téléphone, compte accessible depuis l'en-tête (à côté du menu) et boutons « Se connecter / Créer un compte » en tête du menu
@@ -19,8 +20,10 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - **Liens WhatsApp pré-remplis** (gratuits, sans l'API) : fiche produit, panier (articles et total), page d'une commande (numéro)
 
 **Back-office (`/admin`, Filament)**
+- Bouton « Voir le site » dans la barre du haut : la boutique s'ouvre dans un nouvel onglet
 - **Tableau de bord** : chiffre d'affaires encaissé, commandes payées, panier moyen, taux de conversion (compteur de visites maison et anonyme, sans cookie ni IP stockée), paniers abandonnés, meilleures ventes, comparaison à la période précédente ; agrégats quotidiens pour rester rapide quel que soit l'historique
 - Catalogue, contenu éditorial, réglages du site (photo de connexion, photos de « La Maison » réordonnables par glisser-déposer, bandeau défilant masqué quand il est vide), zones de livraison, messages reçus
+- **Lookbook** (menu « Lookbook ») : photo ou vidéo, titre, phrase, texte d'ambiance, chapitre, adresse de partage, « Aussi sur l'accueil », pièces portées
 - **Vidéos du Look** : 30 s maximum vérifiées à l'envoi, allégées en arrière-plan par ffmpeg (version web 720 px sans son, image d'aperçu tirée de la vidéo) ; le look n'apparaît qu'une fois la vidéo prête, son état est affiché en admin
 - **Charte photo** : un format et un minimum par emplacement (refus des photos trop petites, badge « À remplacer »), point focal réglable avec aperçu de chaque recadrage
 - Commandes : statuts avec transitions contrôlées et historique, facture PDF, organisation de la livraison, bloc WhatsApp (accord de la cliente, messages envoyés et leur état : envoyé, reçu, lu, échec avec la raison)
