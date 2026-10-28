@@ -33,15 +33,20 @@ final class YouTube
     }
 
     /**
-     * Lecteur muet, en boucle, sans commandes ni suggestions de fin
-     * (rel=0 : seulement la chaîne de la vidéo), domaine « nocookie ».
+     * Lecteur muet, sans commandes ni suggestions de fin (rel=0 : seulement
+     * la chaîne de la vidéo), domaine « nocookie ». En boucle par défaut.
      */
-    public static function embedUrl(string $id): string
+    public static function embedUrl(string $id, bool $loop = true): string
     {
         return 'https://www.youtube-nocookie.com/embed/'.$id.'?'.http_build_query([
-            'autoplay' => 1, 'mute' => 1, 'controls' => 0, 'loop' => 1, 'playlist' => $id,
+            'autoplay' => 1, 'mute' => 1, 'controls' => 0,
             'playsinline' => 1, 'rel' => 0, 'modestbranding' => 1, 'disablekb' => 1, 'iv_load_policy' => 3,
-        ]);
+        ] + ($loop
+            ? ['loop' => 1, 'playlist' => $id]
+            // Lookbook en défilement automatique : la fin de la vidéo fait
+            // passer au look suivant ; la page l'apprend par messages
+            // (enablejsapi), sans charger le script de l'API YouTube.
+            : ['enablejsapi' => 1, 'origin' => url('/')]));
     }
 
     /**

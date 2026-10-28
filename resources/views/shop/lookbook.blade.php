@@ -12,6 +12,12 @@
      juste avant d'arriver. Animations réduites ou économie de données :
      images fixes, lecture à la demande.
 
+     Défilement automatique, comme des stories : une vidéo (envoyée ou
+     YouTube) passe au look suivant à sa fin, une photo au bout de 7 s,
+     l'ouverture au bout de 5 s ; une barre fine montre le temps restant.
+     Pause : bouton entre les flèches (la vidéo tourne alors en boucle),
+     panneau des pièces ouvert, onglet caché. Le geste reste libre.
+
      Acheter sans quitter l'ambiance : « Les pièces du look » ouvre un panneau
      (ajout au panier, ou commande du look entier sur WhatsApp). L'adresse
      suit le look affiché (/lookbook/lumiere-doree) : c'est elle qu'on partage. --}}
@@ -35,7 +41,68 @@
         x-data="{
             active: -1, sheet: null, copied: null,
             still: matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData === true,
+            auto: true, elapsed: 0, progress: 0, total: {{ $total }},
+            kinds: @js($looks->map(fn ($look) => $look->isVideo() ? 'video' : ($look->isYouTube() ? 'youtube' : 'image'))->values()),
             go(step) { $refs.scroller.scrollBy({ top: step * $refs.scroller.clientHeight, behavior: 'smooth' }); },
+            // Le défilement automatique tourne-t-il en ce moment ?
+            running() { return this.auto && ! this.still && this.sheet === null && ! document.hidden && this.active < this.total; },
+            // Toutes les 100 ms : avance du temps des photos et de l'ouverture
+            // (les vidéos donnent leur propre progression).
+            tick() {
+                if (! this.running()) return;
+                const kind = this.active < 0 ? 'intro' : this.kinds[this.active];
+                if (kind === 'video') return;
+                this.elapsed += 0.1;
+                const duration = kind === 'intro' ? 5 : (kind === 'image' ? 7 : 120);
+                if (kind !== 'youtube') this.progress = Math.min(1, this.elapsed / duration);
+                if (this.elapsed >= duration) this.next();
+            },
+            next() { this.elapsed = 0; this.progress = 0; this.go(1); },
+            // Vidéo envoyée : progression et fin.
+            timeupdate(video, index) { if (index === this.active && video.duration) this.progress = video.currentTime / video.duration; },
+            ended(video, index) {
+                if (index !== this.active) return;
+                this.running() ? this.next() : video.play().catch(() => {});
+            },
+            // Lecteur YouTube : il annonce son état par messages.
+            youtube(event) {
+                let host;
+                try { host = new URL(event.origin).hostname; } catch { return; }
+                if (! /(^|\.)youtube(-nocookie)?\.com$/.test(host)) return;
+                let data;
+                try { data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data; } catch { return; }
+                const info = data?.info ?? {};
+                const frame = [...this.$root.querySelectorAll('iframe')].find((iframe) => iframe.contentWindow === event.source);
+                if (! frame) return;
+                frame.dataset.ready = '1';
+                if (+frame.dataset.look !== this.active) return;
+                if (info.duration) frame.dataset.duration = info.duration;
+                if (info.currentTime && ! info.duration && frame.dataset.duration) info.duration = +frame.dataset.duration;
+                if (info.currentTime && info.duration) this.progress = info.currentTime / info.duration;
+                let state = data.event === 'onStateChange' ? data.info : info.playerState;
+                // Les Shorts rebouclent d'eux-mêmes sans jamais annoncer leur fin :
+                // un retour au début après la dernière seconde vaut une fin.
+                if (typeof info.currentTime === 'number') {
+                    const last = +(frame.dataset.time ?? 0);
+                    if (info.currentTime < 1 && last > Math.max(2, (+frame.dataset.duration || 0) - 2)) state = 0;
+                    frame.dataset.time = info.currentTime;
+                }
+                if (state === 0) {
+                    frame.dataset.time = 0;
+                    this.running()
+                        ? this.next()
+                        : frame.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [0, true] }), '*');
+                }
+            },
+            // Le lecteur n'écoute qu'une fois prêt : on le relance chaque
+            // seconde jusqu'à sa première réponse (comme le script officiel).
+            listen(iframe) {
+                let tries = 0;
+                const ping = setInterval(() => {
+                    if (iframe.dataset.ready || ! iframe.isConnected || ++tries > 20) return clearInterval(ping);
+                    iframe.contentWindow?.postMessage(JSON.stringify({ event: 'listening', id: iframe.dataset.look, channel: 'widget' }), '*');
+                }, 1000);
+            },
             async share(url, title) {
                 if (navigator.share) { navigator.share({ title, url }).catch(() => {}); return; }
                 await navigator.clipboard?.writeText(url);
@@ -50,8 +117,10 @@
                 const video = entry.target.querySelector('video');
                 if (entry.isIntersecting) {
                     active = +entry.target.dataset.section;
+                    elapsed = 0;
+                    progress = 0;
                     history.replaceState(null, '', entry.target.dataset.url);
-                    if (video && ! still) video.play().catch(() => {});
+                    if (video && ! still) { video.currentTime = 0; video.play().catch(() => {}); }
                 } else if (video) {
                     video.pause();
                 }
@@ -64,6 +133,8 @@
             sections.forEach((section) => { onScreen.observe(section); nearby.observe(section); });
             // Panneau ouvert : la page derrière ne défile plus (une seule barre).
             $watch('sheet', (open) => document.documentElement.classList.toggle('overflow-hidden', open !== null));
+            setInterval(() => tick(), 100);
+            window.addEventListener('message', (event) => youtube(event));
             @if ($startIndex !== null && $startIndex !== false)
                 $refs.scroller.querySelector('[data-section=\'{{ $startIndex }}\']')?.scrollIntoView();
             @endif
@@ -129,10 +200,11 @@
                             src="{{ $look->videoUrl() }}"
                             poster="{{ $look->sizedUrl('large') }}"
                             muted
-                            loop
                             playsinline
                             preload="none"
                             :controls="still"
+                            @timeupdate="timeupdate($el, {{ $index }})"
+                            @ended="ended($el, {{ $index }})"
                             aria-label="{{ $look->title }}"
                             class="{{ $mediaClass }}"
                         ></video>
@@ -148,7 +220,9 @@
                             @endif
                             <template x-if="active === {{ $index }} && ! still">
                                 <iframe
-                                    src="{{ \App\Support\YouTube::embedUrl($look->youtube_id) }}"
+                                    src="{{ \App\Support\YouTube::embedUrl($look->youtube_id, loop: false) }}"
+                                    data-look="{{ $index }}"
+                                    @load="listen($el)"
                                     title="{{ $look->title }}"
                                     allow="autoplay; encrypted-media; picture-in-picture"
                                     tabindex="-1"
@@ -266,6 +340,19 @@
                 </button>
 
 
+                {{-- Pause du défilement automatique (la vidéo tourne alors en boucle). --}}
+                <button
+                    type="button"
+                    x-show="! still"
+                    @click="auto = ! auto"
+                    class="flex h-9 w-9 items-center justify-center rounded-full text-brand-surface/70 transition hover:text-brand-surface lg:h-11 lg:w-11"
+                    :aria-label="auto ? 'Mettre en pause le défilement' : 'Reprendre le défilement'"
+                    :aria-pressed="(! auto).toString()"
+                >
+                    <svg x-show="auto" class="h-4 w-4 lg:h-5 lg:w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /></svg>
+                    <svg x-show="! auto" x-cloak class="ml-0.5 h-4 w-4 lg:h-5 lg:w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11.04-6.86a1 1 0 0 0 0-1.72L9.5 4.28A1 1 0 0 0 8 5.14z" /></svg>
+                </button>
+
                 <button
                     type="button"
                     @click="go(1)"
@@ -277,6 +364,11 @@
                 </button>
             </nav>
         @endif
+
+        {{-- Temps restant avant le look suivant. --}}
+        <div x-show="! still && active < total" class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-0.5 bg-brand-surface/15" aria-hidden="true">
+            <div class="h-full origin-left bg-brand-surface/80 transition-transform duration-100 ease-linear" :class="! auto && 'opacity-40'" :style="`transform: scaleX(${progress})`"></div>
+        </div>
 
         {{-- PANNEAU DES PIÈCES — bas de l'écran sur téléphone, côté droit sur ordinateur. --}}
         <div x-show="sheet !== null" x-cloak class="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Les pièces du look">
