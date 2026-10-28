@@ -17,6 +17,7 @@ use App\Services\Payment\PaymentException;
 use App\Services\Payment\PaymentManager;
 use App\Services\Payment\PaymentService;
 use App\Services\PromoService;
+use App\Services\WhatsApp\WhatsAppClient;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -81,6 +82,8 @@ class CheckoutController extends Controller
             'fees' => $fees,
             'providers' => $this->payments->available(),
             'promo' => $promo,
+            // Case d'accord proposée seulement si l'envoi est réellement actif.
+            'whatsapp' => app(WhatsAppClient::class)->isConfigured(),
         ]);
     }
 
@@ -96,6 +99,7 @@ class CheckoutController extends Controller
                 $address,
                 $request->string('provider')->toString(),
                 $request->session()->get(self::PROMO_SESSION_KEY),
+                $request->boolean('whatsapp_opt_in'),
             );
         } catch (PromoCodeException $exception) {
             // Code devenu invalide entre la saisie et la validation : rien

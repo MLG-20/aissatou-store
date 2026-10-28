@@ -18,6 +18,8 @@ class CheckoutStoreRequest extends FormRequest
                 Rule::exists('customer_addresses', 'id')->where('user_id', $this->user()->id),
             ],
             'provider' => ['required', 'string', 'in:'.implode(',', $this->providerKeys())],
+            // Case décochée par défaut : absente = pas d'accord.
+            'whatsapp_opt_in' => ['nullable', 'boolean'],
         ];
     }
 

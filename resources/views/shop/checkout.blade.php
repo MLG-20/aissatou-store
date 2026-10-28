@@ -58,6 +58,7 @@
                 discount: {{ $promo?->discount ?? 0 }},
                 fee: {{ ($fees[$addresses->firstWhere('is_default', true)?->id ?? $addresses->first()?->id] ?? ['fee' => 0])['fee'] }},
                 zone: '{{ addslashes(($fees[$addresses->firstWhere('is_default', true)?->id ?? $addresses->first()?->id] ?? ['label' => ''])['label']) }}',
+                phone: '{{ addslashes(($addresses->firstWhere('is_default', true) ?? $addresses->first())?->phone ?? '') }}',
                 fmt(n) { return new Intl.NumberFormat('fr-FR', {maximumFractionDigits: 0}).format(n) + ' FCFA'; }
             }"
         >
@@ -109,7 +110,8 @@
                                     @checked($address->is_default)
                                     data-fee="{{ $fees[$address->id]['fee'] }}"
                                     data-zone="{{ $fees[$address->id]['label'] }}"
-                                    @change="fee = +$el.dataset.fee; zone = $el.dataset.zone"
+                                    data-phone="{{ $address->phone }}"
+                                    @change="fee = +$el.dataset.fee; zone = $el.dataset.zone; phone = $el.dataset.phone"
                                     class="mt-1 accent-brand-signature"
                                 >
                                 <span>
@@ -142,6 +144,17 @@
                     @endforeach
                 </div>
             </section>
+
+            {{-- Accord explicite (docs/files/08-whatsapp-cloud-api.md §7) : décoché par défaut. --}}
+            @if ($whatsapp && $addresses->isNotEmpty())
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" name="whatsapp_opt_in" value="1" @checked(old('whatsapp_opt_in')) class="mt-1 accent-brand-signature">
+                    <span class="text-sm text-brand-ink">
+                        Recevoir le suivi de ma commande sur WhatsApp au <span x-text="phone">{{ ($addresses->firstWhere('is_default', true) ?? $addresses->first())->phone }}</span>
+                        <span class="block text-xs text-brand-muted mt-0.5">Confirmation, expédition et livraison. Sans cette case, le suivi se fait par e-mail uniquement.</span>
+                    </span>
+                </label>
+            @endif
 
             <x-shop.cta type="submit" variant="primary" class="w-full justify-center">
                 Confirmer la commande

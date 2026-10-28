@@ -33,6 +33,18 @@ enum WhatsAppTemplate: string
         };
     }
 
+    /** Libellé du back-office. */
+    public function label(): string
+    {
+        return match ($this) {
+            self::OrderConfirmed => 'Commande confirmée',
+            self::PaymentConfirmed => 'Paiement confirmé',
+            self::OrderShipped => 'Commande expédiée',
+            self::OrderDelivered => 'Commande livrée',
+            self::OrderCancelled => 'Commande annulée',
+        };
+    }
+
     /** @return list<string> */
     public function bodyParameters(Order $order): array
     {

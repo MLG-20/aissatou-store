@@ -6,6 +6,8 @@ use App\Enums\Admin\AdminPermission;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentEventType;
 use App\Enums\Order\PaymentStatus;
+use App\Enums\Order\WhatsAppMessageStatus;
+use App\Enums\Order\WhatsAppTemplate;
 use App\Exceptions\OrderException;
 use App\Filament\Resources\Order\OrderResource;
 use App\Filament\Resources\Order\PaymentEventResource;
@@ -143,6 +145,33 @@ class ViewOrder extends ViewRecord
                         TextEntry::make('delivery_note')->label('Note')->placeholder('—'),
                     ])
                     ->columns(2),
+
+                // Suivi WhatsApp (docs/files/08-whatsapp-cloud-api.md §8) :
+                // lecture seule, état tenu à jour par le webhook de Meta.
+                Section::make('WhatsApp')
+                    ->schema([
+                        TextEntry::make('whatsapp_opt_in')
+                            ->label('Accord du client')
+                            ->formatStateUsing(fn (Order $record): string => $record->whatsapp_opt_in
+                                ? 'Oui, donné le '.$record->whatsapp_opt_in_at?->format('d/m/Y à H:i')
+                                : 'Non : suivi par e-mail uniquement'),
+                        RepeatableEntry::make('whatsappMessages')
+                            ->label('Messages')
+                            ->visible(fn (Order $record): bool => $record->whatsappMessages()->exists())
+                            ->schema([
+                                TextEntry::make('created_at')->label('Date')->dateTime('d/m/Y H:i'),
+                                TextEntry::make('template')
+                                    ->label('Message')
+                                    ->formatStateUsing(fn (WhatsAppTemplate $state): string => $state->label()),
+                                TextEntry::make('status')
+                                    ->label('État')
+                                    ->badge()
+                                    ->formatStateUsing(fn (WhatsAppMessageStatus $state): string => $state->label())
+                                    ->color(fn (WhatsAppMessageStatus $state): string => $state->color()),
+                                TextEntry::make('error')->label('Détail')->placeholder('—'),
+                            ])
+                            ->columns(4),
+                    ]),
 
                 Section::make('Historique des statuts')
                     ->schema([

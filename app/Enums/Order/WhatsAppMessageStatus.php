@@ -25,6 +25,17 @@ enum WhatsAppMessageStatus: string
         };
     }
 
+    /** Couleur du badge Filament. */
+    public function color(): string
+    {
+        return match ($this) {
+            self::Queued => 'gray',
+            self::Sent => 'info',
+            self::Delivered, self::Read => 'success',
+            self::Failed => 'danger',
+        };
+    }
+
     /**
      * Ordre d'avancement : un statut n'en remplace qu'un plus ancien (Meta
      * peut livrer « distribué » après « lu »). L'échec est définitif.
