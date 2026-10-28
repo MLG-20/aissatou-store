@@ -68,6 +68,25 @@
             </button>
         </div>
 
+        {{-- Compte en tête du tiroir, pas après les catégories : c'est la
+             première chose que cherche une cliente qui revient. --}}
+        <div class="relative px-5 pb-4">
+            @auth
+                <a href="{{ route('dashboard') }}" class="block w-full rounded-sm border border-brand-surface/40 py-3 text-center text-xs font-medium uppercase tracking-[0.15em] text-brand-surface transition hover:border-brand-surface">
+                    Mon compte
+                </a>
+            @else
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="{{ route('login') }}" class="flex items-center justify-center rounded-sm bg-brand-accent px-2 py-3 text-center text-xs font-medium uppercase tracking-[0.15em] text-brand-surface transition hover:bg-brand-signature">
+                        Se connecter
+                    </a>
+                    <a href="{{ route('register') }}" class="flex items-center justify-center rounded-sm border border-brand-surface/40 px-2 py-3 text-center text-xs font-medium uppercase tracking-[0.15em] text-brand-surface transition hover:border-brand-surface">
+                        Créer un compte
+                    </a>
+                </div>
+            @endauth
+        </div>
+
         <nav class="relative flex-1 overflow-y-auto px-5 pb-6">
             @foreach ($navLinks as $index => $link)
                 {{-- Entrée en cascade : chaque onglet arrive avec un léger retard
@@ -135,20 +154,9 @@
             </div>
         </nav>
 
-        {{-- Compte et panier : masqués dans la barre du haut sur petit écran, ils
-             doivent rester atteignables ici. --}}
+        {{-- Panier : rappel en pied de tiroir (le compte est en tête). --}}
         <div class="relative border-t border-brand-surface/10 bg-brand-ink/40 px-5 py-4">
-            <div class="flex items-center justify-between gap-4">
-                @auth
-                    <a href="{{ route('dashboard') }}" class="text-sm uppercase tracking-[0.15em] text-brand-surface/80 transition hover:text-brand-surface">
-                        Mon compte
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" class="text-sm uppercase tracking-[0.15em] text-brand-surface/80 transition hover:text-brand-surface">
-                        Connexion
-                    </a>
-                @endauth
-
+            <div class="flex items-center justify-end gap-4">
                 <button
                     type="button"
                     @click="mobileNavOpen = false; cartOpen = true"

@@ -143,17 +143,28 @@
                     </nav>
 
                     {{-- Colonne de gauche sur mobile : le burger, pour que la
-                         signature reste centrée sur les petits écrans. --}}
-                    <button
-                        type="button"
-                        class="lg:hidden p-2 -ml-2 justify-self-start"
-                        @click="mobileNavOpen = !mobileNavOpen"
-                        aria-label="Ouvrir le menu"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                    </button>
+                         signature reste centrée sur les petits écrans. Le compte
+                         s'y ajoute sous 640 px : se connecter ne doit pas exiger
+                         d'ouvrir le menu, et une 4e icône ne tient pas à droite
+                         à côté du logo. --}}
+                    <div class="lg:hidden flex items-center gap-3 justify-self-start">
+                        <button
+                            type="button"
+                            class="p-2 -ml-2"
+                            @click="mobileNavOpen = !mobileNavOpen"
+                            aria-label="Ouvrir le menu"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+
+                        <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="sm:hidden text-current transition hover:text-brand-accent" aria-label="{{ auth()->check() ? 'Mon compte' : 'Se connecter' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                            </svg>
+                        </a>
+                    </div>
 
                     <x-shop.signature variant="vertical" :with-slogan="false" class="justify-self-center" />
 
@@ -338,8 +349,10 @@
                         ctas.forEach((cta) => observer.observe(cta));
                     }
                 "
-                :class="hidden && 'pointer-events-none translate-y-4 opacity-0'"
-                :tabindex="hidden ? -1 : null"
+                {{-- Masqué aussi sous un tiroir ouvert (menu, panier) : à
+                     z-index égal, il passerait par-dessus. --}}
+                :class="(hidden || mobileNavOpen || cartOpen) && 'pointer-events-none translate-y-4 opacity-0'"
+                :tabindex="(hidden || mobileNavOpen || cartOpen) ? -1 : null"
                 class="float-lift fixed bottom-20 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-brand-ink text-brand-surface shadow-lg transition duration-300 hover:bg-brand-accent"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
