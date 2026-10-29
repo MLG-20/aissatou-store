@@ -18,5 +18,34 @@
                     [&_blockquote]:border-l-2 [&_blockquote]:border-brand-accent [&_blockquote]:pl-6 [&_blockquote]:italic">
             {!! $page->renderedContent() !!}
         </div>
+
+        {{-- Page cookies : le registre de l'admin (Cookies et traceurs), par
+             catégorie. Une fiche par cookie plutôt qu'un tableau : lisible
+             aussi sur téléphone, sans défilement horizontal. --}}
+        @if ($cookiesByCategory)
+            <section class="mt-16 space-y-12" aria-label="Liste des cookies utilisés">
+                @foreach (\App\Enums\Content\CookieCategory::cases() as $category)
+                    @continue(! $cookiesByCategory->has($category->value))
+                    <div>
+                        <h2 class="font-display text-2xl text-brand-ink">{{ $category->label() }}</h2>
+                        <p class="mt-2 text-brand-ink/70">{{ $category->description() }}</p>
+                        <ul class="mt-6 divide-y divide-brand-ink/10 border-y border-brand-ink/10">
+                            @foreach ($cookiesByCategory[$category->value] as $cookie)
+                                <li class="grid gap-x-8 gap-y-1 py-5 sm:grid-cols-[12rem_1fr]">
+                                    <div>
+                                        <p class="font-medium text-brand-ink break-all">{{ $cookie->name }}</p>
+                                        <p class="text-sm text-brand-muted">{{ $cookie->provider }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-brand-ink/85">{{ $cookie->purpose }}</p>
+                                        <p class="mt-1 text-sm text-brand-muted">Conservation : {{ $cookie->duration }}</p>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endforeach
+            </section>
+        @endif
     </article>
 </x-shop-layout>
