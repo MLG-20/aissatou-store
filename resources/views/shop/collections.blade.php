@@ -18,7 +18,7 @@
             @if ($collections->isNotEmpty())
                 {{-- Sommaire : un lien par chapitre. --}}
                 <nav aria-label="Sommaire des collections" data-reveal style="--reveal-delay: 150ms">
-                    <p class="mb-4 text-[0.65rem] uppercase tracking-[0.3em] text-brand-muted">Sommaire</p>
+                    <p class="mb-4 text-[0.75rem] uppercase tracking-[0.3em] text-brand-muted">Sommaire</p>
                     <ol class="border-t border-brand-ink/10">
                         @foreach ($collections as $collection)
                             <li>

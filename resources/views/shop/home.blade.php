@@ -42,7 +42,7 @@
                 <x-shop.fold-backdrop />
 
                 <div class="relative h-full max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 flex flex-col justify-center items-start gap-6 py-24">
-                    <span class="text-[0.65rem] uppercase tracking-[0.4em] text-brand-surface/60">Aissatou Store</span>
+                    <span class="text-[0.75rem] uppercase tracking-[0.4em] text-brand-surface/60">Aissatou Store</span>
                     <h1 class="font-display text-4xl sm:text-6xl lg:text-7xl leading-[1.05] max-w-3xl">{{ $defaultSlide['title'] }}</h1>
                     <p class="text-brand-surface/70 max-w-lg text-base sm:text-lg">{{ $defaultSlide['subtitle'] }}</p>
 
@@ -145,7 +145,7 @@
                         // Grand écran : texte Encre sur la moitié claire.
                         'xl:text-brand-ink' => $portrait,
                     ])>
-                        <span @class(['text-[0.65rem] uppercase tracking-[0.4em] text-brand-surface/60', 'xl:text-brand-muted' => $portrait])>Aissatou Store</span>
+                        <span @class(['text-[0.75rem] uppercase tracking-[0.4em] text-brand-surface/60', 'xl:text-brand-muted' => $portrait])>Aissatou Store</span>
                         <h1 @class([
                             'font-display text-4xl sm:text-6xl lg:text-7xl leading-[1.05] max-w-3xl',
                             'hero-portrait-title' => $portrait,
@@ -274,7 +274,7 @@
                         <div class="passage-frame passage-frame--light absolute inset-3 sm:inset-5"></div>
 
                         <div class="absolute inset-x-0 bottom-0 p-5 sm:p-8 text-brand-surface">
-                            <span class="text-[0.6rem] uppercase tracking-[0.35em] text-brand-surface/60">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
+                            <span class="text-[0.7rem] uppercase tracking-[0.35em] text-brand-surface/60">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
                             <h3 @class([
                                 'mt-2 font-display leading-[1.05]',
                                 'text-3xl sm:text-4xl lg:text-5xl' => $isLead,
@@ -286,7 +286,7 @@
                                 <p class="mt-2 max-w-xs text-sm text-brand-surface/80 transition-all duration-500 lg:max-h-0 lg:overflow-hidden lg:opacity-0 lg:group-hover:max-h-16 lg:group-hover:opacity-100">{{ $descriptor }}</p>
                             @endif
 
-                            <span class="mt-4 inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.25em]">
+                            <span class="mt-4 inline-flex items-center gap-2 text-[0.75rem] uppercase tracking-[0.25em]">
                                 Découvrir
                                 <svg class="h-3.5 w-3.5 transition-transform duration-500 group-hover:translate-x-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
@@ -537,7 +537,7 @@
                                      (et non derrière l'étiquette, qu'il brouillait). --}}
                                 <span aria-hidden="true" class="pointer-events-none select-none absolute right-0 top-1/2 -translate-y-1/2 font-display text-[7rem] leading-none text-brand-signature/[0.06] lg:left-1/2 lg:right-auto lg:top-[60%] lg:-translate-x-1/2 lg:text-[10rem]">{{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
 
-                                <span class="relative text-[0.6rem] uppercase tracking-[0.35em] text-brand-accent">Promesse {{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
+                                <span class="relative text-[0.7rem] uppercase tracking-[0.35em] text-brand-accent">Promesse {{ str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT) }}</span>
                                 <p class="relative mt-3 max-w-xs font-display text-2xl leading-snug text-brand-ink lg:mx-auto">{{ $text }}</p>
                                 <span class="relative mt-5 block h-px w-10 bg-brand-accent/50 transition-all duration-500 group-hover:w-20 lg:mx-auto"></span>
                             </div>

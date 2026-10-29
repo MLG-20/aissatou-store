@@ -69,7 +69,7 @@
                                     <x-shop.post-cover :post="$post" :number="$numberOf($post)" class="aspect-[4/3]" />
                                     <div class="passage-frame passage-frame--light pointer-events-none absolute inset-3"></div>
                                 </div>
-                                <p class="mt-5 flex items-center gap-3 text-[0.65rem] uppercase tracking-[0.2em] text-brand-muted">
+                                <p class="mt-5 flex items-center gap-3 text-[0.75rem] uppercase tracking-[0.2em] text-brand-muted">
                                     <span class="font-medium text-brand-accent">N° {{ $numberOf($post) }}</span>
                                     <span>{{ $post->published_at->translatedFormat('j F Y') }}</span>
                                     <span>· {{ $post->readingMinutes() }} min</span>

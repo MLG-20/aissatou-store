@@ -34,7 +34,7 @@
                     <a href="{{ route('shop.post', $post) }}" class="group block {{ $span }}" data-reveal style="--reveal-delay: {{ $loop->index * 120 }}ms">
                         <x-shop.post-cover :post="$post" size="large" :number="str_pad($loop->iteration, 2, '0', STR_PAD_LEFT)" class="aspect-[4/3] rounded-sm lg:aspect-auto lg:h-[26rem]" />
 
-                        <div class="mt-5 flex items-center gap-3 text-[0.65rem] uppercase tracking-[0.2em] text-brand-muted">
+                        <div class="mt-5 flex items-center gap-3 text-[0.75rem] uppercase tracking-[0.2em] text-brand-muted">
                             <span>{{ $post->published_at->translatedFormat('j F Y') }}</span>
                             <span class="h-px w-6 bg-brand-ink/20" aria-hidden="true"></span>
                             <span>{{ $post->readingMinutes() }} min de lecture</span>

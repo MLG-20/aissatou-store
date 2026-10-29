@@ -84,11 +84,11 @@
                                     @endif
                                 </span>
                                 @if ($channel['badge'])
-                                    <span class="border border-brand-parchment/40 px-2.5 py-1 text-[0.6rem] uppercase tracking-[0.2em] text-brand-parchment">{{ $channel['badge'] }}</span>
+                                    <span class="border border-brand-parchment/40 px-2.5 py-1 text-[0.7rem] uppercase tracking-[0.2em] text-brand-parchment">{{ $channel['badge'] }}</span>
                                 @endif
                             </div>
 
-                            <span class="mt-8 text-[0.65rem] uppercase tracking-[0.3em] text-brand-surface/60">{{ $channel['label'] }}</span>
+                            <span class="mt-8 text-[0.75rem] uppercase tracking-[0.3em] text-brand-surface/60">{{ $channel['label'] }}</span>
                             <span class="mt-2 font-display text-2xl break-words">{{ $channel['value'] }}</span>
 
                             @if ($channel['action'])
@@ -201,7 +201,7 @@
                                         <span class="block font-display text-xl text-brand-ink transition group-hover:text-brand-surface">{{ $social['label'] }}</span>
                                         <span class="block text-sm text-brand-muted transition group-hover:text-brand-surface/70">{{ $social['hint'] }}</span>
                                     </span>
-                                    <span class="inline-flex items-center gap-2 text-[0.65rem] uppercase tracking-[0.2em] text-brand-ink/60 transition group-hover:text-brand-surface">
+                                    <span class="inline-flex items-center gap-2 text-[0.75rem] uppercase tracking-[0.2em] text-brand-ink/60 transition group-hover:text-brand-surface">
                                         Suivre
                                         <svg class="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />

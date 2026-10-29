@@ -27,7 +27,7 @@
         <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=inter:400,500,600&family=fraunces:400,500,600,700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=jost:300,400,500,600|bodoni-moda:400,500,600,400i,500i&display=swap" rel="stylesheet" />
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -252,9 +252,9 @@
                  (et non en absolu) : le pied de page prend la hauteur du plus
                  grand des deux, donc le filet du © passe toujours sous « STORE ». --}}
             <div class="grid">
-                {{-- Nom de la maison en fond, derrière les colonnes : Fraunces
+                {{-- Nom de la maison en fond, derrière les colonnes : Bodoni Moda
                      géant à 7 % d'opacité. Purement décoratif (aria-hidden).
-                     Crénage coupé : Fraunces resserre la paire « AI », qui collait
+                     Crénage coupé : la police de titre resserre la paire « AI », qui collait
                      à cette taille ; espacement régulier à la place. Le retrait
                      gauche de STORE compense l'espacement ajouté après le E, pour
                      rester centré. --}}

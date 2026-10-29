@@ -4,7 +4,7 @@
 
      Deux compositions :
      · les rayons (Nouveautés, catégories) : capitales espacées ;
-     · le récit de la marque (Collections, Journal) : Fraunces italique en bas
+     · le récit de la marque (Collections, Journal) : Bodoni Moda italique en bas
        de casse — l'offre et le récit se distinguent au premier coup d'œil.
 
      Survol et onglet actif : filet Garance qui s'étire depuis le centre, l'« Edit
@@ -17,7 +17,7 @@
 
     $labelClasses = $editorial
         ? 'font-display italic normal-case tracking-normal text-[0.85rem] xl:text-base'
-        : 'uppercase font-medium text-[0.62rem] xl:text-[0.7rem] tracking-[0.09em] xl:tracking-[0.16em]';
+        : 'uppercase font-medium text-[0.66rem] xl:text-[0.72rem] 2xl:text-[0.78rem] tracking-[0.07em] xl:tracking-[0.12em] 2xl:tracking-[0.16em]';
 
     $underline = 'pointer-events-none absolute inset-x-0 -bottom-0.5 h-px origin-center bg-brand-accent transition-transform duration-500 ease-out '
         .($active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100 group-focus-visible:scale-x-100');
@@ -57,7 +57,7 @@
         </div>
 
         {{-- Sous-menu : Parchemin éclairci, filet Cassis en tête, noms en
-             Fraunces. `pt-3` crée un pont invisible sous l'onglet, pour que la
+             Bodoni Moda. `pt-3` crée un pont invisible sous l'onglet, pour que la
              souris puisse descendre sans refermer le menu. --}}
         <div
             x-show="open"
@@ -83,7 +83,7 @@
                     </a>
                 @endforeach
 
-                <a href="{{ $link['url'] }}" class="mx-5 mt-2 block border-t border-brand-ink/10 pt-3 text-[0.65rem] font-medium uppercase tracking-[0.2em] text-brand-muted transition hover:text-brand-signature">
+                <a href="{{ $link['url'] }}" class="mx-5 mt-2 block border-t border-brand-ink/10 pt-3 text-[0.75rem] font-medium uppercase tracking-[0.2em] text-brand-muted transition hover:text-brand-signature">
                     Tout l'univers {{ $link['label'] }} →
                 </a>
             </div>

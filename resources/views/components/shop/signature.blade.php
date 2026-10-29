@@ -60,7 +60,7 @@
         </span>
 
         @if ($withSlogan)
-            <span class="{{ $large ? 'mt-2 text-[0.65rem] opacity-80' : 'mt-1 text-[0.4rem] opacity-70' }} uppercase tracking-[0.18em] whitespace-nowrap">L'élégance dans la pudeur</span>
+            <span class="{{ $large ? 'mt-2 text-[0.75rem] opacity-80' : 'mt-1 text-[0.4rem] opacity-70' }} uppercase tracking-[0.18em] whitespace-nowrap">L'élégance dans la pudeur</span>
         @endif
     </span>
 </a>

@@ -12,11 +12,18 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                // Substituts libres de Canela et Neue Haas Grotesk, qui sont sous
-                // licence payante (cf. docs/progress/02.1-reidentite-aissatou-store.md).
-                // Basculer ici suffira si la cliente achète les licences un jour.
-                sans: ['Inter', ...defaultTheme.fontFamily.sans],
-                display: ['Fraunces', ...defaultTheme.fontFamily.serif],
+                // Polices libres (Bunny Fonts) au registre haute couture : une didone
+                // pour les titres, une géométrique pour le texte et les labels espacés.
+                // Basculer ici suffira si la cliente achète des licences un jour.
+                sans: ['Jost', ...defaultTheme.fontFamily.sans],
+                display: ['"Bodoni Moda"', ...defaultTheme.fontFamily.serif],
+            },
+            // Jost a un œil plus petit qu'Inter : à taille égale, le texte paraissait
+            // trop menu. Les petites tailles gagnent 1 à 2 px ; les titres ne bougent pas.
+            fontSize: {
+                xs: ['0.8125rem', { lineHeight: '1.125rem' }],
+                sm: ['1rem', { lineHeight: '1.5rem' }],
+                base: ['1.125rem', { lineHeight: '1.875rem' }],
             },
             maxWidth: {
                 // Largeur de la colonne de page, partagée par l'en-tête, le hero,

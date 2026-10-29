@@ -44,12 +44,12 @@
                     </svg>
                 </span>
                 <span @class([
-                    'mt-3 text-[0.65rem] sm:text-xs uppercase tracking-[0.12em]',
+                    'mt-3 text-[0.75rem] sm:text-xs uppercase tracking-[0.12em]',
                     'font-medium text-brand-ink' => $done,
                     'text-brand-muted' => ! $done,
                 ])>{{ $step['label'] }}</span>
                 @if ($done && $date)
-                    <span class="mt-1 text-[0.65rem] sm:text-xs text-brand-muted">{{ $date->translatedFormat('j M') }}</span>
+                    <span class="mt-1 text-[0.75rem] sm:text-xs text-brand-muted">{{ $date->translatedFormat('j M') }}</span>
                 @endif
             </li>
         @endforeach

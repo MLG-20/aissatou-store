@@ -36,17 +36,17 @@
         {{-- Signal commercial, en haut à gauche comme sur la maquette. Absent la
              plupart du temps : le rapport interdit d'en faire une décoration. --}}
         @if ($product->label)
-            <span class="absolute left-0 top-4 px-3 py-1.5 text-[0.6rem] font-medium uppercase tracking-[0.15em] {{ $product->label->badgeClasses() }}">
+            <span class="absolute left-0 top-4 px-3 py-1.5 text-[0.7rem] font-medium uppercase tracking-[0.15em] {{ $product->label->badgeClasses() }}">
                 {{ $product->label->label() }}
             </span>
         @endif
 
-        <span class="pointer-events-none absolute inset-x-0 bottom-0 hidden translate-y-full bg-brand-surface/90 py-3 text-center text-[0.6rem] uppercase tracking-[0.25em] text-brand-ink backdrop-blur-sm transition duration-500 ease-out [@media(hover:hover)]:block group-hover:translate-y-0" aria-hidden="true">
+        <span class="pointer-events-none absolute inset-x-0 bottom-0 hidden translate-y-full bg-brand-surface/90 py-3 text-center text-[0.7rem] uppercase tracking-[0.25em] text-brand-ink backdrop-blur-sm transition duration-500 ease-out [@media(hover:hover)]:block group-hover:translate-y-0" aria-hidden="true">
             Découvrir la pièce
         </span>
 
         @unless ($product->isInStock())
-            <span class="absolute right-0 top-4 bg-brand-ink/80 px-3 py-1.5 text-[0.6rem] font-medium uppercase tracking-[0.15em] text-brand-surface">
+            <span class="absolute right-0 top-4 bg-brand-ink/80 px-3 py-1.5 text-[0.7rem] font-medium uppercase tracking-[0.15em] text-brand-surface">
                 Épuisé
             </span>
         @endunless
@@ -56,7 +56,7 @@
          matière/bénéfice, prix — puis les variantes, que la p.12 ajoute à la
          lecture produit (« visuel, catégorie, nom, prix et variante »). --}}
     <div class="mt-4 flex flex-col gap-1">
-        <span class="text-[0.6rem] uppercase tracking-[0.18em] text-brand-muted">{{ $product->category->name }}</span>
+        <span class="text-[0.7rem] uppercase tracking-[0.18em] text-brand-muted">{{ $product->category->name }}</span>
         <h3 class="font-display text-lg leading-snug text-brand-ink">{{ $product->name }}</h3>
 
         @if ($product->material_tagline)

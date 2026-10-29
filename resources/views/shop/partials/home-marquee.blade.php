@@ -11,7 +11,7 @@
             @foreach ([1, 2] as $repeat)
                 <ul @class(['flex items-center', 'marquee-copy' => $repeat === 2]) @if ($repeat === 2) aria-hidden="true" @endif>
                     @foreach ($items as $item)
-                        <li class="flex items-center whitespace-nowrap py-3.5 text-[0.65rem] uppercase tracking-[0.3em] sm:text-xs">
+                        <li class="flex items-center whitespace-nowrap py-3.5 text-[0.75rem] uppercase tracking-[0.3em] sm:text-xs">
                             <span class="px-8 sm:px-12">{{ $item }}</span>
                             <span class="h-1.5 w-1.5 rotate-45 bg-brand-sage" aria-hidden="true"></span>
                         </li>

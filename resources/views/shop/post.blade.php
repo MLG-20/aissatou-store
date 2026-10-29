@@ -27,7 +27,7 @@
             </div>
         </div>
 
-        {{-- CORPS : chapeau en grand, lettrine Fraunces, ligne de lecture
+        {{-- CORPS : chapeau en grand, lettrine Bodoni Moda, ligne de lecture
              confortable. Contenu assaini côté modèle (Post::safeContent) : pas
              de script, même si la source était compromise. --}}
         <div class="mx-auto max-w-2xl px-4 sm:px-6 py-14 sm:py-20">
@@ -86,7 +86,7 @@
                     @foreach ($others as $other)
                         <a href="{{ route('shop.post', $other) }}" class="group block" data-reveal style="--reveal-delay: {{ $loop->index * 100 }}ms">
                             <x-shop.post-cover :post="$other" class="aspect-[4/3]" />
-                            <p class="mt-4 text-[0.65rem] uppercase tracking-[0.2em] text-brand-muted">{{ $other->published_at->translatedFormat('j F Y') }} · {{ $other->readingMinutes() }} min</p>
+                            <p class="mt-4 text-[0.75rem] uppercase tracking-[0.2em] text-brand-muted">{{ $other->published_at->translatedFormat('j F Y') }} · {{ $other->readingMinutes() }} min</p>
                             <h3 class="mt-2 font-display text-xl leading-snug text-brand-ink transition group-hover:text-brand-signature">{{ $other->title }}</h3>
                         </a>
                     @endforeach

@@ -43,7 +43,7 @@
 
         <div x-show="open || desktop" x-cloak class="flex flex-col gap-8 pt-6 lg:pt-0">
                 <div class="flex flex-col gap-2" id="recherche">
-                    <label class="text-[0.65rem] uppercase tracking-[0.18em] text-brand-muted" for="filter-q">Rechercher</label>
+                    <label class="text-[0.75rem] uppercase tracking-[0.18em] text-brand-muted" for="filter-q">Rechercher</label>
                     <input
                         id="filter-q"
                         type="search"
@@ -56,7 +56,7 @@
 
                 @if ($categories)
                     <div class="flex flex-col gap-3 border-t border-brand-ink/10 pt-6">
-                        <span class="text-[0.65rem] uppercase tracking-[0.18em] text-brand-muted">Catégorie</span>
+                        <span class="text-[0.75rem] uppercase tracking-[0.18em] text-brand-muted">Catégorie</span>
 
                         <label class="flex items-center gap-2.5 text-sm">
                             <input type="radio" value="" x-model="filters.category_id" @change="apply()" class="border-brand-ink/30 text-brand-accent focus:ring-brand-accent">
@@ -74,7 +74,7 @@
 
                 @if ($materials)
                     <div class="flex flex-col gap-3 border-t border-brand-ink/10 pt-6">
-                        <span class="text-[0.65rem] uppercase tracking-[0.18em] text-brand-muted">Matière</span>
+                        <span class="text-[0.75rem] uppercase tracking-[0.18em] text-brand-muted">Matière</span>
 
                         <label class="flex items-center gap-2.5 text-sm">
                             <input type="radio" value="" x-model="filters.material_id" @change="apply()" class="border-brand-ink/30 text-brand-accent focus:ring-brand-accent">
@@ -96,7 +96,7 @@
                          `apply()` ne remplaçant que la grille, il serait en
                          contradiction avec son contenu. --}}
                     <div class="flex flex-col gap-3 border-t border-brand-ink/10 pt-6">
-                        <span class="text-[0.65rem] uppercase tracking-[0.18em] text-brand-muted">Collection</span>
+                        <span class="text-[0.75rem] uppercase tracking-[0.18em] text-brand-muted">Collection</span>
 
                         @foreach ($collections as $collection)
                             <a
@@ -110,7 +110,7 @@
                 @endif
 
                 <div class="flex flex-col gap-3 border-t border-brand-ink/10 pt-6">
-                    <span class="text-[0.65rem] uppercase tracking-[0.18em] text-brand-muted">Prix (FCFA)</span>
+                    <span class="text-[0.75rem] uppercase tracking-[0.18em] text-brand-muted">Prix (FCFA)</span>
 
                     {{-- Saisie libre uniquement : des tranches figées ne suivraient
                          pas les prix réels de la boutique. Un champ vide = sans limite. --}}
@@ -145,7 +145,7 @@
                      maquette ; Sélectionné et Édition limitée suivront avec les
                      autres filtres de la p.12 en Phase 2.2. --}}
                 <div class="flex flex-col gap-3 border-t border-brand-ink/10 pt-6">
-                    <span class="text-[0.65rem] uppercase tracking-[0.18em] text-brand-muted">Sélection</span>
+                    <span class="text-[0.75rem] uppercase tracking-[0.18em] text-brand-muted">Sélection</span>
 
                     {{-- Navigation complète, et non un rafraîchissement de la
                          grille : ce filtre change le bandeau de tête de la page
@@ -164,7 +164,7 @@
                 </div>
 
                 <div class="flex flex-col gap-3 border-t border-brand-ink/10 pt-6">
-                    <span class="text-[0.65rem] uppercase tracking-[0.18em] text-brand-muted">Disponibilité</span>
+                    <span class="text-[0.75rem] uppercase tracking-[0.18em] text-brand-muted">Disponibilité</span>
 
                     <label class="flex items-center gap-2.5 text-sm">
                         <input type="checkbox" x-model="filters.in_stock" @change="apply()" class="rounded-sm border-brand-ink/30 text-brand-accent focus:ring-brand-accent">

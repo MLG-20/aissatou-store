@@ -148,7 +148,7 @@
                                                 <img src="{{ $thumb->sizedUrl('thumb') }}" alt="" class="h-16 w-14 flex-shrink-0 rounded-sm object-cover">
                                             @endif
                                             <span class="min-w-0 flex-1">
-                                                <span class="block text-[0.6rem] uppercase tracking-[0.2em] text-brand-muted">{{ $piece->category->name }}</span>
+                                                <span class="block text-[0.7rem] uppercase tracking-[0.2em] text-brand-muted">{{ $piece->category->name }}</span>
                                                 <span class="block truncate font-display text-lg leading-tight">{{ $piece->name }}</span>
                                                 <span class="block text-sm text-brand-muted">{{ $fcfa($piece->price) }}</span>
                                             </span>
@@ -198,11 +198,11 @@
                                         @focus="spot = {{ $spotIndex }}"
                                     >
                                         <span
-                                            class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-brand-surface/30 text-[0.65rem] transition duration-300"
+                                            class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-brand-surface/30 text-[0.75rem] transition duration-300"
                                             :class="spot === {{ $spotIndex }} && '!border-brand-accent bg-brand-accent'"
                                         >{{ $spotIndex + 1 }}</span>
                                         <span class="min-w-0 flex-1">
-                                            <span class="block text-[0.6rem] uppercase tracking-[0.2em] text-brand-surface/45">{{ $piece->category->name }}</span>
+                                            <span class="block text-[0.7rem] uppercase tracking-[0.2em] text-brand-surface/45">{{ $piece->category->name }}</span>
                                             <span class="block font-display text-xl leading-snug transition duration-300 sm:truncate" :class="spot === {{ $spotIndex }} ? 'translate-x-1' : ''">{{ $piece->name }}</span>
                                         </span>
                                         <span class="whitespace-nowrap text-sm text-brand-surface/70">{{ $fcfa($piece->price) }}</span>

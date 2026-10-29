@@ -40,7 +40,7 @@
                         <div class="flex flex-wrap items-center gap-3">
                             <span class="text-xs uppercase tracking-[0.3em] text-brand-sage">Votre espace</span>
                             @if ($loyal)
-                                <span class="inline-flex items-center gap-1.5 border border-brand-parchment/40 px-2.5 py-1 text-[0.6rem] uppercase tracking-[0.2em] text-brand-parchment">
+                                <span class="inline-flex items-center gap-1.5 border border-brand-parchment/40 px-2.5 py-1 text-[0.7rem] uppercase tracking-[0.2em] text-brand-parchment">
                                     <svg class="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                                         <path d="M11.48 3.5a.56.56 0 011.04 0l2.12 5.11a.56.56 0 00.48.35l5.52.44c.5.04.7.66.32.99l-4.2 3.6a.56.56 0 00-.19.56l1.29 5.38a.56.56 0 01-.84.61l-4.73-2.88a.56.56 0 00-.58 0l-4.73 2.88a.56.56 0 01-.84-.61l1.29-5.38a.56.56 0 00-.19-.56l-4.2-3.6a.56.56 0 01.32-.99l5.52-.44a.56.56 0 00.48-.35L11.48 3.5z" />
                                     </svg>
@@ -64,7 +64,7 @@
                             <dt class="sr-only">{{ $stat['label'] }}</dt>
                             <dd>
                                 <span class="block font-display text-3xl sm:text-4xl">{{ $stat['value'] }}</span>
-                                <span class="mt-1 block text-[0.65rem] uppercase tracking-[0.2em] text-brand-surface/60">{{ $stat['label'] }}</span>
+                                <span class="mt-1 block text-[0.75rem] uppercase tracking-[0.2em] text-brand-surface/60">{{ $stat['label'] }}</span>
                             </dd>
                         </div>
                     @endforeach
@@ -104,11 +104,11 @@
                         @endforeach
                     </svg>
                     <span class="flex-1">
-                        <span class="block text-[0.6rem] uppercase tracking-[0.25em] text-brand-muted">Mon espace</span>
+                        <span class="block text-[0.7rem] uppercase tracking-[0.25em] text-brand-muted">Mon espace</span>
                         <span class="block font-display text-base">{{ $currentItem['label'] }}</span>
                     </span>
                     @if ($counts['active'] > 0)
-                        <span class="flex h-5 min-w-5 items-center justify-center bg-brand-accent px-1.5 text-[0.65rem] font-medium text-brand-surface" title="{{ $counts['active'] }} commande(s) en cours">{{ $counts['active'] }}</span>
+                        <span class="flex h-5 min-w-5 items-center justify-center bg-brand-accent px-1.5 text-[0.75rem] font-medium text-brand-surface" title="{{ $counts['active'] }} commande(s) en cours">{{ $counts['active'] }}</span>
                     @endif
                     <svg class="h-4 w-4 shrink-0 text-brand-ink/50 transition-transform duration-300" :class="open && 'rotate-180'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
@@ -140,7 +140,7 @@
                                 </svg>
                                 <span class="flex-1">{{ $item['label'] }}</span>
                                 @if ($item['badge'])
-                                    <span class="flex h-5 min-w-5 items-center justify-center bg-brand-accent px-1.5 text-[0.65rem] font-medium text-brand-surface" title="{{ $item['badge'] }} en cours">{{ $item['badge'] }}</span>
+                                    <span class="flex h-5 min-w-5 items-center justify-center bg-brand-accent px-1.5 text-[0.75rem] font-medium text-brand-surface" title="{{ $item['badge'] }} en cours">{{ $item['badge'] }}</span>
                                 @endif
                             </a>
                         </li>

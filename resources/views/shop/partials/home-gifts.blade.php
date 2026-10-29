@@ -24,7 +24,7 @@
                         <div class="absolute inset-0 bg-gradient-to-t from-brand-ink/50 via-transparent to-transparent"></div>
                     </div>
                     <div class="passage-frame passage-frame--light absolute inset-4 sm:inset-6"></div>
-                    <span class="absolute bottom-8 left-8 text-[0.65rem] uppercase tracking-[0.3em] text-brand-surface/85 sm:bottom-10 sm:left-10">Emballage soigné, mot personnalisé</span>
+                    <span class="absolute bottom-8 left-8 text-[0.75rem] uppercase tracking-[0.3em] text-brand-surface/85 sm:bottom-10 sm:left-10">Emballage soigné, mot personnalisé</span>
                 </a>
             @endif
 
@@ -40,7 +40,7 @@
                         <li class="border-b border-brand-surface/20">
                             <a href="{{ route('shop.index', $budget['query']) }}" class="group flex items-center gap-6 py-5 sm:py-6">
                                 <span class="flex-1 sm:flex sm:items-center sm:gap-6">
-                                    <span class="block text-[0.6rem] uppercase tracking-[0.25em] text-brand-sage sm:w-32 sm:flex-shrink-0">{{ $budget['hint'] }}</span>
+                                    <span class="block text-[0.7rem] uppercase tracking-[0.25em] text-brand-sage sm:w-32 sm:flex-shrink-0">{{ $budget['hint'] }}</span>
                                     <span class="mt-1 block font-display text-xl transition-transform duration-500 group-hover:translate-x-2 sm:mt-0 sm:text-2xl">{{ $budget['label'] }}</span>
                                 </span>
                                 <span class="hidden text-xs text-brand-surface/50 sm:inline">{{ $budget['count'] }} {{ \Illuminate\Support\Str::plural('pièce', $budget['count']) }}</span>

@@ -2,7 +2,7 @@
 
 {{-- Couverture d'un article : sa photo, sinon celle d'un produit lié
      (Post::coverUrl) ; à défaut, couverture typographique — fond Encre plissé,
-     numéro et titre en Fraunces — pour qu'aucune case ne reste vide. --}}
+     numéro et titre en Bodoni Moda — pour qu'aucune case ne reste vide. --}}
 @php $cover = $post->coverUrl($size); @endphp
 
 <div {{ $attributes->merge(['class' => 'relative overflow-hidden bg-brand-ink']) }}>

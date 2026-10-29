@@ -74,7 +74,7 @@
                             <div class="absolute inset-0 bg-gradient-to-t from-brand-ink/90 via-brand-ink/20 to-transparent"></div>
                             <div class="passage-frame passage-frame--light absolute inset-3 sm:inset-4"></div>
                             <div class="absolute inset-x-0 bottom-0 p-6 text-brand-surface">
-                                <span class="text-[0.6rem] uppercase tracking-[0.3em] text-brand-surface/60">{{ $other->products_count }} {{ $other->products_count > 1 ? 'pièces' : 'pièce' }}</span>
+                                <span class="text-[0.7rem] uppercase tracking-[0.3em] text-brand-surface/60">{{ $other->products_count }} {{ $other->products_count > 1 ? 'pièces' : 'pièce' }}</span>
                                 <h3 class="mt-2 font-display text-2xl">{{ $other->name }}</h3>
                             </div>
                         </a>

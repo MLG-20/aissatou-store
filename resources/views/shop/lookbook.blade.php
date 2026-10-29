@@ -167,7 +167,7 @@
                 </div>
 
                 @if ($total)
-                    <button type="button" @click="go(1)" class="absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 text-[0.65rem] uppercase tracking-[0.3em] text-brand-surface/60 transition hover:text-brand-surface">
+                    <button type="button" @click="go(1)" class="absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3 text-[0.75rem] uppercase tracking-[0.3em] text-brand-surface/60 transition hover:text-brand-surface">
                         Faites défiler
                         <svg class="h-5 w-5 motion-safe:animate-bounce" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                     </button>
@@ -272,7 +272,7 @@
                         :class="active === {{ $index }} ? 'opacity-100 translate-y-0 lg:-translate-y-1/2' : 'opacity-0 translate-y-6 lg:-translate-y-[45%]'"
                         style="transition-delay: 250ms"
                     >
-                        <p class="text-[0.65rem] uppercase tracking-[0.3em] text-brand-sage">
+                        <p class="text-[0.75rem] uppercase tracking-[0.3em] text-brand-sage">
                             {{ $look->chapter ? $look->chapter.' · ' : '' }}{{ $pad($index + 1) }} / {{ $pad($total) }}
                         </p>
                         <h2 class="mt-4 font-display text-5xl leading-[1.02] sm:text-6xl xl:text-7xl">{{ $look->title }}</h2>
@@ -394,7 +394,7 @@
                 >
                     <div class="flex items-start justify-between gap-4 border-b border-brand-ink/10 px-6 py-5">
                         <div>
-                            <p class="text-[0.65rem] uppercase tracking-[0.3em] text-brand-muted">Les pièces du look</p>
+                            <p class="text-[0.75rem] uppercase tracking-[0.3em] text-brand-muted">Les pièces du look</p>
                             <p class="mt-1 font-display text-2xl">{{ $look->title }}</p>
                         </div>
                         <button type="button" @click="sheet = null" class="p-1 text-brand-muted transition hover:text-brand-ink" aria-label="Fermer">
@@ -411,7 +411,7 @@
                                     @endif
                                 </a>
                                 <div class="min-w-0 flex-1">
-                                    <p class="text-[0.6rem] uppercase tracking-[0.2em] text-brand-muted">{{ $piece->category->name }}</p>
+                                    <p class="text-[0.7rem] uppercase tracking-[0.2em] text-brand-muted">{{ $piece->category->name }}</p>
                                     <a href="{{ route('shop.product', $piece) }}" class="mt-0.5 block font-display text-lg leading-snug hover:text-brand-signature">{{ $piece->name }}</a>
                                     <p class="text-sm text-brand-muted">{{ $fcfa($piece->price) }}</p>
 
@@ -429,7 +429,7 @@
                                                 @endforeach
                                             </select>
                                         @endif
-                                        <button type="submit" class="rounded-sm bg-brand-ink px-4 py-2 text-[0.65rem] font-medium uppercase tracking-[0.15em] text-brand-surface transition hover:bg-brand-signature">
+                                        <button type="submit" class="rounded-sm bg-brand-ink px-4 py-2 text-[0.75rem] font-medium uppercase tracking-[0.15em] text-brand-surface transition hover:bg-brand-signature">
                                             Ajouter au panier
                                         </button>
                                     </form>

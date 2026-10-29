@@ -98,7 +98,7 @@
                     {{-- Indice « cliquer pour agrandir », discret, au survol
                          seulement — la p.9 proscrit les ornements permanents. --}}
                     @if ($images->isNotEmpty())
-                        <span class="pointer-events-none absolute bottom-3 right-3 flex items-center gap-1.5 rounded-sm bg-brand-ink/60 px-2.5 py-1.5 text-[0.6rem] uppercase tracking-[0.12em] text-brand-surface opacity-0 backdrop-blur-sm transition group-hover:opacity-100">
+                        <span class="pointer-events-none absolute bottom-3 right-3 flex items-center gap-1.5 rounded-sm bg-brand-ink/60 px-2.5 py-1.5 text-[0.7rem] uppercase tracking-[0.12em] text-brand-surface opacity-0 backdrop-blur-sm transition group-hover:opacity-100">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
                             </svg>
@@ -135,12 +135,12 @@
                  produit, elle, en montrait déjà une partie. --}}
             <div>
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('shop.category', $product->category) }}" class="text-[0.65rem] uppercase tracking-[0.2em] text-brand-muted transition hover:text-brand-signature">
+                    <a href="{{ route('shop.category', $product->category) }}" class="text-[0.75rem] uppercase tracking-[0.2em] text-brand-muted transition hover:text-brand-signature">
                         {{ $product->category->name }}
                     </a>
 
                     @if ($product->label)
-                        <span class="px-2.5 py-1 text-[0.6rem] font-medium uppercase tracking-[0.15em] {{ $product->label->badgeClasses() }}">
+                        <span class="px-2.5 py-1 text-[0.7rem] font-medium uppercase tracking-[0.15em] {{ $product->label->badgeClasses() }}">
                             {{ $product->label->label() }}
                         </span>
                     @endif
@@ -520,7 +520,7 @@
                     type="submit"
                     form="product-form"
                     @disabled(! $product->isInStock())
-                    class="rounded-sm bg-brand-accent px-5 py-3 text-[0.65rem] font-medium uppercase tracking-[0.15em] text-brand-surface transition hover:bg-brand-signature disabled:opacity-40"
+                    class="rounded-sm bg-brand-accent px-5 py-3 text-[0.75rem] font-medium uppercase tracking-[0.15em] text-brand-surface transition hover:bg-brand-signature disabled:opacity-40"
                 >
                     Ajouter au panier
                 </button>
