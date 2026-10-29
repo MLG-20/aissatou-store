@@ -331,8 +331,16 @@
             </div>
 
             <div class="relative border-t border-brand-surface/10">
-                <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-6 text-sm text-brand-surface/50">
-                    &copy; {{ now()->year }} Aissatou Store
+                <div class="max-w-shell mx-auto flex flex-col gap-3 px-4 sm:px-6 lg:px-10 xl:px-12 py-6 text-sm text-brand-surface/50 sm:flex-row sm:items-center sm:justify-between">
+                    <span>&copy; {{ now()->year }} Aissatou Store</span>
+                    {{-- Pages légales publiées seulement (admin > Pages légales). --}}
+                    @if ($footerLegalLinks)
+                        <ul class="flex flex-wrap gap-x-6 gap-y-2">
+                            @foreach ($footerLegalLinks as $legalLink)
+                                <li><a href="{{ $legalLink['url'] }}" class="hover:text-brand-surface">{{ $legalLink['label'] }}</a></li>
+                            @endforeach
+                        </ul>
+                    @endif
                 </div>
             </div>
         </footer>

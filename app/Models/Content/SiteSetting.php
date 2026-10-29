@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Storage;
     'footer_tagline', 'social_instagram', 'social_facebook', 'social_tiktok',
     'auth_title', 'auth_subtitle', 'auth_image_path', 'story_images',
     'low_stock_threshold',
+    'legal_name', 'legal_form', 'legal_ninea', 'legal_rccm', 'legal_address',
+    'legal_publisher', 'legal_host',
 ])]
 class SiteSetting extends Model
 {

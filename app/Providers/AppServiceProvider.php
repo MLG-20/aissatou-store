@@ -7,6 +7,7 @@ use App\Models\Catalogue\Category;
 use App\Models\Catalogue\Collection;
 use App\Models\Catalogue\ProductImage;
 use App\Models\Content\HeroSlide;
+use App\Models\Content\LegalPage;
 use App\Models\Content\Look;
 use App\Models\Content\Post;
 use App\Models\Content\SiteSetting;
@@ -74,7 +75,31 @@ class AppServiceProvider extends ServiceProvider
             $view->with('cartItemCount', $cart ? $cart->items->sum('quantity') : 0);
             $view->with('wishlistCount', count(app(WishlistService::class)->currentProductIds(request())));
             $view->with('footerSettings', SiteSetting::current());
+            $view->with('footerLegalLinks', $this->footerLegalLinks());
         });
+    }
+
+    /**
+     * Pages légales publiées, pour le pied de page. Tableau simple en cache
+     * (même raison que navCategories), vidé à chaque enregistrement d'une page.
+     *
+     * @return list<array{url: string, label: string}>
+     */
+    private function footerLegalLinks(): array
+    {
+        return Cache::remember(
+            LegalPage::FOOTER_CACHE_KEY,
+            now()->addHour(),
+            fn () => LegalPage::query()
+                ->published()
+                ->orderBy('id')
+                ->get()
+                ->map(fn (LegalPage $page) => [
+                    'url' => route('shop.legal', $page->document),
+                    'label' => $page->document->shortTitle(),
+                ])
+                ->all()
+        );
     }
 
     /**

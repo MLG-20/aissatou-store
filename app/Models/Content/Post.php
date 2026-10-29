@@ -5,14 +5,13 @@ namespace App\Models\Content;
 use App\Models\Catalogue\Product;
 use App\Models\Concerns\HasFocalPoint;
 use App\Services\ImageVariantGenerator;
+use App\Support\RichText;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
-use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
 
 #[Fillable([
     'title', 'slug', 'excerpt', 'content', 'cover_image_path',
@@ -72,28 +71,10 @@ class Post extends Model
             ->where('published_at', '<=', now());
     }
 
-    /**
-     * Corps de l'article assaini : l'éditeur riche stocke du HTML, on ne
-     * garde qu'une liste fermée de balises de mise en forme — aucun script,
-     * même si le contenu venait d'une source compromise. C'est ce qui permet
-     * d'afficher avec `{!! !!}` sans ouvrir de faille XSS persistante.
-     *
-     * Pas `strip_tags` : il garde les attributs des balises autorisées
-     * (`<p onmouseover=…>`, `<a href="javascript:…">`). Le sanitizer ne
-     * garde que `href` sur les liens, en http(s) ou mailto.
-     */
+    /** Corps de l'article assaini (cf. RichText) : affichable avec `{!! !!}`. */
     public function safeContent(): string
     {
-        $config = (new HtmlSanitizerConfig)
-            ->allowElement('a', ['href'])
-            ->allowLinkSchemes(['https', 'http', 'mailto'])
-            ->forceAttribute('a', 'rel', 'noopener noreferrer nofollow');
-
-        foreach (['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'h2', 'h3', 'blockquote'] as $element) {
-            $config = $config->allowElement($element);
-        }
-
-        return (new HtmlSanitizer($config))->sanitize($this->content ?? '');
+        return RichText::sanitize($this->content);
     }
 
     public function sizedUrl(string $size): ?string

@@ -83,6 +83,7 @@ class AdminActivityDetails
                     ? 'statut inchangé ('.self::paymentStatus($details['apres'] ?? null).').'
                     : self::paymentStatus($details['avant'] ?? null).' → '.self::paymentStatus($details['apres'] ?? null).'.'),
             'settings.updated' => $who.' a modifié les réglages du site'.self::changes($details).'.',
+            'legal_page.updated' => $who.' a modifié la page légale « '.$subject.' ».',
             'promo.created' => $who.' a créé le code promo '.$subject
                 .(filled($details['reduction'] ?? null) ? ' ('.$details['reduction'].')' : '').'.',
             'promo.updated' => $who.' a modifié le code promo '.$subject.self::changes($details).'.',

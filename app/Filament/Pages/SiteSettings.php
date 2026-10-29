@@ -174,6 +174,19 @@ class SiteSettings extends Page implements HasForms
                     ])
                     ->columns(2),
 
+                Section::make('Identité légale')
+                    ->description('Reprise automatiquement dans les pages légales (Contenu du site > Pages légales) : un champ vide y apparaît « à compléter ».')
+                    ->schema([
+                        TextInput::make('legal_name')->label('Raison sociale')->maxLength(255),
+                        TextInput::make('legal_form')->label('Forme juridique')->placeholder('Entreprise individuelle, SARL, SUARL…')->maxLength(255),
+                        TextInput::make('legal_ninea')->label('NINEA')->maxLength(255),
+                        TextInput::make('legal_rccm')->label('RCCM')->placeholder('SN-DKR-2026-A-…')->maxLength(255),
+                        TextInput::make('legal_address')->label('Adresse du siège')->maxLength(255),
+                        TextInput::make('legal_publisher')->label('Responsable de la publication')->maxLength(255),
+                        TextInput::make('legal_host')->label('Hébergeur (nom et adresse)')->maxLength(255)->columnSpanFull(),
+                    ])
+                    ->columns(2),
+
                 Section::make('Pied de page & réseaux sociaux')
                     ->description('Icônes affichées uniquement si le lien est renseigné.')
                     ->schema([

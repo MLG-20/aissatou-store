@@ -26,6 +26,7 @@ class AdminActivity extends Model
         'order.delivery_assigned' => 'Livraison organisée',
         'payment.verified' => 'Paiement vérifié auprès du fournisseur',
         'settings.updated' => 'Réglages du site modifiés',
+        'legal_page.updated' => 'Page légale modifiée',
         'promo.created' => 'Code promo créé',
         'promo.updated' => 'Code promo modifié',
         'customer.viewed' => 'Fiche client consultée',

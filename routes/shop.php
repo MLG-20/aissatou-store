@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Content\LegalDocument;
 use App\Http\Controllers\Payment\PayTechIpnController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CategoryController;
@@ -7,6 +8,7 @@ use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\CollectionController;
 use App\Http\Controllers\Shop\ContactController;
 use App\Http\Controllers\Shop\JournalController;
+use App\Http\Controllers\Shop\LegalPageController;
 use App\Http\Controllers\Shop\LookbookController;
 use App\Http\Controllers\Shop\ProductController;
 use App\Http\Controllers\Shop\ReviewController;
@@ -36,6 +38,12 @@ Route::post('liste-envies/{product}', [WishlistController::class, 'toggle'])->na
 Route::delete('liste-envies/{product}', [WishlistController::class, 'destroy'])->name('shop.wishlist.destroy');
 
 Route::get('a-propos', fn () => view('shop.about', ['settings' => SiteSetting::current()]))->name('shop.about');
+
+// Pages légales, chacune à son adresse fixe (/mentions-legales, /cgv…) ; le
+// texte vient de l'admin (Contenu du site > Pages légales).
+Route::get('{document}', LegalPageController::class)
+    ->whereIn('document', array_column(LegalDocument::cases(), 'value'))
+    ->name('shop.legal');
 
 // Redirection interne vers WhatsApp : un lien direct `wa.me` est masqué par
 // les bloqueurs de pub/filtres scolaires, qui ciblent ce domaine. Ici, le
