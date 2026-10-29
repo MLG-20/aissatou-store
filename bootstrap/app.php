@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\TrackVisit;
+use App\Support\CookieConsent;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // de jeton CSRF) : l'authenticité est vérifiée par signature dans le
         // contrôleur.
         $middleware->validateCsrfTokens(except: ['paiement/paytech/ipn', 'webhooks/whatsapp']);
+
+        // Choix de cookies écrit par le bandeau, côté navigateur : il doit
+        // rester lisible en clair par le serveur (aucune donnée sensible).
+        $middleware->encryptCookies(except: [CookieConsent::COOKIE]);
 
         // Visiteurs uniques anonymes, pour le taux de conversion (Phase 6D).
         $middleware->web(append: [TrackVisit::class]);

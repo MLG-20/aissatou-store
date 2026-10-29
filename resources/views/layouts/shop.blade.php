@@ -334,11 +334,16 @@
                 <div class="max-w-shell mx-auto flex flex-col gap-3 px-4 sm:px-6 lg:px-10 xl:px-12 py-6 text-sm text-brand-surface/50 sm:flex-row sm:items-center sm:justify-between">
                     <span>&copy; {{ now()->year }} Aissatou Store</span>
                     {{-- Pages légales publiées seulement (admin > Pages légales). --}}
-                    @if ($footerLegalLinks)
+                    @if ($footerLegalLinks || $consentCategories)
                         <ul class="flex flex-wrap gap-x-6 gap-y-2">
                             @foreach ($footerLegalLinks as $legalLink)
                                 <li><a href="{{ $legalLink['url'] }}" class="hover:text-brand-surface">{{ $legalLink['label'] }}</a></li>
                             @endforeach
+                            {{-- Revenir sur son choix doit rester à portée : seulement
+                                 s'il y a un choix à faire (cf. bandeau). --}}
+                            @if ($consentCategories)
+                                <li><button type="button" onclick="window.dispatchEvent(new CustomEvent('open-cookie-settings'))" class="hover:text-brand-surface">Gérer les cookies</button></li>
+                            @endif
                         </ul>
                     @endif
                 </div>
@@ -397,5 +402,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
             </svg>
         </button>
+
+        <x-shop.cookie-banner />
     </body>
 </html>

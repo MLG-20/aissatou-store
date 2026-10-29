@@ -21,6 +21,7 @@ use App\Observers\SiteSettingObserver;
 use App\Services\AdminAudit;
 use App\Services\CartService;
 use App\Services\WishlistService;
+use App\Support\CookieConsent;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Cache;
@@ -76,6 +77,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('wishlistCount', count(app(WishlistService::class)->currentProductIds(request())));
             $view->with('footerSettings', SiteSetting::current());
             $view->with('footerLegalLinks', $this->footerLegalLinks());
+            $view->with('consentCategories', CookieConsent::categories());
         });
     }
 

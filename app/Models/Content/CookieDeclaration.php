@@ -3,9 +3,11 @@
 namespace App\Models\Content;
 
 use App\Enums\Content\CookieCategory;
+use App\Support\CookieConsent;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Une ligne du registre des cookies : ce que le site dépose, pourquoi, pour
@@ -30,6 +32,10 @@ class CookieDeclaration extends Model
         static::creating(function (CookieDeclaration $cookie): void {
             $cookie->position ??= (int) static::query()->max('position') + 1;
         });
+
+        // Le bandeau de consentement suit le registre (CookieConsent).
+        static::saved(fn () => Cache::forget(CookieConsent::CACHE_KEY));
+        static::deleted(fn () => Cache::forget(CookieConsent::CACHE_KEY));
     }
 
     public function scopeActive(Builder $query): Builder
