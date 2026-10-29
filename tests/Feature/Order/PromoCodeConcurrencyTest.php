@@ -32,6 +32,15 @@ class PromoCodeConcurrencyTest extends TestCase
 {
     use DatabaseTruncation;
 
+    /**
+     * Données de référence insérées par les migrations (pages légales,
+     * registre des cookies) : les vider priverait les tests suivants, qui
+     * ne remigrent pas.
+     *
+     * @var list<string>
+     */
+    protected $exceptTables = ['legal_pages', 'cookie_declarations'];
+
     protected function tearDown(): void
     {
         DB::reconnect();

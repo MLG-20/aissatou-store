@@ -30,7 +30,7 @@ class CookieRegistryTest extends TestCase
     public function test_the_registry_starts_with_the_cookies_the_site_really_sets(): void
     {
         $this->assertSame(
-            [config('session.cookie'), 'XSRF-TOKEN', 'remember_web_…'],
+            [config('session.cookie'), 'XSRF-TOKEN', 'remember_web_…', 'aissatou_consent'],
             CookieDeclaration::query()->orderBy('position')->pluck('name')->all()
         );
         $this->assertFalse(CookieDeclaration::query()->get()->contains(fn (CookieDeclaration $cookie) => $cookie->category->requiresConsent()));

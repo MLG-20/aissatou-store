@@ -32,6 +32,16 @@ class LegalPagesTest extends TestCase
         }
     }
 
+    public function test_each_page_starts_with_a_draft_to_review(): void
+    {
+        foreach (LegalPage::all() as $page) {
+            $this->assertNotEmpty($page->content, $page->document->value.' sans brouillon');
+            $this->assertFalse($page->is_published);
+        }
+
+        $this->assertStringContainsString('{ninea}', LegalPage::for(LegalDocument::Notice)->content);
+    }
+
     public function test_a_published_page_shows_its_sanitized_text_with_the_legal_identity(): void
     {
         SiteSetting::current()->update(['legal_name' => 'Aissatou Store SUARL', 'legal_ninea' => '']);
