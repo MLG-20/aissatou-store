@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Order\Order;
+use App\Services\Payment\PaymentManager;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -24,7 +25,7 @@ class OrderPlaced extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Votre commande '.$this->order->number.' est confirmée',
+            subject: 'Votre commande '.$this->order->number.($this->paysOnline() ? ' est enregistrée' : ' est confirmée'),
         );
     }
 
@@ -32,7 +33,13 @@ class OrderPlaced extends Mailable implements ShouldQueue
     {
         return new Content(
             view: 'emails.order-placed',
-            with: ['order' => $this->order->load(['items'])],
+            with: ['order' => $this->order->load(['items']), 'paysOnline' => $this->paysOnline()],
         );
+    }
+
+    /** Paiement en ligne : l'email part avant le paiement, rien n'est encore réglé. */
+    private function paysOnline(): bool
+    {
+        return (bool) app(PaymentManager::class)->find((string) $this->order->payment?->provider)?->isOnline();
     }
 }

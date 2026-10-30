@@ -5,7 +5,11 @@
     <p>
         Votre commande d'un montant de
         <strong>{{ number_format($order->total, 0, ',', ' ') }} FCFA</strong>
-        est bien enregistrée. Vous la réglerez à la livraison, à l'adresse suivante :
+        @if ($paysOnline)
+            est bien enregistrée. Elle sera confirmée dès réception de votre paiement en ligne, puis livrée à l'adresse suivante :
+        @else
+            est bien enregistrée. Vous la réglerez à la livraison, à l'adresse suivante :
+        @endif
     </p>
     <p>
         {{ $order->recipient_name }}<br>
