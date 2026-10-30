@@ -69,7 +69,8 @@
 
             <form method="post" action="{{ route('account.addresses.store') }}" class="p-6 bg-white border border-brand-ink/10 rounded-sm space-y-4">
                 @csrf
-                @include('account.partials.address-fields')
+                {{-- null explicite : sinon la dernière adresse de la boucle ci-dessus pré-remplit l'ajout. --}}
+                @include('account.partials.address-fields', ['address' => null])
 
                 <x-primary-button>Ajouter l'adresse</x-primary-button>
             </form>
