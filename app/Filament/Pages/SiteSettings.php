@@ -13,6 +13,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
@@ -196,6 +197,13 @@ class SiteSettings extends Page implements HasForms
                         TextInput::make('social_tiktok')->label('TikTok (URL)')->url()->maxLength(255),
                     ])
                     ->columns(2),
+
+                Section::make('Paiement')
+                    ->schema([
+                        Toggle::make('cash_on_delivery_enabled')
+                            ->label('Proposer le paiement à la livraison')
+                            ->helperText('Coupé : les clientes paient en ligne (Wave, Orange Money, carte) avant l\'expédition. Pensez à adapter le bandeau de réassurance et le bandeau défilant s\'ils parlent de « paiement à la réception ».'),
+                    ]),
 
                 Section::make('Stock')
                     ->schema([

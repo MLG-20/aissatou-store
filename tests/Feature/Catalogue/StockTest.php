@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use LogicException;
+use Tests\Concerns\WithCashOnDelivery;
 use Tests\TestCase;
 
 /**
@@ -41,7 +42,7 @@ use Tests\TestCase;
  */
 class StockTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithCashOnDelivery;
 
     protected function setUp(): void
     {

@@ -12,6 +12,7 @@ use App\Models\Wishlist\Wishlist;
 use App\Services\OrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Concerns\WithCashOnDelivery;
 use Tests\TestCase;
 
 /**
@@ -21,7 +22,7 @@ use Tests\TestCase;
  */
 class AccountSpaceTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithCashOnDelivery;
 
     private function order(User $user): Order
     {

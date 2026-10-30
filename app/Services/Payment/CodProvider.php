@@ -3,11 +3,12 @@
 namespace App\Services\Payment;
 
 use App\Enums\Order\PaymentStatus;
+use App\Models\Content\SiteSetting;
 use App\Models\Order\Order;
 use App\Models\Order\Payment;
 
 /**
- * Paiement à la livraison : premier et seul fournisseur de la phase 3. Aucun
+ * Paiement à la livraison : premier fournisseur de la phase 3. Aucun
  * appel externe — le paiement reste « en attente » jusqu'à la remise, où
  * l'admin le confirme en passant la commande à « livrée ».
  */
@@ -23,9 +24,10 @@ class CodProvider implements PaymentProvider
         return 'Paiement à la livraison';
     }
 
+    /** Interrupteur de Réglages du site, coupé par défaut. */
     public function isAvailable(): bool
     {
-        return true;
+        return SiteSetting::current()->cash_on_delivery_enabled;
     }
 
     public function initiate(Order $order): PaymentStatus

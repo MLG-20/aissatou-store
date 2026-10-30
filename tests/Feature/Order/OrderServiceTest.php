@@ -20,11 +20,12 @@ use App\Services\OrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\Concerns\WithCashOnDelivery;
 use Tests\TestCase;
 
 class OrderServiceTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithCashOnDelivery;
 
     private function service(): OrderService
     {

@@ -11,6 +11,7 @@ use App\Models\Customer\Address;
 use App\Models\User;
 use App\Services\OrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WithCashOnDelivery;
 use Tests\TestCase;
 
 /**
@@ -18,7 +19,7 @@ use Tests\TestCase;
  */
 class WhatsAppLinksTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithCashOnDelivery;
 
     private User $user;
 

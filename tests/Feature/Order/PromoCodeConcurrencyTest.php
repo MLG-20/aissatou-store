@@ -15,6 +15,7 @@ use App\Services\OrderService;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Tests\Concerns\WithCashOnDelivery;
 use Tests\TestCase;
 use Throwable;
 
@@ -30,7 +31,7 @@ use Throwable;
  */
 class PromoCodeConcurrencyTest extends TestCase
 {
-    use DatabaseTruncation;
+    use DatabaseTruncation, WithCashOnDelivery;
 
     /**
      * Données de référence insérées par les migrations (pages légales,

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
     'contact_whatsapp', 'contact_email', 'contact_address', 'contact_hours',
     'footer_tagline', 'social_instagram', 'social_facebook', 'social_tiktok',
     'auth_title', 'auth_subtitle', 'auth_image_path', 'story_images',
-    'low_stock_threshold',
+    'low_stock_threshold', 'cash_on_delivery_enabled',
     'legal_name', 'legal_form', 'legal_ninea', 'legal_rccm', 'legal_address',
     'legal_publisher', 'legal_host',
 ])]
@@ -24,6 +24,7 @@ class SiteSetting extends Model
      */
     protected $attributes = [
         'low_stock_threshold' => 3,
+        'cash_on_delivery_enabled' => false,
     ];
 
     protected function casts(): array
@@ -34,6 +35,7 @@ class SiteSetting extends Model
             'about_values' => 'array',
             'story_images' => 'array',
             'low_stock_threshold' => 'integer',
+            'cash_on_delivery_enabled' => 'boolean',
         ];
     }
 

@@ -24,6 +24,7 @@ class ProductPageTest extends TestCase
         DeliveryZone::create(['name' => 'Dakar', 'city' => 'Dakar', 'fee' => 1000, 'delay_label' => '24-48h', 'is_active' => true, 'position' => 1]);
         DeliveryZone::create(['name' => 'Thiès', 'city' => 'Thiès', 'fee' => 2500, 'is_active' => true, 'position' => 2]);
         DeliveryZone::create(['name' => 'Zone fermée', 'city' => 'Nulle part', 'fee' => 500, 'is_active' => false, 'position' => 3]);
+        $this->enableCashOnDelivery();
         $product = Product::factory()->create(['is_active' => true]);
 
         $this->get(route('shop.product', $product))

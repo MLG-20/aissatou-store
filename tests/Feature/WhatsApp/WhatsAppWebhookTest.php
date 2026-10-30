@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\OrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
+use Tests\Concerns\WithCashOnDelivery;
 use Tests\TestCase;
 
 /**
@@ -21,7 +22,7 @@ use Tests\TestCase;
  */
 class WhatsAppWebhookTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithCashOnDelivery;
 
     private const SECRET = 'secret-de-test';
 

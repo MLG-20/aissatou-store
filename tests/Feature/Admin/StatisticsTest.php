@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
+use Tests\Concerns\WithCashOnDelivery;
 use Tests\TestCase;
 
 /**
@@ -31,7 +32,7 @@ use Tests\TestCase;
  */
 class StatisticsTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithCashOnDelivery;
 
     protected function setUp(): void
     {

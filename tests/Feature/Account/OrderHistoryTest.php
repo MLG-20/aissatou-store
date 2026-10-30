@@ -12,11 +12,12 @@ use App\Models\User;
 use App\Services\OrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Concerns\WithCashOnDelivery;
 use Tests\TestCase;
 
 class OrderHistoryTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithCashOnDelivery;
 
     private function makeOrder(User $user): Order
     {

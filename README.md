@@ -1,6 +1,6 @@
 # Aissatou Store
 
-Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums, sacs à main, cadeaux), mono-vendeur, mobile-first, pour le Sénégal. Prix en FCFA, paiement à la livraison ou en ligne (Wave, Orange Money, carte via PayTech).
+Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums, sacs à main, cadeaux), mono-vendeur, mobile-first, pour le Sénégal. Prix en FCFA, paiement en ligne (Wave, Orange Money, carte via PayTech) ; paiement à la livraison activable dans les réglages (coupé par défaut).
 
 ## Fonctionnalités
 
@@ -26,7 +26,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - **Tableau de bord** : chiffre d'affaires encaissé, commandes payées, panier moyen, taux de conversion (compteur de visites maison et anonyme, sans cookie ni IP stockée), paniers abandonnés, meilleures ventes, comparaison à la période précédente ; agrégats quotidiens pour rester rapide quel que soit l'historique
 - **Pages légales** (menu « Pages légales ») : texte mis en forme, publié ou brouillon, modification tracée au journal d'activité ; repères (`{ninea}`, `{raison_sociale}`…) remplacés par l'identité légale des réglages, une valeur manquante s'affichant « à compléter ». Brouillons fournis, à relire avant publication
 - **Cookies et traceurs** : registre des cookies (fournisseur, catégorie, finalité, durée, actif) ; ajouter un outil de mesure d'audience s'y fait sans toucher au code et réveille le bandeau de consentement
-- Catalogue, contenu éditorial, réglages du site (identité légale, photo de connexion, photos de « La Maison » réordonnables par glisser-déposer, bandeau défilant masqué quand il est vide), zones de livraison, messages reçus
+- Catalogue, contenu éditorial, réglages du site (paiement à la livraison activable, coupé par défaut ; identité légale, photo de connexion, photos de « La Maison » réordonnables par glisser-déposer, bandeau défilant masqué quand il est vide), zones de livraison, messages reçus
 - **Lookbook** (menu « Lookbook ») : photo, vidéo envoyée ou lien YouTube (Short ou vidéo ; image d'aperçu récupérée automatiquement, lecteur sans cookies publicitaires chargé seulement à l'écran ; vidéos de la boutique ou avec l'accord de leur créatrice), titre, phrase, texte d'ambiance, chapitre, adresse de partage, « Aussi sur l'accueil », pièces portées
 - **Vidéos du Look** : 30 s maximum vérifiées à l'envoi, allégées en arrière-plan par ffmpeg (version web 720 px sans son, image d'aperçu tirée de la vidéo) ; le look n'apparaît qu'une fois la vidéo prête, son état est affiché en admin
 - **Charte photo** : un format et un minimum par emplacement (refus des photos trop petites, badge « À remplacer »), point focal réglable avec aperçu de chaque recadrage

@@ -100,6 +100,7 @@ class ProductController extends Controller
             'recentlyViewed' => $recentlyViewed,
             'deliveryZones' => DeliveryZone::activeOrdered(),
             'paymentMethods' => collect($payments->available())->map->label(),
+            'cashOnDelivery' => collect($payments->available())->contains(fn ($provider) => ! $provider->isOnline()),
             'whatsappAvailable' => filled(SiteSetting::current()->contact_whatsapp),
         ]);
     }

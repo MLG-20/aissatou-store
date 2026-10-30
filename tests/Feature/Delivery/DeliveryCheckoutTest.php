@@ -11,11 +11,12 @@ use App\Models\Order\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Concerns\WithCashOnDelivery;
 use Tests\TestCase;
 
 class DeliveryCheckoutTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithCashOnDelivery;
 
     private function cartFor(User $user, int $quantity = 1): Cart
     {

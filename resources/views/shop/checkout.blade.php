@@ -130,7 +130,7 @@
             <section>
                 <h2 class="font-display text-xl mb-4">Paiement</h2>
                 <div class="space-y-3">
-                    @foreach ($providers as $provider)
+                    @forelse ($providers as $provider)
                         <label class="flex items-start gap-3 rounded-sm border border-brand-ink/10 bg-white p-4 cursor-pointer has-checked:border-brand-signature">
                             <input
                                 type="radio"
@@ -141,7 +141,9 @@
                             >
                             <span class="text-sm text-brand-ink">{{ $provider->label() }}</span>
                         </label>
-                    @endforeach
+                    @empty
+                        <p class="text-sm text-brand-muted">Le paiement est momentanément indisponible. Contactez-nous pour finaliser votre commande.</p>
+                    @endforelse
                 </div>
             </section>
 

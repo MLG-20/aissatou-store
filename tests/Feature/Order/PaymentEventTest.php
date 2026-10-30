@@ -13,11 +13,12 @@ use App\Services\OrderService;
 use App\Services\Payment\CodProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use LogicException;
+use Tests\Concerns\WithCashOnDelivery;
 use Tests\TestCase;
 
 class PaymentEventTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithCashOnDelivery;
 
     private function payment(): Payment
     {

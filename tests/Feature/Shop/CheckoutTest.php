@@ -10,11 +10,12 @@ use App\Models\Customer\Address;
 use App\Models\Order\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\WithCashOnDelivery;
 use Tests\TestCase;
 
 class CheckoutTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithCashOnDelivery;
 
     public function test_a_guest_is_redirected_to_login(): void
     {
