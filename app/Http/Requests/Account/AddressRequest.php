@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Account;
 
 use App\Rules\SenegalPhone;
+use App\Support\DeliveryLocation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AddressRequest extends FormRequest
@@ -24,6 +25,13 @@ class AddressRequest extends FormRequest
             'address_line' => ['required', 'string', 'max:255'],
             'landmark' => ['nullable', 'string', 'max:255'],
             'is_default' => ['nullable', 'boolean'],
+            ...DeliveryLocation::rules(),
         ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return DeliveryLocation::messages();
     }
 }

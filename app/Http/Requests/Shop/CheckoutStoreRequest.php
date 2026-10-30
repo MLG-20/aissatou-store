@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Shop;
 
 use App\Services\Payment\PaymentManager;
+use App\Support\DeliveryLocation;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,7 +21,16 @@ class CheckoutStoreRequest extends FormRequest
             'provider' => ['required', 'string', 'in:'.implode(',', $this->providerKeys())],
             // Case décochée par défaut : absente = pas d'accord.
             'whatsapp_opt_in' => ['nullable', 'boolean'],
+            // Position partagée au dernier moment pour une adresse qui n'en
+            // avait pas : le lien Maps reste réservé au carnet d'adresses.
+            ...collect(DeliveryLocation::rules())->except('maps_link')->all(),
         ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return DeliveryLocation::messages();
     }
 
     /** @return list<string> */

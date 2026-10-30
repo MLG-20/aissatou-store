@@ -59,6 +59,7 @@
                 fee: {{ ($fees[$addresses->firstWhere('is_default', true)?->id ?? $addresses->first()?->id] ?? ['fee' => 0])['fee'] }},
                 zone: '{{ addslashes(($fees[$addresses->firstWhere('is_default', true)?->id ?? $addresses->first()?->id] ?? ['label' => ''])['label']) }}',
                 phone: '{{ addslashes(($addresses->firstWhere('is_default', true) ?? $addresses->first())?->phone ?? '') }}',
+                located: {{ Js::from((bool) ($addresses->firstWhere('is_default', true) ?? $addresses->first())?->hasLocation()) }},
                 fmt(n) { return new Intl.NumberFormat('fr-FR', {maximumFractionDigits: 0}).format(n) + ' FCFA'; }
             }"
         >
@@ -111,7 +112,8 @@
                                     data-fee="{{ $fees[$address->id]['fee'] }}"
                                     data-zone="{{ $fees[$address->id]['label'] }}"
                                     data-phone="{{ $address->phone }}"
-                                    @change="fee = +$el.dataset.fee; zone = $el.dataset.zone; phone = $el.dataset.phone"
+                                    data-located="{{ $address->hasLocation() ? 1 : 0 }}"
+                                    @change="fee = +$el.dataset.fee; zone = $el.dataset.zone; phone = $el.dataset.phone; located = $el.dataset.located === '1'; $dispatch('address-changed')"
                                     class="mt-1 accent-brand-signature"
                                 >
                                 <span>
@@ -123,6 +125,13 @@
                                 </span>
                             </label>
                         @endforeach
+                    </div>
+
+                    {{-- Adresse sans position : dernière occasion de la donner,
+                         elle est aussi gardée dans le carnet. --}}
+                    <div x-show="!located" class="mt-4 rounded-sm border border-dashed border-brand-ink/20 bg-white p-4">
+                        <p class="text-sm text-brand-ink">Ajoutez la position exacte pour une livraison sans détour <span class="text-brand-muted">(facultatif)</span></p>
+                        <x-shop.location-picker :with-link="false" class="mt-3" x-on:address-changed.window="clear()" />
                     </div>
                 @endif
             </section>

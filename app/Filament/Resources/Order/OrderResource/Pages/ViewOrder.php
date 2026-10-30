@@ -62,6 +62,17 @@ class ViewOrder extends ViewRecord
                         TextEntry::make('address_line')->label('Adresse'),
                         TextEntry::make('city')->label('Ville'),
                         TextEntry::make('landmark')->label('Repère')->placeholder('—'),
+                        TextEntry::make('location')
+                            ->label('Position exacte')
+                            ->state(fn (Order $record): ?string => match (true) {
+                                $record->latitude !== null => 'Ouvrir dans Google Maps'.($record->location_accuracy ? ' (à '.$record->location_accuracy.' m près)' : ''),
+                                $record->hasLocation() => 'Ouvrir le lien donné par la cliente',
+                                default => null,
+                            })
+                            ->url(fn (Order $record): ?string => $record->locationUrl(), shouldOpenInNewTab: true)
+                            ->color('primary')
+                            ->icon('heroicon-o-map-pin')
+                            ->placeholder('Non communiquée'),
                     ])
                     ->columns(2),
 

@@ -92,6 +92,12 @@ class CheckoutController extends Controller
         $cart = $this->cartService->currentCart($request);
         $address = Address::findOrFail($request->integer('address_id'));
 
+        // Position partagée au checkout : gardée dans le carnet (elle servira
+        // aux commandes suivantes), puis recopiée dans la commande.
+        if ($request->filled('latitude') && ! $address->hasLocation()) {
+            $address->update($request->safe()->only(['latitude', 'longitude', 'location_accuracy']));
+        }
+
         try {
             $order = $this->orderService->createFromCart(
                 $request->user(),

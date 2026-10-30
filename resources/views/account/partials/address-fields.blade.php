@@ -30,6 +30,11 @@
     <x-input-error class="mt-2" :messages="$errors->get('landmark')" />
 </div>
 
+<div>
+    <x-input-label value="Position exacte (facultatif)" />
+    <x-shop.location-picker :address="$address" class="mt-1" />
+</div>
+
 <label class="flex items-center gap-2 text-sm text-brand-ink/80">
     <input type="checkbox" name="is_default" value="1" @checked(old('is_default', $address?->is_default))>
     Définir comme adresse par défaut

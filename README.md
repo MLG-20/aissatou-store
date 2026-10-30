@@ -12,7 +12,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - Filtre prix en saisie libre (de / à) ; guide « L'art d'offrir » dont les tranches de budget sont calculées sur les prix réels du catalogue
 - Panier invité et compte (fusion à la connexion), liste d'envies, avis clients
 - Sur téléphone, compte accessible depuis l'en-tête (à côté du menu) et boutons « Se connecter / Créer un compte » en tête du menu
-- **Espace cliente** : salutation selon l'heure de son appareil, badge « Cliente fidèle », commande en cours avec frise de suivi datée, coups de cœur, profil à compléter, adresses (numéro sénégalais vérifié), historique des commandes, déconnexion
+- **Espace cliente** : salutation selon l'heure de son appareil, badge « Cliente fidèle », commande en cours avec frise de suivi datée, coups de cœur, profil à compléter, adresses (numéro sénégalais vérifié, position exacte facultative : GPS du téléphone confirmé sur une carte OpenStreetMap au repère déplaçable, ou lien Google/Apple Maps ; position hors Sénégal refusée), historique des commandes, déconnexion
 - Page contact : WhatsApp, e-mail, formulaire, réseaux sociaux ; afficher/masquer le mot de passe sur tous les formulaires
 - Tunnel de commande : récapitulatif, code promo, frais de livraison par zone calculés côté serveur, choix du paiement
 - **Paiement en ligne PayTech** : redirection, page d'attente qui revérifie le statut côté serveur, nouvel essai en cas d'échec, annulation automatique (et remise en stock) des commandes impayées après 30 min
@@ -329,9 +329,10 @@ app/
 │   └── Concerns/              traits de contrôle d'accès par permission
 │
 ├── Enums/                     statuts (commande, paiement, message WhatsApp…), modèles WhatsApp, permissions admin
-├── Rules/SenegalPhone         numéro sénégalais à 9 chiffres (adresses, profil)
+├── Rules/                     SenegalPhone (numéro à 9 chiffres), MapsLink (lien Google/Apple Maps seulement)
 ├── Support/                   AdminRoles (rôles, le code fait foi), ImageSlot (charte photo : format, minimum,
-│                              recadrage par emplacement), PhoneNumber (format international +221),
+│                              recadrage par emplacement), PhoneNumber (format international +221), DeliveryLocation
+│                              (règles de la position de livraison, cadre du Sénégal),
 │                              textes lisibles des journaux, périodes de stats
 ├── Mail/                      emails en file : commande, statut, alerte boutique, stock faible
 ├── Observers/                 variantes d'images à l'enregistrement du contenu, lancement du traitement vidéo
@@ -339,7 +340,7 @@ app/
                                carts:detect-abandoned (heure), images:generate-variants
 
 routes/        web.php · shop.php · account.php · auth.php · api.php · console.php (planification)
-resources/     views/ (shop, account, auth, emails, pdfs, filament…), css/, js/ (Tailwind, Alpine, Vite)
+resources/     views/ (shop, account, auth, emails, pdfs, filament…), css/, js/ (Tailwind, Alpine, Vite ; Leaflet chargé à la demande pour la carte de position)
 database/      migrations, factories, seeders (rôles et permissions, admin, catalogue et commandes de démo)
 tests/Feature/ par domaine : Shop, Account, Order, Payment, Delivery, Catalogue, Admin, Api, Auth, WhatsApp
 ```

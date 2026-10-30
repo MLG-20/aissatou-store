@@ -154,6 +154,7 @@ class OrderService
                 'city' => $address->city,
                 'address_line' => $address->address_line,
                 'landmark' => $address->landmark,
+                ...$address->locationAttributes(),
                 // Suivi WhatsApp : seulement avec l'accord explicite du client.
                 'whatsapp_opt_in' => $whatsappOptIn,
                 'whatsapp_opt_in_at' => $whatsappOptIn ? now() : null,

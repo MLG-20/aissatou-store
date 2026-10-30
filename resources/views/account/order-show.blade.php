@@ -105,6 +105,9 @@
                     <br>{{ $order->landmark }}
                 @endif
             </p>
+            @if ($order->hasLocation())
+                <p class="mt-2 text-sm text-brand-muted">📍 Position exacte transmise au livreur</p>
+            @endif
         </div>
 
         {{-- Le n° de commande part pré-rempli : la boutique retrouve la
