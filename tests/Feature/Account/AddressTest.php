@@ -111,6 +111,18 @@ class AddressTest extends TestCase
     /**
      * @return array<string, mixed>
      */
+    public function test_reloading_a_form_address_goes_back_to_the_list(): void
+    {
+        $user = User::factory()->create();
+        $address = Address::factory()->for($user)->create();
+
+        $this->actingAs($user)->get('/compte/adresses/'.$address->id)
+            ->assertRedirect(route('account.addresses.index'));
+        // Adresse supprimée entre-temps : même retour, pas d'erreur.
+        $this->actingAs($user)->get('/compte/adresses/999999')
+            ->assertRedirect(route('account.addresses.index'));
+    }
+
     private function addressPayload(array $overrides = []): array
     {
         return array_merge([
