@@ -172,7 +172,7 @@ class OrderWhatsAppTest extends TestCase
 
         app(OrderService::class)->changeStatus($order, OrderStatus::Cancelled);
 
-        $this->assertSame('commande_annulee', $order->whatsappMessages()->latest('id')->first()->template->value);
+        $this->assertSame('commande_annulee', $order->whatsappMessages()->reorder('id', 'desc')->first()->template->value);
     }
 
     public function test_a_confirmed_payment_is_announced_once(): void
