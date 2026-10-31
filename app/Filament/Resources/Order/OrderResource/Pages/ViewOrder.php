@@ -54,6 +54,7 @@ class ViewOrder extends ViewRecord
                             ->label('Remise')
                             ->formatStateUsing(fn (Order $record): string => '-'.number_format((float) $record->discount_total, 0, ',', ' ').' FCFA (code '.$record->promo_code.')')
                             ->visible(fn (Order $record): bool => (float) $record->discount_total > 0),
+                        TextEntry::make('saleSource.name')->label('Source')->placeholder('Non renseignée'),
                     ])
                     ->columns(2),
 

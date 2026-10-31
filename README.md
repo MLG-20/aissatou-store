@@ -299,10 +299,10 @@ app/
 │   │   ├── Delivery/          pages du livreur sans compte : une commande (lien signé), « Ma tournée »
 │   │   ├── Admin/             facture PDF
 │   │   └── Api/V1/            catalogue et authentification par jeton (Sanctum)
-│   └── Middleware/TrackVisit  compteur de visites anonyme
+│   └── Middleware/            TrackVisit (compteur de visites anonyme), CaptureSaleSource (provenance du visiteur)
 │
 ├── Services/                  logique métier : les contrôleurs et Filament passent par ici
-│   ├── Marketing/             ProductFeed (flux catalogue Meta/Google, une ligne par déclinaison, cache 1 h)
+│   ├── Marketing/             ProductFeed (flux catalogue Meta/Google, une ligne par déclinaison, cache 1 h), SaleSourceTracker (provenance des ventes, en session)
 │   ├── OrderService           création atomique (recalcul serveur, verrous anti-survente), transitions de statut
 │   ├── StockService           seul chemin de variation du stock (journalisé), alertes de stock faible
 │   ├── PromoService           aperçu et décision finale des codes promo (verrou + incrément conditionnel)

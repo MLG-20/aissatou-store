@@ -100,6 +100,57 @@ class StatisticsService
     }
 
     /**
+     * Visites, commandes et chiffre d'affaires par source sur la période
+     * (Visibilité V4), avec les mêmes règles que `compute()` : les totaux
+     * correspondent à ceux du tableau de bord. Sans source = « Non renseignée »,
+     * toujours en dernier.
+     *
+     * @return list<object{source: string, visitors: int, placed_orders: int, paid_orders: int, revenue: float}>
+     */
+    public function salesBySource(CarbonInterface $from, CarbonInterface $to): array
+    {
+        $from = CarbonImmutable::parse($from)->startOfDay();
+        $to = CarbonImmutable::parse($to)->endOfDay();
+
+        $visitors = DB::table('daily_visitors')
+            ->whereBetween('day', [$from->toDateString(), $to->toDateString()])
+            ->groupBy('sale_source_id')
+            ->selectRaw('sale_source_id as source_id, COUNT(*) as total')
+            ->pluck('total', 'source_id');
+
+        $placed = DB::table('orders')
+            ->whereBetween('created_at', [$from, $to])
+            ->groupBy('sale_source_id')
+            ->selectRaw('sale_source_id as source_id, COUNT(*) as total')
+            ->pluck('total', 'source_id');
+
+        $paid = DB::table('payments as p')
+            ->join('orders as o', 'o.id', '=', 'p.order_id')
+            ->where('p.status', PaymentStatus::Confirmed->value)
+            ->whereBetween('p.confirmed_at', [$from, $to])
+            ->groupBy('o.sale_source_id')
+            ->selectRaw('o.sale_source_id as source_id, COUNT(*) as total, SUM(o.total) as revenue')
+            ->get()
+            ->keyBy('source_id');
+
+        $names = DB::table('sale_sources')->pluck('name', 'id');
+
+        return $visitors->keys()->merge($placed->keys())->merge($paid->keys())->unique()
+            ->map(fn ($id): array => [
+                'known' => $id !== '' && $id !== null,
+                'source' => $names[$id] ?? 'Non renseignée',
+                'visitors' => (int) ($visitors[$id] ?? 0),
+                'placed_orders' => (int) ($placed[$id] ?? 0),
+                'paid_orders' => (int) ($paid[$id]->total ?? 0),
+                'revenue' => (float) ($paid[$id]->revenue ?? 0),
+            ])
+            ->sortBy([['known', 'desc'], ['revenue', 'desc'], ['placed_orders', 'desc'], ['visitors', 'desc']])
+            ->map(fn (array $row): object => (object) $row)
+            ->values()
+            ->all();
+    }
+
+    /**
      * Paniers abandonnés en cours (détectés et toujours non vides) et la
      * valeur des articles qu'ils contiennent, au prix catalogue actuel.
      *

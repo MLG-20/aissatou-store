@@ -54,7 +54,7 @@ class OrderService
      *
      * @throws OrderException
      */
-    public function createFromCart(User $user, Cart $cart, Address $address, string $providerKey, ?string $promoCode = null, bool $whatsappOptIn = false): Order
+    public function createFromCart(User $user, Cart $cart, Address $address, string $providerKey, ?string $promoCode = null, bool $whatsappOptIn = false, ?int $saleSourceId = null): Order
     {
         abort_unless($address->user_id === $user->id, 403);
 
@@ -62,7 +62,7 @@ class OrderService
 
         throw_unless($provider && $provider->isAvailable(), OrderException::paymentUnavailable());
 
-        $order = DB::transaction(function () use ($user, $cart, $address, $provider, $promoCode, $whatsappOptIn) {
+        $order = DB::transaction(function () use ($user, $cart, $address, $provider, $promoCode, $whatsappOptIn, $saleSourceId) {
             $items = $cart->items()->with(['product', 'variant'])->get();
 
             throw_if($items->isEmpty(), OrderException::emptyCart());
@@ -159,6 +159,7 @@ class OrderService
                 // Suivi WhatsApp : seulement avec l'accord explicite du client.
                 'whatsapp_opt_in' => $whatsappOptIn,
                 'whatsapp_opt_in_at' => $whatsappOptIn ? now() : null,
+                'sale_source_id' => $saleSourceId,
             ]);
 
             $order->items()->createMany($lines);

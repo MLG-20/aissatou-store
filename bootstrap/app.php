@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CaptureSaleSource;
 use App\Http\Middleware\TrackVisit;
 use App\Support\CookieConsent;
 use Illuminate\Foundation\Application;
@@ -24,8 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // rester lisible en clair par le serveur (aucune donnée sensible).
         $middleware->encryptCookies(except: [CookieConsent::COOKIE]);
 
-        // Visiteurs uniques anonymes, pour le taux de conversion (Phase 6D).
-        $middleware->web(append: [TrackVisit::class]);
+        // Provenance du visiteur (Visibilité V4) et visiteurs uniques anonymes,
+        // pour le taux de conversion (Phase 6D).
+        $middleware->web(append: [CaptureSaleSource::class, TrackVisit::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

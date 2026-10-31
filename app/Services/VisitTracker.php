@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\Marketing\SaleSourceTracker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -41,9 +42,22 @@ class VisitTracker
         $day = now()->toDateString();
         $salt = Cache::remember('visits.salt.'.$day, now()->addDays(2), fn (): string => bin2hex(random_bytes(16)));
 
-        DB::table('daily_visitors')->insertOrIgnore([
+        $fingerprint = hash('sha256', $salt.'|'.$request->ip().'|'.$request->userAgent());
+        $source = $request->hasSession() ? $request->session()->get(SaleSourceTracker::SESSION_KEY) : null;
+
+        $inserted = DB::table('daily_visitors')->insertOrIgnore([
             'day' => $day,
-            'fingerprint' => hash('sha256', $salt.'|'.$request->ip().'|'.$request->userAgent()),
+            'fingerprint' => $fingerprint,
+            'sale_source_id' => $source,
         ]);
+
+        // Déjà venu aujourd'hui sans source connue : on la complète, sans le
+        // compter deux fois.
+        if ($inserted === 0 && $source !== null) {
+            DB::table('daily_visitors')
+                ->where(['day' => $day, 'fingerprint' => $fingerprint])
+                ->whereNull('sale_source_id')
+                ->update(['sale_source_id' => $source]);
+        }
     }
 }

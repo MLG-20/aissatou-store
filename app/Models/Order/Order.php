@@ -5,6 +5,7 @@ namespace App\Models\Order;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
 use App\Models\Concerns\HasDeliveryLocation;
+use App\Models\Content\SaleSource;
 use App\Models\Delivery\Courier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'failed_delivery_at', 'failed_delivery_by', 'failed_delivery_attempts',
     'recipient_name', 'phone', 'city', 'address_line', 'landmark',
     'latitude', 'longitude', 'location_accuracy', 'maps_link',
-    'whatsapp_opt_in', 'whatsapp_opt_in_at',
+    'whatsapp_opt_in', 'whatsapp_opt_in_at', 'sale_source_id',
 ])]
 class Order extends Model
 {
@@ -50,6 +51,11 @@ class Order extends Model
     public function courier(): BelongsTo
     {
         return $this->belongsTo(Courier::class);
+    }
+
+    public function saleSource(): BelongsTo
+    {
+        return $this->belongsTo(SaleSource::class);
     }
 
     public function items(): HasMany

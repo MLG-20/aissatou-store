@@ -12,6 +12,7 @@ use App\Models\Customer\Address;
 use App\Models\Delivery\DeliveryZone;
 use App\Models\Order\Order;
 use App\Services\CartService;
+use App\Services\Marketing\SaleSourceTracker;
 use App\Services\OrderService;
 use App\Services\Payment\PaymentException;
 use App\Services\Payment\PaymentManager;
@@ -32,6 +33,7 @@ class CheckoutController extends Controller
         private readonly PaymentManager $payments,
         private readonly PaymentService $paymentService,
         private readonly PromoService $promos,
+        private readonly SaleSourceTracker $saleSources,
     ) {}
 
     /**
@@ -106,6 +108,7 @@ class CheckoutController extends Controller
                 $request->string('provider')->toString(),
                 $request->session()->get(self::PROMO_SESSION_KEY),
                 $request->boolean('whatsapp_opt_in'),
+                $this->saleSources->currentId($request),
             );
         } catch (PromoCodeException $exception) {
             // Code devenu invalide entre la saisie et la validation : rien
