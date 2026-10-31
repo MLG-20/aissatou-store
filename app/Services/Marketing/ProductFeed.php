@@ -101,11 +101,11 @@ class ProductFeed
         ]);
 
         if ($product->variants->isEmpty()) {
-            // Sans déclinaison, pas de suivi de stock : toujours disponible.
+            // Sans déclinaison, pas de suivi de stock (sauf si toutes sont désactivées).
             return [[
                 'g:id' => $product->sku ?: 'P'.$product->id,
                 'g:title' => $product->name,
-                'g:availability' => 'in_stock',
+                'g:availability' => $product->isInStock() ? 'in_stock' : 'out_of_stock',
                 'g:price' => $this->price($product->price),
             ] + $base];
         }

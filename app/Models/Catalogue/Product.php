@@ -3,6 +3,7 @@
 namespace App\Models\Catalogue;
 
 use App\Enums\Catalogue\ProductLabel;
+use App\Models\Cart\CartItem;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -44,6 +45,12 @@ class Product extends Model
             if (blank($product->sku)) {
                 $product->sku = static::generateSku($product);
             }
+        });
+
+        // Un produit supprimé quitte les paniers : la ligne ne pourrait plus
+        // s'afficher, ni dans le panier ni dans le tiroir présent sur chaque page.
+        static::deleted(function (Product $product): void {
+            CartItem::query()->where('product_id', $product->id)->get()->each->delete();
         });
     }
 
@@ -189,8 +196,10 @@ class Product extends Model
     {
         // Aucune variante = produit sans suivi de stock (le schéma n'enregistre
         // le stock qu'au niveau variante) — considéré comme toujours disponible.
+        // Les listes ne préchargent que les variantes actives : une relation vide
+        // peut aussi vouloir dire « toutes désactivées », d'où la vérification.
         if ($this->variants->isEmpty()) {
-            return true;
+            return ! $this->variants()->exists();
         }
 
         return $this->variants->contains(fn (ProductVariant $variant) => $variant->is_active && $variant->stock > 0);
