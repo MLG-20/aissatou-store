@@ -7,19 +7,30 @@
 
         <title>{{ $title ?? config('app.name') }}</title>
 
+        @php
+            $description ??= \App\Models\Content\SiteSetting::current()->footer_tagline;
+        @endphp
         @if ($description)
             <meta name="description" content="{{ $description }}">
         @endif
-        {{-- Aperçu d'un lien partagé (WhatsApp, réseaux sociaux). --}}
-        @if ($image)
+        {{-- Aperçu d'un lien partagé (WhatsApp, Facebook, Instagram, TikTok) :
+             toujours une image, celle de la page ou la carte de la marque. Une
+             page peut préciser le type et ajouter ses balises (fiche produit :
+             prix, disponibilité) via le slot `meta`. --}}
+        <meta property="og:site_name" content="{{ config('app.name') }}">
+        <meta property="og:locale" content="fr_FR">
+        @isset($meta)
+            {{ $meta }}
+        @else
             <meta property="og:type" content="website">
-            <meta property="og:title" content="{{ $title ?? config('app.name') }}">
-            @if ($description)
-                <meta property="og:description" content="{{ $description }}">
-            @endif
-            <meta property="og:image" content="{{ url($image) }}">
-            <meta property="og:url" content="{{ url()->current() }}">
+        @endisset
+        <meta property="og:title" content="{{ $shareTitle ?? $title ?? config('app.name') }}">
+        @if ($description)
+            <meta property="og:description" content="{{ $description }}">
         @endif
+        <meta property="og:image" content="{{ url($image ?? '/brand/partage.jpg') }}">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta name="twitter:card" content="summary_large_image">
 
         {{-- Favicon dérivé du symbole de la marque (cf. public/brand/). --}}
         <link rel="icon" href="/favicon.ico" sizes="any">

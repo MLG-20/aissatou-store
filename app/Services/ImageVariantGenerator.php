@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\ImageManager;
 
@@ -30,6 +31,14 @@ class ImageVariantGenerator
     ];
 
     /**
+     * Aperçu d'un lien partagé (WhatsApp, Facebook, Instagram, TikTok) : en
+     * JPEG, que toutes ces applications affichent, contrairement au WebP.
+     */
+    public const SHARE = 'share';
+
+    private const SHARE_WIDTH = 1200;
+
+    /**
      * Seuls formats acceptés à l'upload (back-office). `->image()` de
      * Filament accepte tout `image/*`, donc le SVG : un fichier qui peut
      * embarquer du JavaScript, servi depuis le domaine de la boutique.
@@ -39,7 +48,7 @@ class ImageVariantGenerator
     public const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
     /**
-     * Génère les variantes WebP redimensionnées d'une image déjà stockée sur
+     * Génère les variantes WebP redimensionnées (et l'aperçu de partage JPEG) d'une image déjà stockée sur
      * le disque public, à côté du fichier original. Idempotent : régénère à
      * chaque appel (utile si l'image d'origine est remplacée).
      */
@@ -60,6 +69,10 @@ class ImageVariantGenerator
 
             $disk->put($this->sizedPath($path, $size), (string) $variant->encode(new WebpEncoder(quality: 80)));
         }
+
+        $share = clone $source;
+        $share->scaleDown(width: self::SHARE_WIDTH);
+        $disk->put($this->sizedPath($path, self::SHARE), (string) $share->encode(new JpegEncoder(quality: 82)));
     }
 
     /**
@@ -70,7 +83,7 @@ class ImageVariantGenerator
     {
         $disk = Storage::disk('public');
 
-        foreach (array_keys(self::SIZES) as $size) {
+        foreach ([...array_keys(self::SIZES), self::SHARE] as $size) {
             $disk->delete($this->sizedPath($path, $size));
         }
     }
@@ -81,6 +94,8 @@ class ImageVariantGenerator
 
         $directory = $info['dirname'] === '.' ? '' : $info['dirname'].'/';
 
-        return "{$directory}{$info['filename']}-{$size}.webp";
+        $extension = $size === self::SHARE ? 'jpg' : 'webp';
+
+        return "{$directory}{$info['filename']}-{$size}.{$extension}";
     }
 }

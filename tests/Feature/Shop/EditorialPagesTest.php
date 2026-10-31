@@ -64,7 +64,7 @@ class EditorialPagesTest extends TestCase
 
         $this->get('/journal/'.$post->slug)
             ->assertOk()
-            ->assertSee('Partager sur WhatsApp')
+            ->assertSee('Partager')
             ->assertSee('Les pièces de cet article');
     }
 

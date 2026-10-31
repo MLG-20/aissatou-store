@@ -3,7 +3,7 @@
     $number = str_pad((string) $chapter, 2, '0', STR_PAD_LEFT);
 @endphp
 
-<x-shop-layout :title="$collection->name.' — '.config('app.name')">
+<x-shop-layout :title="$collection->name.' — '.config('app.name')" :description="$collection->description" :image="$collection->sizedUrl('share')">
     {{-- OUVERTURE DU CHAPITRE : photo nette d'un côté, récit de l'autre (et non
          le texte posé sur une photo assombrie). --}}
     <section class="relative overflow-hidden border-b border-brand-ink/10">

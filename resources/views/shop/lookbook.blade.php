@@ -34,7 +34,7 @@
     :title="($current ? $current->title.' — ' : '').'Lookbook — '.config('app.name')"
     :transparent-header="true"
     :description="$current ? ($current->mood ?: $current->subtitle) : 'Les looks Aissatou Store : hijabs, foulards et pièces choisies, portés et mis en scène.'"
-    :image="$cover?->sizedUrl('large')"
+    :image="$cover?->sizedUrl('share')"
 >
     <div
         class="relative bg-brand-ink text-brand-surface"

@@ -1,4 +1,4 @@
-<x-shop-layout :title="config('app.name')" :transparent-header="true">
+<x-shop-layout :title="config('app.name')" :transparent-header="true" :image="$slides->first(fn ($slide) => $slide->image_path)?->sizedUrl('share')">
     {{--
         Hero : carrousel géré depuis l'admin (Filament > Contenu du site >
         Hero). Chaque slide a son image, son titre, son sous-titre et son
