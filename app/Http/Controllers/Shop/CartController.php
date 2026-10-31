@@ -34,10 +34,18 @@ class CartController extends Controller
 
         $cart = $this->cartService->currentCart($request);
 
+        $buyNow = $request->boolean('buy_now');
+
         try {
-            $this->cartService->addItem($cart, $product, $variant, $request->integer('quantity'));
+            $this->cartService->addItem($cart, $product, $variant, $request->integer('quantity'), replace: $buyNow);
         } catch (CartException $exception) {
             return back()->withErrors(['variant_id' => $exception->getMessage()]);
+        }
+
+        // « Acheter maintenant » : droit à la commande. Une visiteuse passe
+        // par la connexion, qui l'y ramène avec son panier fusionné.
+        if ($buyNow) {
+            return redirect()->route('shop.checkout');
         }
 
         // On reste sur la page courante et on ouvre le tiroir panier (flash lu

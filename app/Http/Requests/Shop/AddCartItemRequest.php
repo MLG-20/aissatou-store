@@ -21,6 +21,8 @@ class AddCartItemRequest extends FormRequest
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'variant_id' => ['nullable', 'integer', 'exists:product_variants,id'],
             'quantity' => ['required', 'integer', 'min:1', 'max:50'],
+            // « Acheter maintenant » : même ajout, puis droit à la commande.
+            'buy_now' => ['nullable', 'boolean'],
         ];
     }
 

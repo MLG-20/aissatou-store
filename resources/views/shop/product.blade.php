@@ -278,14 +278,15 @@
                         >
                     </div>
 
-                    {{-- « Ajouter au panier » est l'action principale UNIQUE de
-                         cette page : elle doit donc être le CTA Garance (p.13).
-                         Elle était en contour, c'est-à-dire au traitement réservé
-                         aux actions secondaires — la fiche n'avait alors aucun
-                         CTA principal, alors que le rapport en impose exactement
-                         un par écran. --}}
-                    <div id="product-cta">
-                        <x-shop.cta variant="primary" class="mt-6 w-full sm:w-auto" :disabled="! $product->isInStock()">
+                    {{-- Un seul CTA Garance par écran (rapport p.13) : « Acheter
+                         maintenant » (décision Ahmed, 2026-10-31), qui met l'article
+                         au panier et mène droit à la commande. « Ajouter au panier »
+                         passe en contour, l'action secondaire. --}}
+                    <div id="product-cta" class="mt-6 flex flex-col gap-3 sm:flex-row">
+                        <x-shop.cta variant="primary" name="buy_now" value="1" class="w-full sm:w-auto" :disabled="! $product->isInStock()">
+                            Acheter maintenant
+                        </x-shop.cta>
+                        <x-shop.cta class="w-full sm:w-auto" :disabled="! $product->isInStock()">
                             Ajouter au panier
                         </x-shop.cta>
                     </div>
@@ -501,7 +502,7 @@
 
         {{-- BARRE D'ACHAT MOBILE — apparaît une fois le bouton principal sorti
              de l'écran par le haut, et s'efface quand il revient : il n'y a
-             jamais deux « Ajouter au panier » visibles à la fois (un seul CTA
+             jamais deux « Acheter maintenant » visibles à la fois (un seul CTA
              Garance par écran). Elle soumet le MÊME formulaire (`form=`), donc
              le choix de variante obligatoire reste vérifié par le navigateur. --}}
         <div
@@ -525,9 +526,22 @@
                     type="submit"
                     form="product-form"
                     @disabled(! $product->isInStock())
-                    class="rounded-sm bg-brand-accent px-5 py-3 text-[0.75rem] font-medium uppercase tracking-[0.15em] text-brand-surface transition hover:bg-brand-signature disabled:opacity-40"
+                    aria-label="Ajouter au panier"
+                    class="flex-shrink-0 rounded-sm border border-brand-ink/30 p-3 text-brand-ink transition hover:border-brand-ink disabled:opacity-40"
                 >
-                    Ajouter au panier
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                </button>
+                <button
+                    type="submit"
+                    form="product-form"
+                    name="buy_now"
+                    value="1"
+                    @disabled(! $product->isInStock())
+                    class="flex-shrink-0 rounded-sm bg-brand-accent px-4 py-3 text-[0.7rem] font-medium uppercase tracking-[0.12em] text-brand-surface transition hover:bg-brand-signature disabled:opacity-40"
+                >
+                    Acheter
                 </button>
             </div>
         </div>

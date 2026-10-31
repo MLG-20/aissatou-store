@@ -68,7 +68,12 @@ class CartService
     /**
      * @throws CartException
      */
-    public function addItem(Cart $cart, Product $product, ?ProductVariant $variant, int $quantity): CartItem
+    /**
+     * `$replace` (« Acheter maintenant ») : la ligne prend la quantité choisie
+     * sur la fiche au lieu de s'y ajouter — un article déjà au panier n'est
+     * pas acheté en double.
+     */
+    public function addItem(Cart $cart, Product $product, ?ProductVariant $variant, int $quantity, bool $replace = false): CartItem
     {
         if (! $product->is_active) {
             throw CartException::productUnavailable();
@@ -82,7 +87,7 @@ class CartService
             throw CartException::variantUnavailable();
         }
 
-        return DB::transaction(function () use ($cart, $product, $variant, $quantity) {
+        return DB::transaction(function () use ($cart, $product, $variant, $quantity, $replace) {
             $item = CartItem::query()
                 ->where('cart_id', $cart->id)
                 ->where('product_id', $product->id)
@@ -90,7 +95,7 @@ class CartService
                 ->lockForUpdate()
                 ->first();
 
-            $newQuantity = ($item->quantity ?? 0) + $quantity;
+            $newQuantity = $replace ? $quantity : ($item->quantity ?? 0) + $quantity;
 
             if ($variant && $newQuantity > $variant->stock) {
                 throw CartException::insufficientStock($variant->stock);

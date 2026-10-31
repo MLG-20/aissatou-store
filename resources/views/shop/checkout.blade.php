@@ -66,7 +66,10 @@
             @csrf
 
             <section>
-                <h2 class="font-display text-xl mb-4">Récapitulatif</h2>
+                <div class="mb-4 flex items-baseline justify-between gap-4">
+                    <h2 class="font-display text-xl">Récapitulatif</h2>
+                    <a href="{{ route('shop.cart') }}" class="text-sm text-brand-muted underline hover:text-brand-signature">Modifier mon panier</a>
+                </div>
                 <div class="divide-y divide-brand-ink/10 border-y border-brand-ink/10">
                     @foreach ($cart->items as $item)
                         <div class="py-4 flex items-center gap-4">
