@@ -16,7 +16,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - Page contact : WhatsApp, e-mail, formulaire, réseaux sociaux ; afficher/masquer le mot de passe sur tous les formulaires
 - Tunnel de commande : récapitulatif, code promo, frais de livraison par zone calculés côté serveur, choix du paiement
 - **Paiement en ligne PayTech** : redirection, page d'attente qui revérifie le statut côté serveur, nouvel essai en cas d'échec, annulation automatique (et remise en stock) des commandes impayées après 30 min
-- **Page livreur sans compte** : lien signé de 3 jours, lié au livreur assigné ; « J'ai le colis, je pars » (→ expédiée) puis « Livrée », avec appel, WhatsApp et itinéraire vers la cliente ; plus aucune donnée de la cliente une fois la commande terminée
+- **Page livreur sans compte** : lien signé de 3 jours, lié au livreur assigné ; « J'ai le colis, je pars » (→ expédiée) puis « Livrée », avec appel, WhatsApp et itinéraire vers la cliente ; plus aucune donnée de la cliente une fois la commande terminée. Page **« Ma tournée »** : lien personnel du livreur (seule son empreinte SHA-256 est gardée), toutes ses commandes en cours au même endroit, renvoyé ou révoqué depuis l'admin
 - **Suivi de commande sur WhatsApp** (API WhatsApp Cloud de Meta), seulement si la cliente coche la case au checkout (décochée par défaut) : commande confirmée (paiement à la livraison) ou paiement confirmé (en ligne), expédiée, livrée, annulée ; rien pour un paiement en ligne abandonné. Envoi en file, sans jamais bloquer la commande
 - **Liens WhatsApp pré-remplis** (gratuits, sans l'API) : fiche produit, panier (articles et total), page d'une commande (numéro)
 - **Pages légales** (`/mentions-legales`, `/confidentialite`, `/cgv`, `/cookies`), liées dans le pied de page une fois publiées ; la page cookies affiche le registre des cookies par catégorie
@@ -292,7 +292,7 @@ app/
 │   │   ├── Auth/              inscription, connexion, mot de passe (guard web)
 │   │   ├── Payment/           IPN PayTech (signature HMAC)
 │   │   ├── WhatsApp/          webhook Meta (vérification d'abonnement, statuts signés)
-│   │   ├── Delivery/          page du livreur (lien signé, sans compte)
+│   │   ├── Delivery/          pages du livreur sans compte : une commande (lien signé), « Ma tournée »
 │   │   ├── Admin/             facture PDF
 │   │   └── Api/V1/            catalogue et authentification par jeton (Sanctum)
 │   └── Middleware/TrackVisit  compteur de visites anonyme

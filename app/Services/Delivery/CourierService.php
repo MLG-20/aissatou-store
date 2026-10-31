@@ -10,6 +10,7 @@ use App\Models\Order\Order;
 use App\Services\OrderService;
 use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 /**
  * Ce que le livreur fait depuis son téléphone, sans compte : « j'ai le colis,
@@ -98,5 +99,44 @@ class CourierService
         ], fn (?string $line) => $line !== null);
 
         return 'https://wa.me/'.ltrim($phone, '+').'?text='.rawurlencode(implode("\n", $lines));
+    }
+
+    /**
+     * Nouveau lien « Ma tournée » : l'ancien cesse aussitôt de marcher. Seule
+     * l'empreinte est gardée en base ; le lien n'existe qu'au moment de l'envoi.
+     */
+    public function issueTourLink(Courier $courier): string
+    {
+        $token = Str::random(48);
+
+        $courier->forceFill([
+            'tour_token_hash' => hash('sha256', $token),
+            'tour_token_issued_at' => now(),
+        ])->save();
+
+        return route('courier.tour', $token);
+    }
+
+    public function revokeTourLink(Courier $courier): void
+    {
+        $courier->forceFill(['tour_token_hash' => null, 'tour_token_issued_at' => null])->save();
+    }
+
+    /** Livreur actif dont le lien « Ma tournée » est celui-ci. */
+    public function courierForTour(string $token): ?Courier
+    {
+        return Courier::active()->where('tour_token_hash', hash('sha256', $token))->first();
+    }
+
+    /** Envoi du lien « Ma tournée » depuis le WhatsApp de la boutique. */
+    public function tourWhatsAppUrl(Courier $courier, string $link): ?string
+    {
+        $phone = PhoneNumber::toE164($courier->phone);
+
+        return $phone === null ? null : 'https://wa.me/'.ltrim($phone, '+').'?text='.rawurlencode(implode("\n", [
+            'Bonjour '.$courier->name.', voici votre page « Ma tournée » : toutes les livraisons qui vous sont confiées, au même endroit.',
+            'Gardez ce lien pour vous :',
+            $link,
+        ]));
     }
 }

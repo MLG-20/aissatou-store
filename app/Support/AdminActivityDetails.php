@@ -78,6 +78,8 @@ class AdminActivityDetails
                 .self::orderStatus($details['de'] ?? null).' → '.self::orderStatus($details['vers'] ?? null).'.',
             'order.delivery_assigned' => $who.' a organisé la livraison de la commande '.$subject
                 .(filled($details['livreur'] ?? null) ? ' ('.$details['livreur'].')' : '').'.',
+            'courier.tour_link_sent' => $who.' a envoyé à '.$subject.' un nouveau lien « Ma tournée » (l\'ancien ne marche plus).',
+            'courier.tour_link_revoked' => $who.' a révoqué le lien « Ma tournée » de '.$subject.'.',
             'payment.verified' => $who.' a vérifié auprès de PayTech le paiement de la commande '.$subject.' : '
                 .(($details['avant'] ?? null) === ($details['apres'] ?? null)
                     ? 'statut inchangé ('.self::paymentStatus($details['apres'] ?? null).').'

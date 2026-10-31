@@ -9,11 +9,16 @@ use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Delivery\CourierResource\Pages;
 use App\Models\Delivery\Courier;
 use App\Rules\SenegalPhone;
+use App\Services\AdminAudit;
+use App\Services\Delivery\CourierService;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
+use Filament\Notifications\Actions\Action as NotificationAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
@@ -93,6 +98,10 @@ class CourierResource extends Resource
                 TextColumn::make('orders_in_progress_count')
                     ->label('En cours')
                     ->counts('ordersInProgress'),
+                TextColumn::make('tour_token_issued_at')
+                    ->label('Lien « Ma tournée »')
+                    ->formatStateUsing(fn ($state): string => 'Envoyé le '.$state->format('d/m/Y'))
+                    ->placeholder('Aucun'),
                 IconColumn::make('is_active')->label('Actif')->boolean(),
             ])
             ->defaultSort('name')
@@ -100,6 +109,49 @@ class CourierResource extends Resource
                 TernaryFilter::make('is_active')->label('Actif'),
             ])
             ->actions([
+                // Lien personnel : un nouvel envoi désactive l'ancien (téléphone
+                // perdu, lien transféré). Le lien n'est montré qu'ici, une fois.
+                Action::make('sendTourLink')
+                    ->label(fn (Courier $record): string => $record->tour_token_hash ? 'Renvoyer « Ma tournée »' : 'Envoyer « Ma tournée »')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('success')
+                    ->visible(fn (Courier $record): bool => $record->is_active)
+                    ->requiresConfirmation()
+                    ->modalHeading('Envoyer sa page « Ma tournée »')
+                    ->modalDescription(fn (Courier $record): string => 'Un lien personnel est créé pour '.$record->name.', avec toutes ses livraisons en cours.'
+                        .($record->tour_token_hash ? ' L\'ancien lien cessera aussitôt de marcher.' : ''))
+                    ->modalSubmitActionLabel('Créer le lien')
+                    ->action(function (Courier $record): void {
+                        $couriers = app(CourierService::class);
+                        $link = $couriers->issueTourLink($record);
+                        AdminAudit::record('courier.tour_link_sent', $record);
+
+                        Notification::make()
+                            ->success()
+                            ->title('Lien « Ma tournée » créé pour '.$record->name)
+                            ->body('Envoyez-le maintenant : il ne sera plus affiché ensuite.')
+                            ->actions([
+                                NotificationAction::make('whatsapp')
+                                    ->label('Ouvrir WhatsApp')
+                                    ->url($couriers->tourWhatsAppUrl($record, $link), shouldOpenInNewTab: true)
+                                    ->button(),
+                            ])
+                            ->persistent()
+                            ->send();
+                    }),
+                Action::make('revokeTourLink')
+                    ->label('Révoquer « Ma tournée »')
+                    ->icon('heroicon-o-no-symbol')
+                    ->color('danger')
+                    ->visible(fn (Courier $record): bool => $record->tour_token_hash !== null)
+                    ->requiresConfirmation()
+                    ->modalDescription('Son lien « Ma tournée » cessera aussitôt de marcher. Les liens envoyés commande par commande restent valables.')
+                    ->action(function (Courier $record): void {
+                        app(CourierService::class)->revokeTourLink($record);
+                        AdminAudit::record('courier.tour_link_revoked', $record);
+
+                        Notification::make()->success()->title('Lien révoqué.')->send();
+                    }),
                 EditAction::make(),
                 DeleteAction::make()
                     ->visible(fn (Courier $record): bool => $record->orders()->doesntExist()),

@@ -24,6 +24,8 @@ class AdminActivity extends Model
         'admin.updated' => 'Compte admin modifié',
         'order.status_changed' => 'Statut de commande changé',
         'order.delivery_assigned' => 'Livraison organisée',
+        'courier.tour_link_sent' => 'Lien « Ma tournée » envoyé',
+        'courier.tour_link_revoked' => 'Lien « Ma tournée » révoqué',
         'payment.verified' => 'Paiement vérifié auprès du fournisseur',
         'settings.updated' => 'Réglages du site modifiés',
         'legal_page.updated' => 'Page légale modifiée',
