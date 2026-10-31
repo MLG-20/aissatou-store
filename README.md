@@ -20,6 +20,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - **Page livreur sans compte** : lien signé de 3 jours, lié au livreur assigné ; « J'ai le colis, je pars » (→ expédiée) puis « Livrée », avec appel, WhatsApp et itinéraire vers la cliente ; plus aucune donnée de la cliente une fois la commande terminée. Page **« Ma tournée »** : lien personnel du livreur (seule son empreinte SHA-256 est gardée), toutes ses commandes en cours au même endroit, renvoyé ou révoqué depuis l'admin. Bouton **« Client absent »** : la commande reste expédiée, la boutique reçoit un email et la fiche commande affiche un bandeau rouge (nombre de tentatives)
 - **Suivi de commande sur WhatsApp** (API WhatsApp Cloud de Meta), seulement si la cliente coche la case au checkout (décochée par défaut) : commande confirmée (paiement à la livraison) ou paiement confirmé (en ligne), expédiée, livrée, annulée ; rien pour un paiement en ligne abandonné. Envoi en file, sans jamais bloquer la commande
 - **Aperçus de partage** sur toutes les pages publiques (Open Graph) : un lien collé dans WhatsApp, Facebook, Instagram ou TikTok affiche la photo (JPEG dédié de 1200 px, que toutes ces applications lisent), le titre et, pour un produit, le prix et la disponibilité ; carte de la marque par défaut (`public/brand/partage.jpg`). Bouton **« Partager »** (menu natif du téléphone, sinon WhatsApp ou copier le lien) sur la fiche produit et les articles
+- **Flux catalogue** `/flux/produits.xml` (format Google Merchant, lu aussi par Meta Commerce Manager) : une ligne par déclinaison regroupée par produit, prix en XOF, stock, photos de partage, catégorie Google ; pour taguer les produits dans les posts Instagram/Facebook et l'onglet Shopping de Google (déclaré après la mise en ligne)
 - **Liens WhatsApp pré-remplis** (gratuits, sans l'API) : fiche produit, panier (articles et total), page d'une commande (numéro)
 - **Pages légales** (`/mentions-legales`, `/confidentialite`, `/cgv`, `/cookies`), liées dans le pied de page une fois publiées ; la page cookies affiche le registre des cookies par catégorie
 - **Bandeau de consentement aux cookies**, prêt mais dormant : il n'apparaît que si un cookie soumis à accord (mesure d'audience, suivi technique, marketing) est déclaré ; « Tout refuser » au même niveau que « Tout accepter », choix par catégorie, lien « Gérer les cookies » ; les scripts concernés passent par `<x-consent category="mesure-audience">`
@@ -294,12 +295,14 @@ app/
 │   │   ├── Auth/              inscription, connexion, mot de passe (guard web)
 │   │   ├── Payment/           IPN PayTech (signature HMAC)
 │   │   ├── WhatsApp/          webhook Meta (vérification d'abonnement, statuts signés)
+│   │   ├── Marketing/         flux catalogue (Meta, Google)
 │   │   ├── Delivery/          pages du livreur sans compte : une commande (lien signé), « Ma tournée »
 │   │   ├── Admin/             facture PDF
 │   │   └── Api/V1/            catalogue et authentification par jeton (Sanctum)
 │   └── Middleware/TrackVisit  compteur de visites anonyme
 │
 ├── Services/                  logique métier : les contrôleurs et Filament passent par ici
+│   ├── Marketing/             ProductFeed (flux catalogue Meta/Google, une ligne par déclinaison, cache 1 h)
 │   ├── OrderService           création atomique (recalcul serveur, verrous anti-survente), transitions de statut
 │   ├── StockService           seul chemin de variation du stock (journalisé), alertes de stock faible
 │   ├── PromoService           aperçu et décision finale des codes promo (verrou + incrément conditionnel)

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Content\LegalDocument;
+use App\Http\Controllers\Marketing\ProductFeedController;
 use App\Http\Controllers\Payment\PayTechIpnController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CategoryController;
@@ -67,6 +68,9 @@ Route::post('contact', [ContactController::class, 'store'])
 
 Route::post('avis', [ReviewController::class, 'store'])
     ->middleware('throttle:5,1')->name('shop.reviews.store');
+
+// Flux catalogue (Meta, Google) : données publiques du catalogue uniquement.
+Route::get('flux/produits.xml', ProductFeedController::class)->middleware('throttle:30,1')->name('marketing.product-feed');
 
 Route::get('panier', [CartController::class, 'index'])->name('shop.cart');
 Route::post('panier', [CartController::class, 'store'])->name('shop.cart.store');
