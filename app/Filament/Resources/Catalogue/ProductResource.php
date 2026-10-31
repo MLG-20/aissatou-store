@@ -11,6 +11,7 @@ use App\Models\Catalogue\Category;
 use App\Models\Catalogue\Product;
 use App\Models\Catalogue\ProductVariant;
 use App\Support\ImageSlot;
+use Closure;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\KeyValue;
@@ -227,7 +228,16 @@ class ProductResource extends Resource
                 Repeater::make('variants')
                     ->relationship('variants')
                     ->label('Déclinaisons (tailles, couleurs…)')
-                    ->helperText('Une ligne par variante du produit — par exemple une taille ou une couleur, avec son propre stock.')
+                    ->helperText('Une ligne par variante du produit — par exemple une taille ou une couleur, avec son propre stock. Modèle ou pièce unique : une seule ligne, caractéristiques vides, avec sa quantité.')
+                    // Sans déclinaison active, le stock n'est pas suivi : le
+                    // produit se vendrait sans limite. Un brouillon masqué reste libre.
+                    ->required(fn (Get $get): bool => (bool) $get('is_active'))
+                    ->validationMessages(['required' => 'Pour rendre ce produit visible, ajoutez au moins une déclinaison avec sa quantité.'])
+                    ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                        if ($get('is_active') && ! collect($value)->contains(fn (array $variant): bool => (bool) ($variant['is_active'] ?? false))) {
+                            $fail('Pour rendre ce produit visible, au moins une déclinaison doit être disponible.');
+                        }
+                    })
                     ->schema([
                         TextInput::make('sku')
                             ->label('Référence de la déclinaison')
@@ -270,7 +280,7 @@ class ProductResource extends Resource
                             ->default(true),
                     ])
                     ->columns(2)
-                    ->defaultItems(0)
+                    ->defaultItems(1)
                     ->columnSpanFull(),
             ]);
     }

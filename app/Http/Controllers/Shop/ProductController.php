@@ -25,6 +25,7 @@ class ProductController extends Controller
             ->active()
             ->filter($request->filters())
             ->with(['category', 'material', 'images', 'variants' => fn ($query) => $query->active()])
+            ->availableFirst()
             ->latest()
             ->paginate(12)
             ->withQueryString();

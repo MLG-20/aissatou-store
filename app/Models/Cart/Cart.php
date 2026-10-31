@@ -54,6 +54,11 @@ class Cart extends Model
         return $this->items->sum(fn (CartItem $item) => $item->lineTotal());
     }
 
+    public function hasUnavailableItems(): bool
+    {
+        return $this->items->contains(fn (CartItem $item) => ! $item->isAvailable());
+    }
+
     public function itemCount(): int
     {
         return $this->items->sum('quantity');

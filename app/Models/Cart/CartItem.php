@@ -59,14 +59,34 @@ class CartItem extends Model
 
     public function isAvailable(): bool
     {
-        if (! $this->product->is_active) {
-            return false;
+        return $this->unavailableReason() === null;
+    }
+
+    /**
+     * Ce qui empêche de commander cette ligne, dit à la cliente, ou null si
+     * tout va bien. Mêmes règles que OrderService::createFromCart, qui reste
+     * seul juge au moment de valider.
+     */
+    public function unavailableReason(): ?string
+    {
+        if (! $this->product->is_active || ($this->variant && ! $this->variant->is_active)) {
+            return 'Cet article n\'est plus disponible : retirez-le pour continuer.';
         }
 
-        if ($this->variant && (! $this->variant->is_active || $this->variant->stock < $this->quantity)) {
-            return false;
+        if (! $this->variant) {
+            return $this->product->variants()->exists()
+                ? 'Cette déclinaison n\'est plus proposée : retirez cet article pour en choisir une autre.'
+                : null;
         }
 
-        return true;
+        if ($this->variant->stock <= 0) {
+            return 'Épuisé : retirez cet article pour continuer.';
+        }
+
+        if ($this->variant->stock < $this->quantity) {
+            return 'Plus que '.$this->variant->stock.' en stock : ajustez la quantité pour continuer.';
+        }
+
+        return null;
     }
 }

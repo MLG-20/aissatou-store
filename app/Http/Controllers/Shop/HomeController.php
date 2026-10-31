@@ -60,6 +60,7 @@ class HomeController extends Controller
                 ->active()
                 ->newArrivals()
                 ->with(['category', 'images', 'variants' => fn ($query) => $query->active()])
+                ->availableFirst()
                 ->latest()
                 ->take(8)
                 ->get(),

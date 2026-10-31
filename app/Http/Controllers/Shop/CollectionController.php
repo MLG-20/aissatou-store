@@ -35,6 +35,7 @@ class CollectionController extends Controller
             ->active()
             ->filter($filters)
             ->with(['category', 'material', 'images', 'variants' => fn ($query) => $query->active()])
+            ->availableFirst()
             ->latest()
             ->paginate(12)
             ->withQueryString();

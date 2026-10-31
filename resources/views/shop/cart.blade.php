@@ -25,7 +25,7 @@
                             ->map(fn ($value, $key) => ucfirst($key).' : '.$value)
                             ->implode(', ');
                     @endphp
-                    <div class="py-5 flex items-center gap-4">
+                    <div class="py-5 flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-3">
                         <div class="w-20 h-20 flex-shrink-0 rounded-sm overflow-hidden bg-brand-parchment">
                             @if ($image = $item->product->primaryImage())
                                 <img
@@ -39,7 +39,7 @@
                             @endif
                         </div>
 
-                        <div class="flex-1 min-w-0">
+                        <div class="flex-1 min-w-0 basis-[calc(100%-6rem)] sm:basis-0">
                             <a href="{{ route('shop.product', $item->product) }}" class="text-sm text-brand-ink hover:text-brand-signature">
                                 {{ $item->product->name }}
                             </a>
@@ -47,9 +47,9 @@
                                 <p class="text-xs text-brand-muted mt-0.5">{{ $variantLabel }}</p>
                             @endif
 
-                            @unless ($item->isAvailable())
-                                <p class="text-xs text-brand-signature mt-1">Cet article n'est plus disponible.</p>
-                            @endunless
+                            @if ($reason = $item->unavailableReason())
+                                <p class="text-xs font-medium text-brand-signature mt-1">{{ $reason }}</p>
+                            @endif
 
                             <p class="text-sm text-brand-ink mt-1">
                                 {{ number_format($item->unitPrice(), 0, ',', ' ') }} FCFA
@@ -72,7 +72,7 @@
                             </button>
                         </form>
 
-                        <p class="w-24 text-right text-sm font-medium text-brand-ink">
+                        <p class="ml-auto sm:ml-0 sm:w-24 text-right text-sm font-medium text-brand-ink whitespace-nowrap">
                             {{ number_format($item->lineTotal(), 0, ',', ' ') }} FCFA
                         </p>
 
@@ -93,16 +93,22 @@
                 <p class="text-lg font-display">
                     Total : {{ number_format($cart->total(), 0, ',', ' ') }} FCFA
                 </p>
-                {{-- Invitée : le middleware `auth` renvoie à la connexion puis
-                     ramène ici au tunnel (redirection « intended »). --}}
-                <x-shop.cta href="{{ route('shop.checkout') }}" variant="primary" class="w-full sm:w-auto text-center">
-                    Passer commande
-                </x-shop.cta>
+                @if ($cart->hasUnavailableItems())
+                    <p class="text-sm text-brand-signature text-right">
+                        Corrigez les articles signalés ci-dessus pour passer commande.
+                    </p>
+                @else
+                    {{-- Invitée : le middleware `auth` renvoie à la connexion puis
+                         ramène ici au tunnel (redirection « intended »). --}}
+                    <x-shop.cta href="{{ route('shop.checkout') }}" variant="primary" class="w-full sm:w-auto text-center">
+                        Passer commande
+                    </x-shop.cta>
+                @endif
 
                 {{-- Alternative pour qui préfère commander en discutant : le
                      panier part pré-rempli (total d'abord, au cas où le texte
                      serait tronqué par /whatsapp). --}}
-                @if (filled(\App\Models\Content\SiteSetting::current()->contact_whatsapp))
+                @if (! $cart->hasUnavailableItems() && filled(\App\Models\Content\SiteSetting::current()->contact_whatsapp))
                     @php
                         $whatsappText = "Bonjour, je souhaite commander ces articles (total ".number_format($cart->total(), 0, ',', ' ')." FCFA) :\n"
                             .$cart->items->map(fn ($item) => '- '.$item->product->name

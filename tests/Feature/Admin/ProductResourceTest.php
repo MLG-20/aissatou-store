@@ -182,6 +182,7 @@ class ProductResourceTest extends TestCase
         $this->actingAs(Admin::factory()->create(), 'admin');
 
         $product = Product::factory()->create(['name' => 'Voile brodé']);
+        ProductVariant::factory()->for($product)->create();
         $image = $product->images()->create([
             'path' => 'products/existante.webp',
             'is_primary' => true,
@@ -207,6 +208,7 @@ class ProductResourceTest extends TestCase
         $this->actingAs(Admin::factory()->create(), 'admin');
 
         $product = Product::factory()->create();
+        ProductVariant::factory()->for($product)->create();
         $product->images()->create([
             'path' => 'products/ancienne.webp',
             'is_primary' => true,

@@ -49,6 +49,11 @@ class CheckoutController extends Controller
             return redirect()->route('shop.cart')->withErrors(['cart' => 'Votre panier est vide.']);
         }
 
+        // Article épuisé entre-temps : le panier dit lequel et comment corriger.
+        if ($cart->hasUnavailableItems()) {
+            return redirect()->route('shop.cart');
+        }
+
         $addresses = $request->user()->addresses()->orderByDesc('is_default')->orderBy('id')->get();
 
         // Frais calculés serveur pour chaque adresse du carnet : la vue ne
@@ -117,6 +122,12 @@ class CheckoutController extends Controller
 
             return back()->withErrors(['promo_code' => $exception->getMessage()]);
         } catch (OrderException $exception) {
+            // Article épuisé pendant la validation : retour au panier, qui
+            // montre la ligne à corriger (la page de commande y renverrait).
+            if ($cart->load(['items.product', 'items.variant'])->hasUnavailableItems()) {
+                return redirect()->route('shop.cart')->withErrors(['cart' => $exception->getMessage()]);
+            }
+
             return back()->withErrors(['cart' => $exception->getMessage()]);
         }
 

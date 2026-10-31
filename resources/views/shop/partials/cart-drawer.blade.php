@@ -80,9 +80,9 @@
                             <p class="mt-1 text-xs text-brand-muted">
                                 Qté {{ $item->quantity }} × {{ number_format($item->unitPrice(), 0, ',', ' ') }} FCFA
                             </p>
-                            @unless ($item->isAvailable())
-                                <p class="mt-1 text-xs text-brand-accent">Plus disponible</p>
-                            @endunless
+                            @if ($reason = $item->unavailableReason())
+                                <p class="mt-1 text-xs text-brand-signature">{{ $reason }}</p>
+                            @endif
                             <p class="mt-1 text-sm font-medium text-brand-ink">
                                 {{ number_format($item->lineTotal(), 0, ',', ' ') }} FCFA
                             </p>

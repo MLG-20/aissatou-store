@@ -131,6 +131,20 @@ class Product extends Model
     }
 
     /**
+     * Listes de la boutique : ce qui s'achète d'abord, les épuisés ensuite
+     * (ils restent visibles, leurs liens partagés continuent de fonctionner).
+     * Même règle que isInStock().
+     */
+    public function scopeAvailableFirst(Builder $query): Builder
+    {
+        return $query->orderByRaw(
+            'CASE WHEN NOT EXISTS (SELECT 1 FROM product_variants v WHERE v.product_id = products.id)
+                OR EXISTS (SELECT 1 FROM product_variants v WHERE v.product_id = products.id AND v.is_active = 1 AND v.stock > 0)
+            THEN 0 ELSE 1 END'
+        );
+    }
+
+    /**
      * Recherche/filtres combinables du catalogue public (section 2.1 du cahier
      * des charges). Toutes les valeurs sont déjà validées et nettoyées en amont
      * par FilterProductsRequest — ce scope ne fait qu'assembler la requête.
