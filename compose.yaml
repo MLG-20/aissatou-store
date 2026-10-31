@@ -1,0 +1,97 @@
+# Lancement : docker compose --env-file .env.docker up -d --build
+# Modèle de configuration : .env.docker.example
+
+x-site: &site
+  build:
+    context: .
+    dockerfile: docker/Dockerfile
+    target: app
+  image: aissatou-store-app:${IMAGE_TAG:-local}
+  restart: unless-stopped
+  env_file: .env.docker
+  volumes:
+    - storage:/var/www/html/storage
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: web
+    image: aissatou-store-web:${IMAGE_TAG:-local}
+    restart: unless-stopped
+    ports:
+      - "${WEB_HTTP_PORT:-80}:80"
+      - "${WEB_HTTPS_PORT:-443}:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?Renseignez SITE_ADDRESS}
+    volumes:
+      - type: volume
+        source: storage
+        target: /var/www/html/storage/app/public
+        read_only: true
+        volume:
+          subpath: app/public
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+
+  app:
+    <<: *site
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 9000) ? 0 : 1);"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+
+  queue:
+    <<: *site
+    command: ["php", "artisan", "queue:work", "--tries=3", "--max-time=3600", "--sleep=3"]
+
+  scheduler:
+    <<: *site
+    command: ["php", "artisan", "schedule:work"]
+
+  # Met la base à jour avant le démarrage du site, puis s'arrête.
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: app
+    image: aissatou-store-app:${IMAGE_TAG:-local}
+    restart: "no"
+    env_file: .env.docker
+    volumes:
+      - storage:/var/www/html/storage
+    command: ["sh", "-c", "php artisan migrate --force && php artisan db:seed --class=RolePermissionSeeder --force"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:?Renseignez DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME:?Renseignez DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Renseignez DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Renseignez DB_ROOT_PASSWORD}
+    volumes:
+      - db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+# Hors des conteneurs : une mise à jour du site n'efface ni la base ni les photos.
+volumes:
+  db:
+  storage:
+  caddy_data:
+  caddy_config:

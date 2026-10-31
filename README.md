@@ -257,6 +257,22 @@ Les images utilisent des adresses relatives (`/storage/…`) : elles s'affichent
 
 ## Déploiement
 
+### Avec Docker
+
+Conteneurs : `web` (Caddy, HTTPS automatique), `app` (PHP, ffmpeg), `queue`, `scheduler`, `db` (MySQL 8.4), et `migrate`, qui met la base à jour puis s'arrête. La base et les fichiers sont dans des volumes : une mise à jour du site ne les efface pas.
+
+```bash
+cp .env.docker.example .env.docker                 # à remplir, jamais commité
+docker compose --env-file .env.docker up -d --build
+docker compose --env-file .env.docker exec app php artisan db:seed --class=AdminSeeder --force   # premier compte admin, une seule fois
+```
+
+`--env-file .env.docker` est indispensable : sans lui, Compose lirait le `.env` de développement. Par défaut, le modèle sert le site sur https://localhost:8443 (certificat local). En production, renseigner le domaine dans `SITE_ADDRESS` et `APP_URL`, et les ports 80 et 443.
+
+`docker compose down -v` efface aussi la base et les photos : à ne jamais lancer en production.
+
+### Sans Docker
+
 À chaque mise en production, après `php artisan migrate --force` :
 
 ```bash
