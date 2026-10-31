@@ -4,11 +4,40 @@
         $money = fn ($amount) => number_format((float) $amount, 0, ',', ' ').' FCFA';
     @endphp
 
-    <div class="space-y-8">
+    @vite('resources/js/account-guide.js')
+
+    <div
+        class="space-y-8"
+        x-data="{
+            hidden: (() => { try { return localStorage.getItem('account-guide-hidden') === '1' } catch { return false } })(),
+            setHidden(value) {
+                this.hidden = value;
+                try { localStorage.setItem('account-guide-hidden', value ? '1' : '0') } catch {}
+            },
+        }"
+    >
+        {{-- PETIT GUIDE : lancé par la cliente, masquable, à revoir en bas de page. --}}
+        <section x-show="! hidden" x-cloak class="relative bg-brand-ink p-6 text-brand-surface sm:p-8">
+            <button type="button" @click="setHidden(true)" class="absolute right-2 top-2 p-2 text-brand-surface/60 transition hover:text-brand-surface" aria-label="Masquer le petit guide">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between sm:pr-8">
+                <div>
+                    <span class="text-xs uppercase tracking-[0.3em] text-brand-sage">Petit guide</span>
+                    <h2 class="mt-2 font-display text-2xl">Découvrez votre espace en une minute</h2>
+                </div>
+                <button type="button" data-guide-start class="shrink-0 self-start border border-brand-surface/40 px-6 py-3 text-xs font-medium uppercase tracking-[0.15em] text-brand-surface transition hover:border-brand-surface sm:self-auto">
+                    Suivre le guide
+                </button>
+            </div>
+        </section>
+
         {{-- COMMANDE EN VEDETTE : celle en cours, sinon la dernière ; à défaut,
              une invitation à la première. --}}
         @if ($featuredOrder)
-            <section class="relative overflow-hidden border border-brand-ink/10 bg-white p-6 sm:p-8" data-reveal>
+            <section class="relative overflow-hidden border border-brand-ink/10 bg-white p-6 sm:p-8" data-reveal data-guide="commande">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <span class="text-xs uppercase tracking-[0.3em] text-brand-signature">
@@ -52,7 +81,7 @@
                 </div>
             </section>
         @else
-            <section class="relative overflow-hidden bg-brand-parchment/70 p-8 sm:p-10" data-reveal>
+            <section class="relative overflow-hidden bg-brand-parchment/70 p-8 sm:p-10" data-reveal data-guide="commande">
                 <div class="passage-frame absolute inset-4"></div>
                 <div class="relative max-w-lg">
                     <span class="text-xs uppercase tracking-[0.3em] text-brand-signature">Bienvenue chez vous</span>
@@ -123,7 +152,7 @@
                 @endphp
 
                 @foreach ($shortcuts as $shortcut)
-                    <a href="{{ route($shortcut['route']) }}" class="group flex items-center gap-4 border border-brand-ink/10 bg-white p-4 transition duration-300 hover:border-brand-signature/40 hover:shadow-lg">
+                    <a href="{{ route($shortcut['route']) }}" data-guide="{{ $shortcut['route'] === 'shop.cart' ? 'panier' : '' }}" class="group flex items-center gap-4 border border-brand-ink/10 bg-white p-4 transition duration-300 hover:border-brand-signature/40 hover:shadow-lg">
                         <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-accent/10 text-brand-signature transition group-hover:bg-brand-signature group-hover:text-brand-surface">
                             <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                                 @foreach ($shortcut['icon'] as $path)
@@ -170,5 +199,11 @@
                 @endif
             </aside>
         </div>
+
+        <p x-show="hidden" x-cloak class="text-center">
+            <button type="button" data-guide-start @click="setHidden(false)" class="text-xs uppercase tracking-[0.2em] text-brand-muted underline-offset-4 transition hover:text-brand-signature hover:underline">
+                Revoir le petit guide
+            </button>
+        </p>
     </div>
 </x-account-layout>

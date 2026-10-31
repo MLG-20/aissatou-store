@@ -92,6 +92,7 @@
             >
                 <button
                     type="button"
+                    data-guide="menu"
                     class="flex w-full items-center gap-3 border border-brand-ink/15 bg-white px-4 py-3.5 text-left text-sm text-brand-ink shadow-sm lg:hidden"
                     @click="open = ! open"
                     :aria-expanded="open.toString()"
@@ -126,6 +127,7 @@
                         <li>
                             <a
                                 href="{{ route($item['route']) }}"
+                                data-guide="{{ $item['route'] }}"
                                 @class([
                                     'group flex items-center gap-3 whitespace-nowrap border-l-2 px-4 py-3 text-sm transition',
                                     'border-brand-signature bg-brand-parchment/60 text-brand-signature' => $current,

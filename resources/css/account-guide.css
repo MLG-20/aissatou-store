@@ -1,0 +1,70 @@
+/* Bulles du petit guide, aux couleurs de la boutique : angles vifs, titre en
+   Bodoni, un seul bouton Garance. */
+.driver-popover.guide-boutique {
+    border-radius: 0;
+    background: #FBF7F1;
+    color: #17151B;
+    padding: 1.5rem;
+    max-width: 22rem;
+    box-shadow: 0 18px 40px -12px rgba(23, 21, 27, 0.45);
+    font-family: Jost, ui-sans-serif, system-ui, sans-serif;
+}
+
+.guide-boutique .driver-popover-title {
+    font-family: 'Bodoni Moda', Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.guide-boutique .driver-popover-description {
+    margin-top: 0.5rem;
+    color: #6E6672;
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+
+.guide-boutique .driver-popover-progress-text {
+    color: #6E6672;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+}
+
+.guide-boutique .driver-popover-footer {
+    margin-top: 1.25rem;
+}
+
+.guide-boutique .driver-popover-footer button {
+    border-radius: 0;
+    border: 1px solid rgba(23, 21, 27, 0.3);
+    background: transparent;
+    color: #17151B;
+    padding: 0.5rem 0.75rem;
+    font-family: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-shadow: none;
+}
+
+.guide-boutique .driver-popover-footer button.driver-popover-next-btn {
+    border-color: #9F2D40;
+    background: #9F2D40;
+    color: #FBF7F1;
+}
+
+.guide-boutique .driver-popover-footer button.driver-popover-next-btn:hover,
+.guide-boutique .driver-popover-footer button.driver-popover-next-btn:focus {
+    border-color: #4A1833;
+    background: #4A1833;
+    color: #FBF7F1;
+}
+
+.guide-boutique .driver-popover-close-btn {
+    color: #6E6672;
+}
+
+.guide-boutique .driver-popover-arrow-side-left { border-left-color: #FBF7F1; }
+.guide-boutique .driver-popover-arrow-side-right { border-right-color: #FBF7F1; }
+.guide-boutique .driver-popover-arrow-side-top { border-top-color: #FBF7F1; }
+.guide-boutique .driver-popover-arrow-side-bottom { border-bottom-color: #FBF7F1; }

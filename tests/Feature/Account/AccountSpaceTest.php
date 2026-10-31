@@ -70,6 +70,22 @@ class AccountSpaceTest extends TestCase
             ->assertSee('Vos coups de cœur');
     }
 
+    public function test_the_dashboard_offers_the_small_guide_and_its_landmarks(): void
+    {
+        $this->actingAs(User::factory()->create())->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Découvrez votre espace en une minute')
+            ->assertSee('Revoir le petit guide')
+            ->assertSee('account-guide', false)
+            ->assertSee('data-guide="commande"', false)
+            ->assertSee('data-guide="panier"', false)
+            ->assertSee('data-guide="menu"', false)
+            ->assertSee('data-guide="account.orders.index"', false)
+            ->assertSee('data-guide="shop.wishlist"', false)
+            ->assertSee('data-guide="account.addresses.index"', false)
+            ->assertSee('data-guide="profile.edit"', false);
+    }
+
     public function test_every_account_page_shares_the_same_frame(): void
     {
         $user = User::factory()->create(['name' => 'Fatou Sow']);
