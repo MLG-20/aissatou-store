@@ -5,10 +5,12 @@ namespace App\Services\Delivery;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
 use App\Exceptions\OrderException;
+use App\Mail\FailedDeliveryForAdmin;
 use App\Models\Delivery\Courier;
 use App\Models\Order\Order;
 use App\Services\OrderService;
 use App\Support\PhoneNumber;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
@@ -44,6 +46,27 @@ class CourierService
         throw_unless($order->status === OrderStatus::Shipped, OrderException::invalidTransition());
 
         return $this->orders->changeStatus($order, OrderStatus::Delivered, courier: $courier);
+    }
+
+    /**
+     * « Client absent » : la commande reste expédiée (le colis est chez le
+     * livreur), la boutique est alertée et recontacte la cliente.
+     *
+     * @throws OrderException
+     */
+    public function reportAbsent(Order $order, Courier $courier): Order
+    {
+        throw_unless($order->status === OrderStatus::Shipped, OrderException::invalidTransition());
+
+        $order->update([
+            'failed_delivery_at' => now(),
+            'failed_delivery_by' => $courier->name,
+            'failed_delivery_attempts' => $order->failed_delivery_attempts + 1,
+        ]);
+
+        Mail::to($this->orders->shopEmail())->queue(new FailedDeliveryForAdmin($order));
+
+        return $order;
     }
 
     /**

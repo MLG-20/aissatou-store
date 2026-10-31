@@ -57,6 +57,23 @@ class ViewOrder extends ViewRecord
                     ])
                     ->columns(2),
 
+                Section::make('Livraison manquée')
+                    ->icon('heroicon-o-exclamation-triangle')
+                    ->iconColor('danger')
+                    ->schema([
+                        TextEntry::make('failed_delivery_at')
+                            ->hiddenLabel()
+                            ->color('danger')
+                            ->weight('bold')
+                            ->formatStateUsing(fn (Order $record): string => 'Cliente absente le '.$record->failed_delivery_at->format('d/m/Y à H:i')
+                                .' (signalé par '.$record->failed_delivery_by.')'
+                                .($record->failed_delivery_attempts > 1 ? ', '.$record->failed_delivery_attempts.'e tentative' : '')
+                                .'. Recontactez-la pour un nouveau créneau, puis prévenez le livreur.'),
+                    ])
+                    // Seulement tant que le colis est en route : une fois livrée ou
+                    // annulée, l'alerte n'a plus lieu d'être.
+                    ->visible(fn (Order $record): bool => $record->failed_delivery_at !== null && $record->status === OrderStatus::Shipped),
+
                 Section::make('Client et livraison')
                     ->schema([
                         TextEntry::make('user.name')->label('Client'),

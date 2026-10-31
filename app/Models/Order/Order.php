@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'user_id', 'number', 'status', 'payment_status',
     'subtotal', 'discount_total', 'promo_code', 'shipping_total', 'shipping_zone', 'total',
     'delivery_assignee', 'delivery_note', 'courier_id',
+    'failed_delivery_at', 'failed_delivery_by', 'failed_delivery_attempts',
     'recipient_name', 'phone', 'city', 'address_line', 'landmark',
     'latitude', 'longitude', 'location_accuracy', 'maps_link',
     'whatsapp_opt_in', 'whatsapp_opt_in_at',
@@ -37,6 +38,7 @@ class Order extends Model
             'total' => 'decimal:2',
             'whatsapp_opt_in' => 'boolean',
             'whatsapp_opt_in_at' => 'datetime',
+            'failed_delivery_at' => 'datetime',
         ];
     }
 

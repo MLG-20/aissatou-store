@@ -7,6 +7,7 @@ use App\Filament\Resources\Delivery\CourierResource\Pages\CreateCourier;
 use App\Filament\Resources\Delivery\CourierResource\Pages\ListCouriers;
 use App\Filament\Resources\Order\OrderResource\Pages\ViewOrder;
 use App\Jobs\SendOrderWhatsApp;
+use App\Mail\FailedDeliveryForAdmin;
 use App\Mail\OrderStatusChanged;
 use App\Models\Admin;
 use App\Models\Cart\Cart;
@@ -159,6 +160,37 @@ class CourierTest extends TestCase
         $this->get($link)->assertForbidden();
 
         $this->assertSame(OrderStatus::Preparing, $order->fresh()->status);
+    }
+
+    public function test_client_absent_keeps_the_order_shipped_and_alerts_the_shop(): void
+    {
+        $this->actingAs(Admin::factory()->create(), 'admin');
+        $courier = Courier::factory()->create(['name' => 'Moussa']);
+        $order = $this->orderFor($courier);
+        $link = $this->relativeLink($order);
+
+        // Pas avant le départ : le colis n'est pas encore chez le livreur.
+        $this->post($link, ['action' => 'absent'])->assertSessionHas('courier_error');
+
+        $this->post($link, ['action' => 'depart']);
+        $this->post($link, ['action' => 'absent'])->assertRedirect($link);
+        $this->post($link, ['action' => 'absent']);
+
+        $order->refresh();
+        $this->assertSame(OrderStatus::Shipped, $order->status);
+        $this->assertSame('Moussa', $order->failed_delivery_by);
+        $this->assertSame(2, $order->failed_delivery_attempts);
+        Mail::assertQueued(FailedDeliveryForAdmin::class, fn ($mail) => $mail->hasTo(app(OrderService::class)->shopEmail()));
+        $this->assertStringContainsString('2e tentative', (new FailedDeliveryForAdmin($order))->render());
+
+        $this->get($link)->assertSee('la boutique recontacte la cliente');
+        Livewire::test(ViewOrder::class, ['record' => $order->getRouteKey()])
+            ->assertSee('Cliente absente le')
+            ->assertSee('signalé par Moussa');
+
+        // Livrée au second passage : le bandeau disparaît.
+        $this->post($link, ['action' => 'livree']);
+        Livewire::test(ViewOrder::class, ['record' => $order->getRouteKey()])->assertDontSee('Cliente absente le');
     }
 
     private function relativeLink(Order $order): string

@@ -16,7 +16,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - Page contact : WhatsApp, e-mail, formulaire, réseaux sociaux ; afficher/masquer le mot de passe sur tous les formulaires
 - Tunnel de commande : récapitulatif, code promo, frais de livraison par zone calculés côté serveur, choix du paiement
 - **Paiement en ligne PayTech** : redirection, page d'attente qui revérifie le statut côté serveur, nouvel essai en cas d'échec, annulation automatique (et remise en stock) des commandes impayées après 30 min
-- **Page livreur sans compte** : lien signé de 3 jours, lié au livreur assigné ; « J'ai le colis, je pars » (→ expédiée) puis « Livrée », avec appel, WhatsApp et itinéraire vers la cliente ; plus aucune donnée de la cliente une fois la commande terminée. Page **« Ma tournée »** : lien personnel du livreur (seule son empreinte SHA-256 est gardée), toutes ses commandes en cours au même endroit, renvoyé ou révoqué depuis l'admin
+- **Page livreur sans compte** : lien signé de 3 jours, lié au livreur assigné ; « J'ai le colis, je pars » (→ expédiée) puis « Livrée », avec appel, WhatsApp et itinéraire vers la cliente ; plus aucune donnée de la cliente une fois la commande terminée. Page **« Ma tournée »** : lien personnel du livreur (seule son empreinte SHA-256 est gardée), toutes ses commandes en cours au même endroit, renvoyé ou révoqué depuis l'admin. Bouton **« Client absent »** : la commande reste expédiée, la boutique reçoit un email et la fiche commande affiche un bandeau rouge (nombre de tentatives)
 - **Suivi de commande sur WhatsApp** (API WhatsApp Cloud de Meta), seulement si la cliente coche la case au checkout (décochée par défaut) : commande confirmée (paiement à la livraison) ou paiement confirmé (en ligne), expédiée, livrée, annulée ; rien pour un paiement en ligne abandonné. Envoi en file, sans jamais bloquer la commande
 - **Liens WhatsApp pré-remplis** (gratuits, sans l'API) : fiche produit, panier (articles et total), page d'une commande (numéro)
 - **Pages légales** (`/mentions-legales`, `/confidentialite`, `/cgv`, `/cookies`), liées dans le pied de page une fois publiées ; la page cookies affiche le registre des cookies par catégorie
@@ -337,7 +337,7 @@ app/
 │                              recadrage par emplacement), PhoneNumber (format international +221), DeliveryLocation
 │                              (règles de la position de livraison, cadre du Sénégal),
 │                              textes lisibles des journaux, périodes de stats
-├── Mail/                      emails en file : commande, statut, alerte boutique, stock faible
+├── Mail/                      emails en file : commande, statut, alerte boutique, livraison manquée, stock faible
 ├── Observers/                 variantes d'images à l'enregistrement du contenu, lancement du traitement vidéo
 └── Console/Commands/          payments:expire (5 min), stats:aggregate (nuit, --from=AAAA-MM-JJ),
                                carts:detect-abandoned (heure), images:generate-variants

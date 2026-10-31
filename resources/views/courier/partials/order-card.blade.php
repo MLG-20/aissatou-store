@@ -55,6 +55,12 @@
                 {{ $amount !== null ? '💰 À encaisser : '.number_format($amount, 0, ',', ' ').' FCFA' : '✅ Déjà payée : rien à encaisser' }}
             </p>
 
+            @if ($order->failed_delivery_at && $order->status === \App\Enums\Order\OrderStatus::Shipped)
+                <p class="rounded-sm bg-red-50 px-3 py-2 text-sm text-red-800">
+                    Absente le {{ $order->failed_delivery_at->format('d/m à H:i') }} : la boutique recontacte la cliente.
+                </p>
+            @endif
+
             <form method="POST" action="{{ $actionUrl }}"
                   onsubmit="return confirm(this.action_label.value)">
                 @csrf
@@ -70,6 +76,15 @@
                     <p class="text-center text-sm text-brand-muted">La boutique prépare encore cette commande.</p>
                 @endif
             </form>
+
+            @if ($order->status === \App\Enums\Order\OrderStatus::Shipped)
+                <form method="POST" action="{{ $actionUrl }}"
+                      onsubmit="return confirm('La cliente est absente ? La boutique sera prévenue, gardez le colis.')">
+                    @csrf
+                    <input type="hidden" name="action" value="absent">
+                    <button class="w-full rounded-sm border border-red-700/40 py-3 text-sm text-red-800">Client absent</button>
+                </form>
+            @endif
         </div>
     @endif
 </article>
