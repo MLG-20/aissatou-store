@@ -32,6 +32,8 @@ class AdminPanelProvider extends PanelProvider
             ->authGuard('admin')
             // Bouton « Voir le site » dans la barre du haut, sur toutes les pages.
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn (): View => view('filament.partials.view-site-button'))
+            // Visites guidées lancées depuis la page Aide.
+            ->renderHook(PanelsRenderHook::BODY_END, fn (): View => view('filament.partials.admin-guide'))
             ->colors([
                 'primary' => Color::Amber,
             ])

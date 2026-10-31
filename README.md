@@ -301,6 +301,7 @@ app/
 │   │   └── Api/V1/            catalogue et authentification par jeton (Sanctum)
 │   └── Middleware/            TrackVisit (compteur de visites anonyme), CaptureSaleSource (provenance du visiteur)
 │
+├── Support/AdminGuides        boutons de la page Aide du back-office (étapes : resources/js/admin-guides-data.js)
 ├── Services/                  logique métier : les contrôleurs et Filament passent par ici
 │   ├── Marketing/             ProductFeed (flux catalogue Meta/Google, une ligne par déclinaison, cache 1 h), SaleSourceTracker (provenance des ventes, en session)
 │   ├── OrderService           création atomique (recalcul serveur, verrous anti-survente), transitions de statut
