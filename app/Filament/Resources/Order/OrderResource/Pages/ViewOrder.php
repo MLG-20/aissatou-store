@@ -13,9 +13,12 @@ use App\Filament\Resources\Order\OrderResource;
 use App\Filament\Resources\Order\PaymentEventResource;
 use App\Filament\Resources\Order\PaymentResource;
 use App\Models\Admin;
+use App\Models\Delivery\Courier;
 use App\Models\Order\Order;
+use App\Models\Order\OrderStatusHistory;
 use App\Models\Order\PaymentEvent;
 use App\Services\AdminAudit;
+use App\Services\Delivery\CourierService;
 use App\Services\OrderService;
 use App\Services\Payment\PaymentService;
 use App\Support\PaymentEventDetails;
@@ -23,6 +26,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Get;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
@@ -192,7 +196,8 @@ class ViewOrder extends ViewRecord
                                 TextEntry::make('created_at')->label('Date')->dateTime('d/m/Y H:i'),
                                 TextEntry::make('from_status')->label('De')->placeholder('création'),
                                 TextEntry::make('to_status')->label('Vers'),
-                                TextEntry::make('author.name')->label('Par')->placeholder('système'),
+                                TextEntry::make('author')->label('Par')
+                                    ->state(fn (OrderStatusHistory $record): string => $record->authorLabel()),
                             ])
                             ->columns(4),
                     ]),
@@ -275,22 +280,50 @@ class ViewOrder extends ViewRecord
                         ->send();
                 }),
 
+            // Lien de la page livreur, envoyé depuis le WhatsApp de la boutique
+            // (aucun modèle Meta). Dès « en préparation » : le livreur passe
+            // lui-même la commande à « expédiée » en partant.
+            Action::make('sendToCourier')
+                ->label('Envoyer au livreur')
+                ->icon('heroicon-o-paper-airplane')
+                ->color('success')
+                ->visible(fn (Order $record): bool => $record->courier?->is_active
+                    && in_array($record->status, [OrderStatus::Preparing, OrderStatus::Shipped], strict: true))
+                ->url(fn (Order $record): ?string => app(CourierService::class)->whatsAppUrl($record))
+                ->openUrlInNewTab(),
+
             Action::make('invoice')
                 ->label('Facture PDF')
                 ->icon('heroicon-o-document-arrow-down')
                 ->url(fn (Order $record): string => route('admin.orders.invoice', $record))
                 ->openUrlInNewTab(),
 
-            // Assignation manuelle (Phase 4) : qui livre, avec quelle consigne.
-            // Réservée à l'admin (guard du panel) ; visible par le client dans
-            // son suivi une fois renseignée.
+            // Assignation (Phase 4) : un livreur de la liste, ou un autre mode
+            // écrit à la main (« retrait boutique »). Réservée à l'admin (guard
+            // du panel) ; le nom est visible par le client dans son suivi.
             Action::make('assignDelivery')
                 ->label('Organiser la livraison')
                 ->icon('heroicon-o-truck')
+                ->fillForm(fn (Order $record): array => [
+                    'courier_id' => $record->courier_id,
+                    'delivery_assignee' => $record->courier_id ? null : $record->delivery_assignee,
+                    'delivery_note' => $record->delivery_note,
+                ])
                 ->form([
+                    Select::make('courier_id')
+                        ->label('Livreur')
+                        ->options(fn (Order $record): array => Courier::query()
+                            ->where(fn ($query) => $query->where('is_active', true)->orWhere('id', $record->courier_id))
+                            ->orderBy('name')
+                            ->pluck('name', 'id')
+                            ->all())
+                        ->searchable()
+                        ->live()
+                        ->helperText('Il recevra sa page de livraison avec « Envoyer au livreur ».'),
                     TextInput::make('delivery_assignee')
-                        ->label('Livreur / mode')
-                        ->helperText('Nom du livreur ou mode (« moto », « retrait boutique »…).')
+                        ->label('Ou autre mode')
+                        ->helperText('Sans livreur de la liste : « retrait boutique », « envoi par car »…')
+                        ->hidden(fn (Get $get): bool => filled($get('courier_id')))
                         ->maxLength(255),
                     Textarea::make('delivery_note')
                         ->label('Note')
@@ -299,8 +332,11 @@ class ViewOrder extends ViewRecord
                         ->maxLength(1000),
                 ])
                 ->action(function (Order $record, array $data): void {
+                    $courier = filled($data['courier_id'] ?? null) ? Courier::find($data['courier_id']) : null;
+
                     $record->update([
-                        'delivery_assignee' => $data['delivery_assignee'] ?: null,
+                        'courier_id' => $courier?->id,
+                        'delivery_assignee' => $courier?->name ?? (($data['delivery_assignee'] ?? null) ?: null),
                         'delivery_note' => $data['delivery_note'] ?: null,
                     ]);
                     AdminAudit::record('order.delivery_assigned', $record, ['livreur' => $record->delivery_assignee]);

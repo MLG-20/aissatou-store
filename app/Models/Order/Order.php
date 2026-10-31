@@ -5,6 +5,7 @@ namespace App\Models\Order;
 use App\Enums\Order\OrderStatus;
 use App\Enums\Order\PaymentStatus;
 use App\Models\Concerns\HasDeliveryLocation;
+use App\Models\Delivery\Courier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 #[Fillable([
     'user_id', 'number', 'status', 'payment_status',
     'subtotal', 'discount_total', 'promo_code', 'shipping_total', 'shipping_zone', 'total',
-    'delivery_assignee', 'delivery_note',
+    'delivery_assignee', 'delivery_note', 'courier_id',
     'recipient_name', 'phone', 'city', 'address_line', 'landmark',
     'latitude', 'longitude', 'location_accuracy', 'maps_link',
     'whatsapp_opt_in', 'whatsapp_opt_in_at',
@@ -42,6 +43,11 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function courier(): BelongsTo
+    {
+        return $this->belongsTo(Courier::class);
     }
 
     public function items(): HasMany

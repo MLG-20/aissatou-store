@@ -15,6 +15,7 @@ use App\Models\Cart\Cart;
 use App\Models\Catalogue\ProductVariant;
 use App\Models\Content\SiteSetting;
 use App\Models\Customer\Address;
+use App\Models\Delivery\Courier;
 use App\Models\Delivery\DeliveryZone;
 use App\Models\Order\Order;
 use App\Models\User;
@@ -201,16 +202,17 @@ class OrderService
     }
 
     /**
-     * Changement de statut par l'admin : transition validée + traçabilité
-     * (qui, quand, ancien → nouveau) pour les litiges.
+     * Changement de statut par l'admin ou par le livreur depuis sa page :
+     * transition validée + traçabilité (qui, quand, ancien → nouveau) pour
+     * les litiges.
      *
      * @throws OrderException
      */
-    public function changeStatus(Order $order, OrderStatus $to, ?int $authorId = null): Order
+    public function changeStatus(Order $order, OrderStatus $to, ?int $authorId = null, ?Courier $courier = null): Order
     {
         throw_unless($order->status->canTransitionTo($to), OrderException::invalidTransition());
 
-        $order = DB::transaction(function () use ($order, $to, $authorId) {
+        $order = DB::transaction(function () use ($order, $to, $authorId, $courier) {
             $from = $order->status;
 
             $order->update(['status' => $to]);
@@ -237,6 +239,7 @@ class OrderService
                 'from_status' => $from->value,
                 'to_status' => $to->value,
                 'author_id' => $authorId,
+                'courier_id' => $courier?->id,
             ]);
 
             return $order->fresh(['payment', 'history', 'user', 'items']);

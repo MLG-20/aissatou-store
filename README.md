@@ -16,6 +16,7 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - Page contact : WhatsApp, e-mail, formulaire, réseaux sociaux ; afficher/masquer le mot de passe sur tous les formulaires
 - Tunnel de commande : récapitulatif, code promo, frais de livraison par zone calculés côté serveur, choix du paiement
 - **Paiement en ligne PayTech** : redirection, page d'attente qui revérifie le statut côté serveur, nouvel essai en cas d'échec, annulation automatique (et remise en stock) des commandes impayées après 30 min
+- **Page livreur sans compte** : lien signé de 3 jours, lié au livreur assigné ; « J'ai le colis, je pars » (→ expédiée) puis « Livrée », avec appel, WhatsApp et itinéraire vers la cliente ; plus aucune donnée de la cliente une fois la commande terminée
 - **Suivi de commande sur WhatsApp** (API WhatsApp Cloud de Meta), seulement si la cliente coche la case au checkout (décochée par défaut) : commande confirmée (paiement à la livraison) ou paiement confirmé (en ligne), expédiée, livrée, annulée ; rien pour un paiement en ligne abandonné. Envoi en file, sans jamais bloquer la commande
 - **Liens WhatsApp pré-remplis** (gratuits, sans l'API) : fiche produit, panier (articles et total), page d'une commande (numéro)
 - **Pages légales** (`/mentions-legales`, `/confidentialite`, `/cgv`, `/cookies`), liées dans le pied de page une fois publiées ; la page cookies affiche le registre des cookies par catégorie
@@ -26,11 +27,11 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 - **Tableau de bord** : chiffre d'affaires encaissé, commandes payées, panier moyen, taux de conversion (compteur de visites maison et anonyme, sans cookie ni IP stockée), paniers abandonnés, meilleures ventes, comparaison à la période précédente ; agrégats quotidiens pour rester rapide quel que soit l'historique
 - **Pages légales** (menu « Pages légales ») : texte mis en forme, publié ou brouillon, modification tracée au journal d'activité ; repères (`{ninea}`, `{raison_sociale}`…) remplacés par l'identité légale des réglages, une valeur manquante s'affichant « à compléter ». Brouillons fournis, à relire avant publication
 - **Cookies et traceurs** : registre des cookies (fournisseur, catégorie, finalité, durée, actif) ; ajouter un outil de mesure d'audience s'y fait sans toucher au code et réveille le bandeau de consentement
-- Catalogue, contenu éditorial, réglages du site (paiement à la livraison activable, coupé par défaut ; identité légale, photo de connexion, photos de « La Maison » réordonnables par glisser-déposer, bandeau défilant masqué quand il est vide), zones de livraison, messages reçus
+- Catalogue, contenu éditorial, réglages du site (paiement à la livraison activable, coupé par défaut ; identité légale, photo de connexion, photos de « La Maison » réordonnables par glisser-déposer, bandeau défilant masqué quand il est vide), zones de livraison, livreurs (internes ou services extérieurs, désactivables), messages reçus
 - **Lookbook** (menu « Lookbook ») : photo, vidéo envoyée ou lien YouTube (Short ou vidéo ; image d'aperçu récupérée automatiquement, lecteur sans cookies publicitaires chargé seulement à l'écran ; vidéos de la boutique ou avec l'accord de leur créatrice), titre, phrase, texte d'ambiance, chapitre, adresse de partage, « Aussi sur l'accueil », pièces portées
 - **Vidéos du Look** : 30 s maximum vérifiées à l'envoi, allégées en arrière-plan par ffmpeg (version web 720 px sans son, image d'aperçu tirée de la vidéo) ; le look n'apparaît qu'une fois la vidéo prête, son état est affiché en admin
 - **Charte photo** : un format et un minimum par emplacement (refus des photos trop petites, badge « À remplacer »), point focal réglable avec aperçu de chaque recadrage
-- Commandes : statuts avec transitions contrôlées et historique, facture PDF, organisation de la livraison, bloc WhatsApp (accord de la cliente, messages envoyés et leur état : envoyé, reçu, lu, échec avec la raison)
+- Commandes : statuts avec transitions contrôlées et historique (admin ou livreur), facture PDF, organisation de la livraison (livreur choisi dans la liste, bouton « Envoyer au livreur » : WhatsApp pré-rempli depuis le numéro de la boutique avec l'itinéraire et le lien de sa page), bloc WhatsApp (accord de la cliente, messages envoyés et leur état : envoyé, reçu, lu, échec avec la raison)
 - **Paiements** : une ligne par paiement en ligne ; la fiche donne le statut réel, la référence de transaction et tout le déroulement expliqué en français (journal immuable), vérification auprès du fournisseur ; onglet « Messages suspects » pour les notifications rejetées
 - **Codes promo** : pourcentage ou montant fixe, validité, minimum d'achat, ciblage produits/catégories, plafond d'utilisations (compteur atomique, revalidation complète à la validation de la commande), utilisation rendue si la commande est annulée
 - **Stock** : inventaire par catégorie, fiche par déclinaison avec son historique, ajustement manuel avec motif obligatoire, journal immuable des mouvements, alertes email de stock faible (seuil global ou par déclinaison) avec lien vers la fiche de l'article
@@ -291,6 +292,7 @@ app/
 │   │   ├── Auth/              inscription, connexion, mot de passe (guard web)
 │   │   ├── Payment/           IPN PayTech (signature HMAC)
 │   │   ├── WhatsApp/          webhook Meta (vérification d'abonnement, statuts signés)
+│   │   ├── Delivery/          page du livreur (lien signé, sans compte)
 │   │   ├── Admin/             facture PDF
 │   │   └── Api/V1/            catalogue et authentification par jeton (Sanctum)
 │   └── Middleware/TrackVisit  compteur de visites anonyme
@@ -306,7 +308,8 @@ app/
 │   ├── VideoProcessor         vidéos du Look via ffmpeg : durée, version web, image d'aperçu
 │   ├── Payment/               contrat PaymentProvider → CodProvider, PayTechProvider ;
 │   │                          PaymentManager (choix), PaymentService (confirmation idempotente)
-│   ├── Delivery/              contrat DeliveryProvider → Manual, Yango ; DeliveryManager
+│   ├── Delivery/              contrat DeliveryProvider → Manual, Yango ; DeliveryManager ; CourierService
+│   │                          (actions du livreur, lien signé, message WhatsApp)
 │   └── WhatsApp/              WhatsAppClient (envoi d'un modèle à l'API Cloud), WhatsAppException
 │
 ├── Jobs/                      SendOrderWhatsApp (message de suivi en file : accord vérifié, journalisé,
@@ -316,7 +319,7 @@ app/
 │   ├── Catalogue/             produits, déclinaisons, images, catégories, collections, matières, mouvements de stock
 │   ├── Order/                 commandes, lignes, historique de statut, paiements, journal des paiements, codes promo,
 │   │                          messages WhatsApp
-│   ├── Cart/, Wishlist/, Customer/ (adresses), Delivery/ (zones)
+│   ├── Cart/, Wishlist/, Customer/ (adresses), Delivery/ (zones, livreurs)
 │   ├── Content/, Contact/     accueil (hero, « Le Look »), journal, avis, réglages, messages
 │   ├── User                   clientes (guard web)
 │   └── Admin, AdminActivity   comptes back-office (guard admin) et journal d'activité
@@ -339,7 +342,7 @@ app/
 └── Console/Commands/          payments:expire (5 min), stats:aggregate (nuit, --from=AAAA-MM-JJ),
                                carts:detect-abandoned (heure), images:generate-variants
 
-routes/        web.php · shop.php · account.php · auth.php · api.php · console.php (planification)
+routes/        web.php · shop.php · account.php · auth.php · delivery.php (livreur) · api.php · console.php (planification)
 resources/     views/ (shop, account, auth, emails, pdfs, filament…), css/, js/ (Tailwind, Alpine, Vite ; Leaflet chargé à la demande pour la carte de position)
 database/      migrations, factories, seeders (rôles et permissions, admin, catalogue et commandes de démo)
 tests/Feature/ par domaine : Shop, Account, Order, Payment, Delivery, Catalogue, Admin, Api, Auth, WhatsApp
