@@ -15,3 +15,6 @@ Schedule::command('payments:expire')->everyFiveMinutes()->withoutOverlapping();
 // Phase 6D : agrégats du tableau de bord (nuit) et paniers abandonnés.
 Schedule::command('stats:aggregate')->dailyAt('00:15')->withoutOverlapping();
 Schedule::command('carts:detect-abandoned')->hourly()->withoutOverlapping();
+
+// Jetons API expirés (30 jours) : retirés de la base.
+Schedule::command('sanctum:prune-expired')->daily()->withoutOverlapping();

@@ -49,6 +49,12 @@ class ApiLoginRequest extends FormRequest
 
         RateLimiter::clear($this->throttleKey());
 
+        if (! $user->hasVerifiedEmail()) {
+            throw ValidationException::withMessages([
+                'email' => 'Merci de vérifier votre adresse e-mail avant de vous connecter.',
+            ]);
+        }
+
         return $user->createToken($this->string('device_name'))->plainTextToken;
     }
 
