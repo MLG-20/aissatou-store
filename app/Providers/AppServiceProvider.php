@@ -24,8 +24,11 @@ use App\Services\WishlistService;
 use App\Support\CookieConsent;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -44,6 +47,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Une commande réserve le stock dès sa création : sans limite, un seul
+        // compte pourrait tout bloquer. Large pour une vraie cliente.
+        RateLimiter::for('checkout', function (Request $request): array {
+            $tooMany = fn () => back()->withErrors([
+                'cart' => 'Vous avez passé plusieurs commandes à la suite. Merci de patienter quelques instants avant de réessayer.',
+            ]);
+
+            return [
+                Limit::perMinute(5)->by('minute:'.$request->user()?->id)->response($tooMany),
+                Limit::perHour(20)->by('hour:'.$request->user()?->id)->response($tooMany),
+            ];
+        });
+
         ProductImage::observe(ProductImageObserver::class);
         HeroSlide::observe(HeroSlideObserver::class);
         Look::observe(LookObserver::class);

@@ -84,7 +84,8 @@ Route::middleware('auth')->group(function (): void {
     // automatique ici après le clic sur le lien (URL « intended »).
     Route::middleware('verified')->group(function (): void {
         Route::get('commande', [CheckoutController::class, 'show'])->name('shop.checkout');
-        Route::post('commande', [CheckoutController::class, 'store'])->name('shop.checkout.store');
+        Route::post('commande', [CheckoutController::class, 'store'])
+            ->middleware('throttle:checkout')->name('shop.checkout.store');
         // Code promo : limite de débit contre l'essai de codes en rafale.
         Route::post('commande/code-promo', [CheckoutController::class, 'applyPromo'])
             ->middleware('throttle:10,1')->name('shop.checkout.promo.apply');
