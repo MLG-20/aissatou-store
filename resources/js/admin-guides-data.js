@@ -194,6 +194,10 @@ export const GUIDES = {
         { path: 'admin/admins/create', element: field('Rôle'), title: 'Ce qu\'elle peut faire', text: 'Le rôle « Gestionnaire » donne accès au catalogue, au stock et aux commandes. Réservez « Administrateur complet » aux personnes de confiance.' },
         { path: 'admin/admins/create', element: submit, title: 'Enregistrer', text: SAVE },
     ],
+    'debloquer-un-membre': [
+        { path: 'admin/admins', element: table, title: 'Téléphone perdu', text: 'Si une personne de l\'équipe a perdu son téléphone et ses codes de secours, trouvez sa ligne dans cette liste.' },
+        { path: 'admin/admins', element: table, title: 'Réinitialiser', text: 'Cliquez sur « Réinitialiser la double authentification » sur sa ligne. Elle scannera un nouveau QR code à sa prochaine connexion. Vous ne pouvez pas le faire sur votre propre compte : demandez à un autre administrateur.' },
+    ],
     'journal-activite': [
         { path: 'admin/admin-activities', element: table, title: 'Qui a fait quoi', text: 'Toutes les actions importantes de l\'équipe sont notées ici, avec la personne et la date. Rien ne peut être modifié ni effacé depuis cet écran.' },
     ],

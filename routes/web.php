@@ -9,6 +9,7 @@ use App\Http\Controllers\Account\DashboardController;
 use App\Http\Controllers\Admin\OrderInvoiceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Shop\HomeController;
+use App\Http\Middleware\EnsureAdminTwoFactor;
 use App\Models\Order\PaymentEvent;
 use Illuminate\Support\Facades\Route;
 
@@ -29,7 +30,7 @@ require __DIR__.'/delivery.php';
 
 // Facture PDF : guard `admin` uniquement — un client ne doit jamais y accéder,
 // même en devinant l'URL (données sensibles d'un autre client).
-Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function (): void {
+Route::middleware(['auth:admin', EnsureAdminTwoFactor::class])->prefix('admin')->name('admin.')->group(function (): void {
     Route::get('commandes/{order}/facture', OrderInvoiceController::class)->name('orders.invoice');
 
     // Ancien « Journal des paiements » (liens et favoris d'avant la refonte) :

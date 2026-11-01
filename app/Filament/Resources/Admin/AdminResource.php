@@ -7,7 +7,10 @@ use App\Filament\Concerns\HasSentenceCaseTitles;
 use App\Filament\Concerns\RequiresAdminPermission;
 use App\Filament\Resources\Admin\AdminResource\Pages;
 use App\Models\Admin;
+use App\Services\Admin\TwoFactor;
+use App\Services\AdminAudit;
 use App\Support\AdminRoles;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -15,6 +18,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -116,6 +120,18 @@ class AdminResource extends Resource
             ->defaultSort('name')
             ->actions([
                 EditAction::make(),
+                // Téléphone perdu : un autre admin débloque le compte, jamais soi-même.
+                Action::make('resetTwoFactor')
+                    ->label('Réinitialiser la double authentification')
+                    ->icon('heroicon-o-device-phone-mobile')
+                    ->requiresConfirmation()
+                    ->modalDescription('Cette personne devra de nouveau scanner un QR code à sa prochaine connexion.')
+                    ->visible(fn (Admin $record): bool => $record->two_factor_secret !== null && ! $record->is(Filament::auth()->user()))
+                    ->action(function (Admin $record, TwoFactor $twoFactor): void {
+                        $twoFactor->reset($record);
+                        AdminAudit::record('admin.two_factor_reset', $record);
+                    })
+                    ->successNotificationTitle('Double authentification réinitialisée'),
             ]);
     }
 

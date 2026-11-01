@@ -307,6 +307,8 @@ Jetons API : réservés aux comptes à l'adresse vérifiée, valables 30 jours, 
 
 Back-office : changer son mot de passe ou son e-mail exige le mot de passe actuel (`App\Filament\Pages\Auth\EditProfile`).
 
+Back-office : double authentification obligatoire (`App\Services\Admin\TwoFactor`, `EnsureAdminTwoFactor`) : QR code à la première connexion, puis code à 6 chiffres à chaque nouvelle session, avec 8 codes de secours à usage unique. Téléphone perdu : un autre admin réinitialise depuis la liste de l'équipe, ou `php artisan admin:reset-two-factor <email>` sur le serveur. Filament 3 ne fournit pas cette protection : à reconsidérer en cas de passage à une version qui l'intègre.
+
 Supprimer un compte anonymise la cliente et conserve ses commandes (`AccountDeletionService`).
 
 « Mot de passe oublié » donne la même réponse que l'adresse ait un compte ou non. L'e-mail part en file d'attente, chiffré (`QueuedResetPassword`) : le temps de réponse ne trahit rien, mais il faut que `queue:work` tourne pour qu'il parte.

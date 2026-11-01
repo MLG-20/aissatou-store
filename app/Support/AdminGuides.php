@@ -62,6 +62,7 @@ class AdminGuides
             ],
             'Mon équipe' => [
                 $guide('ajouter-un-membre', 'Ajouter un membre', 'Créer un compte et choisir son rôle.', 'heroicon-o-user-plus', 'admin/admins', P::Admins),
+                $guide('debloquer-un-membre', 'Débloquer un membre', 'Téléphone perdu : réinitialiser sa double authentification.', 'heroicon-o-device-phone-mobile', 'admin/admins', P::Admins),
                 $guide('journal-activite', 'Voir qui a fait quoi', 'Le journal d\'activité.', 'heroicon-o-clipboard-document-list', 'admin/admin-activities', P::Admins),
             ],
         ];

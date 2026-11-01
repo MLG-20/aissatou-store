@@ -3,6 +3,9 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Pages\Auth\TwoFactorChallenge;
+use App\Filament\Pages\Auth\TwoFactorSetup;
+use App\Http\Middleware\EnsureAdminTwoFactor;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -16,6 +19,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Illuminate\View\View;
 
@@ -59,6 +63,13 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->authMiddleware([
+                EnsureAdminTwoFactor::class,
+            ], isPersistent: true)
+            ->authenticatedRoutes(function (): void {
+                Route::get('two-factor-setup', TwoFactorSetup::class)->name('two-factor.setup');
+                Route::get('two-factor-challenge', TwoFactorChallenge::class)->name('two-factor.challenge');
+            });
     }
 }
