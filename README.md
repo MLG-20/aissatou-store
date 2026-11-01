@@ -289,6 +289,20 @@ Serveur : PHP 8.4.27 ou plus (`composer install` refuse une version plus ancienn
 
 WhatsApp en production : entreprise de la cliente vérifiée chez Meta, numéro de la boutique enregistré, moyen de paiement ajouté, jeton d'utilisateur système, nouveaux `WHATSAPP_APP_SECRET` / `WHATSAPP_VERIFY_TOKEN`, modèles recréés avec l'URL du site en production, webhook redéclaré sur le domaine définitif.
 
+## Sécurité
+
+Limites de débit :
+
+| Action | Limite | Compteur |
+|---|---|---|
+| Connexion (site et API) | 5 essais ratés | applicatif (`LoginRequest`, `ApiLoginRequest`) |
+| Inscription, mot de passe oublié, réinitialisation | 5/min et 30/h, par formulaire | par adresse IP (`throttle:account-forms`) |
+| Passage de commande | 5/min et 20/h | par compte (`throttle:checkout`) |
+
+Les limites des formulaires de compte sont larges, car beaucoup de téléphones peuvent partager une même adresse IP sur les réseaux mobiles. En production, le serveur doit donc voir la vraie adresse IP des visiteuses (`TRUSTED_PROXIES` si un proxy est placé devant) : sinon, toutes partageraient le même compteur.
+
+Supprimer un compte anonymise la cliente et conserve ses commandes (`AccountDeletionService`).
+
 ## Tests et qualité
 
 ```bash
@@ -298,7 +312,7 @@ php artisan test
 
 Les tests tournent sur une base MySQL dédiée (`phpunit.xml` ne surcharge que `DB_CONNECTION` / `DB_DATABASE` ; les identifiants viennent de `.env`). Aucun appel réseau réel : PayTech et Meta (WhatsApp) sont simulés (`Http::fake`, `preventStrayRequests`).
 
-GitHub Actions (`.github/workflows/ci.yml`) exécute à chaque push et PR sur `main` : Pint, migrations sur MySQL 8, suite de tests complète.
+GitHub Actions (`.github/workflows/ci.yml`) exécute à chaque push et PR sur `main` : Pint, migrations sur MySQL 8.4, suite de tests complète.
 
 ## Structure du projet
 
