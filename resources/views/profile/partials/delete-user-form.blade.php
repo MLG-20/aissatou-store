@@ -5,7 +5,7 @@
         </h2>
 
         <p class="mt-1 text-sm text-brand-muted">
-            Une fois votre compte supprimé, toutes ses données seront définitivement effacées. Avant de supprimer votre compte, téléchargez toute donnée que vous souhaitez conserver.
+            Vos informations, adresses, panier et favoris seront définitivement effacés. Vos commandes sont conservées pour la durée imposée par la comptabilité, avec le destinataire et l'adresse de livraison. La suppression n'est pas possible tant qu'une commande est en cours.
         </p>
     </header>
 
@@ -24,7 +24,7 @@
             </h2>
 
             <p class="mt-1 text-sm text-brand-muted">
-                Une fois votre compte supprimé, toutes ses données seront définitivement effacées. Saisissez votre mot de passe pour confirmer la suppression définitive de votre compte.
+                Vos informations, adresses, panier et favoris seront définitivement effacés ; vos commandes sont conservées pour la comptabilité. Saisissez votre mot de passe pour confirmer.
             </p>
 
             <div class="mt-6">

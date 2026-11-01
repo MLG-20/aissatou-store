@@ -78,7 +78,7 @@ class CustomerResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->withPurchaseStats();
+        return parent::getEloquentQuery()->whereNull('anonymized_at')->withPurchaseStats();
     }
 
     public static function table(Table $table): Table
