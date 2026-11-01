@@ -60,6 +60,17 @@ class AdminProfileCurrentPasswordTest extends TestCase
         $this->assertTrue(Hash::check('password', $this->admin->fresh()->password));
     }
 
+    public function test_too_many_wrong_current_passwords_block_even_the_right_one(): void
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $this->profile($this->newPassword(['currentPassword' => 'mauvais']))->assertHasFormErrors(['currentPassword']);
+        }
+
+        $this->profile($this->newPassword(['currentPassword' => 'password']))->assertHasFormErrors(['currentPassword']);
+
+        $this->assertTrue(Hash::check('password', $this->admin->fresh()->password));
+    }
+
     public function test_the_password_changes_with_the_right_current_one(): void
     {
         $this->profile($this->newPassword(['currentPassword' => 'password']))->assertHasNoFormErrors();
