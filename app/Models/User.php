@@ -6,6 +6,7 @@ use App\Enums\Order\PaymentStatus;
 use App\Models\Cart\Cart;
 use App\Models\Customer\Address;
 use App\Models\Order\Order;
+use App\Notifications\QueuedResetPassword;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -27,6 +28,11 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     protected $guard_name = 'web';
+
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $this->notify(new QueuedResetPassword($token));
+    }
 
     /**
      * Get the attributes that should be cast.

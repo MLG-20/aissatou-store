@@ -3,7 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\QueuedResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -45,7 +45,7 @@ class ForgotPasswordMessageTest extends TestCase
 
         $this->assertSameAnswerFor($user->email);
 
-        Notification::assertSentTo($user, ResetPassword::class);
+        Notification::assertSentTo($user, QueuedResetPassword::class);
     }
 
     public function test_a_second_request_right_after_gets_the_same_answer_without_a_second_email(): void
@@ -55,7 +55,7 @@ class ForgotPasswordMessageTest extends TestCase
         $this->assertSameAnswerFor($user->email);
         $this->assertSameAnswerFor($user->email);
 
-        Notification::assertSentToTimes($user, ResetPassword::class, 1);
+        Notification::assertSentToTimes($user, QueuedResetPassword::class, 1);
     }
 
     public function test_an_invalid_address_is_still_refused(): void

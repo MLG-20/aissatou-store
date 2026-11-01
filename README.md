@@ -303,7 +303,7 @@ Les limites des formulaires de compte sont larges, car beaucoup de téléphones 
 
 Supprimer un compte anonymise la cliente et conserve ses commandes (`AccountDeletionService`).
 
-« Mot de passe oublié » donne la même réponse que l'adresse ait un compte ou non.
+« Mot de passe oublié » donne la même réponse que l'adresse ait un compte ou non. L'e-mail part en file d'attente, chiffré (`QueuedResetPassword`) : le temps de réponse ne trahit rien, mais il faut que `queue:work` tourne pour qu'il parte.
 
 ## Tests et qualité
 

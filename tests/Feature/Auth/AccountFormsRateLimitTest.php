@@ -3,7 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\QueuedResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -99,7 +99,7 @@ class AccountFormsRateLimitTest extends TestCase
             $this->from('/forgot-password')->post('/forgot-password', ['email' => $user->email]);
         }
 
-        Notification::assertSentTimes(ResetPassword::class, 5);
+        Notification::assertSentTimes(QueuedResetPassword::class, 5);
 
         $this->from('/forgot-password')->post('/forgot-password', ['email' => $users->first()->email])
             ->assertRedirect('/forgot-password')
