@@ -19,7 +19,7 @@ COPY . .
 RUN composer dump-autoload --no-dev --no-scripts --optimize --classmap-authoritative
 
 # --- Styles et scripts ---
-FROM node:20-bookworm-slim AS assets
+FROM node:24-bookworm-slim AS assets
 WORKDIR /var/www/html
 COPY package.json package-lock.json .npmrc ./
 RUN npm ci
