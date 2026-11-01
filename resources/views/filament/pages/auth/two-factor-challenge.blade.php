@@ -1,5 +1,5 @@
 <x-filament-panels::page.simple>
-    <p class="text-sm text-gray-700 dark:text-gray-300">Saisissez le code à 6 chiffres affiché par votre application. Sans votre téléphone, saisissez l'un de vos codes de secours.</p>
+    <p class="text-sm text-gray-700 dark:text-gray-400">Saisissez le code à 6 chiffres affiché par votre application. Sans votre téléphone, saisissez l'un de vos codes de secours.</p>
 
     <form wire:submit="verify" class="space-y-4">
         <x-filament::input.wrapper :valid="! $errors->has('data.code')">

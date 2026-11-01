@@ -1,14 +1,14 @@
 <x-filament-panels::page.simple>
     @if ($recoveryCodes === null)
-        <div class="space-y-4 text-sm text-gray-700 dark:text-gray-300">
+        <div class="space-y-4 text-sm text-gray-700 dark:text-gray-400">
             <p><strong>1.</strong> Installez sur votre téléphone une application gratuite de codes, comme Google Authenticator.</p>
-            <p><strong>2.</strong> Dans l'application, scannez ce QR code.</p>
+            <p><strong>2.</strong> Dans l'application, appuyez sur « + » puis scannez ce QR code. La page ne change pas : c'est normal, passez à l'étape 3.</p>
 
             <div class="flex justify-center rounded-lg bg-white p-2">{!! $qrCode !!}</div>
 
             <details>
                 <summary class="cursor-pointer">Impossible de scanner ? Saisissez cette clé à la main</summary>
-                <code class="mt-2 block break-all select-all">{{ $secret }}</code>
+                <code class="mt-2 block break-words select-all">{{ $secret }}</code>
             </details>
 
             <p><strong>3.</strong> Saisissez le code à 6 chiffres affiché par l'application.</p>
@@ -24,11 +24,11 @@
             <x-filament::button type="submit" class="w-full">Activer la protection</x-filament::button>
         </form>
     @else
-        <div class="space-y-4 text-sm text-gray-700 dark:text-gray-300">
-            <p><strong>La protection est active.</strong> Voici vos codes de secours : ils remplacent le téléphone en cas de perte ou de panne. Chacun ne sert qu'une fois.</p>
+        <div class="space-y-4 text-sm text-gray-700 dark:text-gray-400">
+            <p><strong>La protection est active.</strong> Voici vos codes de secours : ils remplacent le téléphone en cas de perte ou de panne. Chacun ne sert qu'une fois. Ils ne remplacent pas votre mot de passe : ils se saisissent à l'étape du code.</p>
             <p class="font-semibold text-danger-600 dark:text-danger-400">Notez-les maintenant et rangez-les en lieu sûr, hors du téléphone. Ils ne seront plus jamais affichés.</p>
 
-            <ul class="grid grid-cols-2 gap-2 rounded-lg bg-gray-100 p-4 font-mono dark:bg-white/5">
+            <ul style="grid-template-columns: 1fr 1fr" class="grid gap-2 rounded-lg bg-gray-100 p-4 font-mono dark:bg-white/5">
                 @foreach ($recoveryCodes as $recoveryCode)
                     <li>{{ $recoveryCode }}</li>
                 @endforeach
