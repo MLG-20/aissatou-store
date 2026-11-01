@@ -386,7 +386,7 @@ app/
 
 routes/        web.php · shop.php · account.php · auth.php · delivery.php (livreur) · api.php · console.php (planification)
 lang/          fr/ · fr.json (messages du framework et e-mails d'authentification en français)
-resources/     views/ (shop, account, auth, emails, pdfs, filament…), css/, js/ (Tailwind, Alpine, Vite ; Leaflet chargé à la demande pour la carte de position)
+resources/     views/ (shop, account, auth, emails, errors, pdfs, filament…), css/, js/ (Tailwind, Alpine, Vite ; Leaflet chargé à la demande pour la carte de position)
 database/      migrations, factories, seeders (rôles et permissions, admin, catalogue et commandes de démo)
 tests/Feature/ par domaine : Shop, Account, Order, Payment, Delivery, Catalogue, Admin, Api, Auth, WhatsApp
 ```
