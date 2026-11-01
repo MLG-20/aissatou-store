@@ -303,6 +303,8 @@ Les limites des formulaires de compte sont larges, car beaucoup de téléphones 
 
 Supprimer un compte anonymise la cliente et conserve ses commandes (`AccountDeletionService`).
 
+« Mot de passe oublié » donne la même réponse que l'adresse ait un compte ou non.
+
 ## Tests et qualité
 
 ```bash
