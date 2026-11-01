@@ -305,6 +305,8 @@ En-têtes de sécurité : posés par Caddy (`docker/Caddyfile`), donc aussi sur 
 
 Jetons API : réservés aux comptes à l'adresse vérifiée, valables 30 jours, retirés de la base chaque nuit une fois expirés (`sanctum:prune-expired`).
 
+Back-office : changer son mot de passe ou son e-mail exige le mot de passe actuel (`App\Filament\Pages\Auth\EditProfile`).
+
 Supprimer un compte anonymise la cliente et conserve ses commandes (`AccountDeletionService`).
 
 « Mot de passe oublié » donne la même réponse que l'adresse ait un compte ou non. L'e-mail part en file d'attente, chiffré (`QueuedResetPassword`) : le temps de réponse ne trahit rien, mais il faut que `queue:work` tourne pour qu'il parte.

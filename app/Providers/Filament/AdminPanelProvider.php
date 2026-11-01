@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\EditProfile;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -28,7 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->brandName('Aissatou Store — Admin')
             ->login()
-            ->profile()
+            ->profile(EditProfile::class)
             ->authGuard('admin')
             // Bouton « Voir le site » dans la barre du haut, sur toutes les pages.
             ->renderHook(PanelsRenderHook::USER_MENU_BEFORE, fn (): View => view('filament.partials.view-site-button'))
