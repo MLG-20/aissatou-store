@@ -301,6 +301,8 @@ Limites de débit :
 
 Les limites des formulaires de compte sont larges, car beaucoup de téléphones peuvent partager une même adresse IP sur les réseaux mobiles. En production, le serveur doit donc voir la vraie adresse IP des visiteuses (`TRUSTED_PROXIES` si un proxy est placé devant) : sinon, toutes partageraient le même compteur.
 
+En-têtes de sécurité : posés par Caddy (`docker/Caddyfile`), donc aussi sur les fichiers et les photos. La durée de `Strict-Transport-Security` est d'un jour tant que le domaine n'est pas définitif : à allonger à la mise en ligne.
+
 Jetons API : réservés aux comptes à l'adresse vérifiée, valables 30 jours, retirés de la base chaque nuit une fois expirés (`sanctum:prune-expired`).
 
 Supprimer un compte anonymise la cliente et conserve ses commandes (`AccountDeletionService`).
