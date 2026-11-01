@@ -60,6 +60,20 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        // Par adresse IP et par formulaire. Large, car au Sénégal beaucoup de
+        // téléphones partagent la même adresse IP sur les réseaux mobiles.
+        RateLimiter::for('account-forms', function (Request $request): array {
+            $key = $request->path().':'.$request->ip();
+            $tooMany = fn () => back()->withInput($request->only('name', 'email'))->withErrors([
+                'email' => 'Trop de tentatives depuis votre connexion. Merci de patienter quelques instants avant de réessayer.',
+            ]);
+
+            return [
+                Limit::perMinute(5)->by('minute:'.$key)->response($tooMany),
+                Limit::perHour(30)->by('hour:'.$key)->response($tooMany),
+            ];
+        });
+
         ProductImage::observe(ProductImageObserver::class);
         HeroSlide::observe(HeroSlideObserver::class);
         Look::observe(LookObserver::class);
