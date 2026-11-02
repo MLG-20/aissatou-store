@@ -3,7 +3,7 @@
 # --- PHP et extensions du site ---
 FROM php:8.4-fpm-bookworm AS base
 ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/download/2.9.19/install-php-extensions /usr/local/bin/
-RUN install-php-extensions pdo_mysql gd intl zip bcmath exif pcntl opcache \
+RUN install-php-extensions pdo_mysql gd intl zip bcmath exif pcntl opcache redis \
     && apt-get update \
     && apt-get install -y --no-install-recommends ffmpeg \
     && rm -rf /var/lib/apt/lists/*
@@ -44,6 +44,9 @@ ENTRYPOINT ["site-entrypoint"]
 CMD ["php-fpm"]
 
 # --- Le serveur web ---
-FROM caddy:2.10-alpine AS web
+FROM nginx:1.28-alpine AS web
+RUN apk add --no-cache openssl && rm /etc/nginx/conf.d/default.conf
 COPY --from=app /var/www/html/public /var/www/html/public
-COPY docker/Caddyfile /etc/caddy/Caddyfile
+COPY docker/nginx/site.conf.template /etc/nginx/templates/site.conf.template
+COPY docker/nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
+COPY --chmod=0755 docker/nginx/certificate.sh /docker-entrypoint.d/05-certificate.sh

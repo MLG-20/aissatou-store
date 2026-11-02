@@ -14,6 +14,8 @@ x-site: &site
   depends_on:
     migrate:
       condition: service_completed_successfully
+    redis:
+      condition: service_healthy
 
 services:
   web:
@@ -27,7 +29,7 @@ services:
       - "${WEB_HTTP_PORT:-80}:80"
       - "${WEB_HTTPS_PORT:-443}:443"
     environment:
-      SITE_ADDRESS: ${SITE_ADDRESS:?Renseignez SITE_ADDRESS}
+      SERVER_NAME: ${SERVER_NAME:?Renseignez SERVER_NAME}
     volumes:
       - type: volume
         source: storage
@@ -35,8 +37,8 @@ services:
         read_only: true
         volume:
           subpath: app/public
-      - caddy_data:/data
-      - caddy_config:/config
+      - certificates:/etc/letsencrypt:ro
+      - certbot_challenges:/var/www/certbot:ro
     depends_on:
       app:
         condition: service_healthy
@@ -72,6 +74,24 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Cache, limites d'essais et verrous. Aucun port ouvert : réservé aux conteneurs.
+  # Les sessions restent dans MySQL : supprimer un compte y déconnecte ses appareils.
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?Renseignez REDIS_PASSWORD}
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDISCLI_AUTH\" --appendonly yes --maxmemory 256mb --maxmemory-policy volatile-lru"]
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   db:
     image: mysql:8.4
@@ -93,5 +113,6 @@ services:
 volumes:
   db:
   storage:
-  caddy_data:
-  caddy_config:
+  redis:
+  certificates:
+  certbot_challenges:

@@ -59,6 +59,8 @@ Boutique e-commerce de mode féminine (voiles et hijabs, foulards, cols, parfums
 
 - **Backend** : Laravel 13, PHP 8.4 (8.4.27 minimum, correctifs « php2shell »), organisation par domaine (`App\Models\Catalogue`, `Order`, `Delivery`…)
 - **Base de données** : MySQL 8
+- **Cache** : Redis en production (Docker)
+- **Serveur web** : Nginx en production (Docker)
 - **Site client** : Blade, Alpine.js, Tailwind CSS (Vite)
 - **Back-office** : Filament 3, guard `admin` totalement séparé du guard `web` des clients (table `admins`)
 - **Rôles et permissions** : spatie/laravel-permission
@@ -259,7 +261,7 @@ Les images utilisent des adresses relatives (`/storage/…`) : elles s'affichent
 
 ### Avec Docker
 
-Conteneurs : `web` (Caddy, HTTPS automatique), `app` (PHP, ffmpeg), `queue`, `scheduler`, `db` (MySQL 8.4), et `migrate`, qui met la base à jour puis s'arrête. La base et les fichiers sont dans des volumes : une mise à jour du site ne les efface pas.
+Conteneurs : `web` (Nginx), `app` (PHP, ffmpeg), `queue`, `scheduler`, `db` (MySQL 8.4), `redis` (cache, limites d'essais, verrous), et `migrate`, qui met la base à jour puis s'arrête. La base et les fichiers sont dans des volumes : une mise à jour du site ne les efface pas.
 
 ```bash
 cp .env.docker.example .env.docker                 # à remplir, jamais commité
@@ -267,7 +269,9 @@ docker compose --env-file .env.docker up -d --build
 docker compose --env-file .env.docker exec app php artisan db:seed --class=AdminSeeder --force   # premier compte admin, une seule fois
 ```
 
-`--env-file .env.docker` est indispensable : sans lui, Compose lirait le `.env` de développement. Par défaut, le modèle sert le site sur https://localhost:8443 (certificat local). En production, renseigner le domaine dans `SITE_ADDRESS` et `APP_URL`, et les ports 80 et 443.
+`--env-file .env.docker` est indispensable : sans lui, Compose lirait le `.env` de développement. Par défaut, le modèle sert le site sur https://localhost:8443 (certificat local). En production, renseigner le domaine dans `SERVER_NAME` et `APP_URL`, et les ports 80 et 443. Nginx crée un certificat local tant que celui de Let's Encrypt n'existe pas (`docker/nginx/certificate.sh`).
+
+Les sessions et les files d'attente restent dans MySQL : supprimer un compte déconnecte ses appareils via la table `sessions`, et aucun e-mail en attente n'est perdu si Redis redémarre. Si Redis est arrêté, le site ne répond plus : il redémarre avec les autres conteneurs (`restart: unless-stopped`).
 
 `docker compose down -v` efface aussi la base et les photos : à ne jamais lancer en production.
 
@@ -301,7 +305,7 @@ Limites de débit :
 
 Les limites des formulaires de compte sont larges, car beaucoup de téléphones peuvent partager une même adresse IP sur les réseaux mobiles. En production, le serveur doit donc voir la vraie adresse IP des visiteuses (`TRUSTED_PROXIES` si un proxy est placé devant) : sinon, toutes partageraient le même compteur.
 
-En-têtes de sécurité : posés par Caddy (`docker/Caddyfile`), donc aussi sur les fichiers et les photos. La durée de `Strict-Transport-Security` est d'un jour tant que le domaine n'est pas définitif : à allonger à la mise en ligne. La politique de contenu (CSP) est en observation seule (`Content-Security-Policy-Report-Only`) : à activer après un vrai paiement PayTech sur le domaine définitif.
+En-têtes de sécurité : posés par Nginx (`docker/nginx/security-headers.conf`), donc aussi sur les fichiers et les photos. La durée de `Strict-Transport-Security` est d'un jour tant que le domaine n'est pas définitif : à allonger à la mise en ligne. La politique de contenu (CSP) est en observation seule (`Content-Security-Policy-Report-Only`) : à activer après un vrai paiement PayTech sur le domaine définitif.
 
 Jetons API : réservés aux comptes à l'adresse vérifiée, valables 30 jours, retirés de la base chaque nuit une fois expirés (`sanctum:prune-expired`).
 
