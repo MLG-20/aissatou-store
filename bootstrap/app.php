@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\BlockSearchIndexing;
 use App\Http\Middleware\CaptureSaleSource;
 use App\Http\Middleware\TrackVisit;
 use App\Support\CookieConsent;
@@ -28,6 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Provenance du visiteur (Visibilité V4) et visiteurs uniques anonymes,
         // pour le taux de conversion (Phase 6D).
         $middleware->web(append: [CaptureSaleSource::class, TrackVisit::class]);
+
+        // Global : le back-office Filament n'utilise pas le groupe `web`.
+        $middleware->append(BlockSearchIndexing::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

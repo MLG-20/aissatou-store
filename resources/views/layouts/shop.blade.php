@@ -13,6 +13,9 @@
         @if ($description)
             <meta name="description" content="{{ $description }}">
         @endif
+        @if (\App\Support\SearchIndexing::isIndexable(request()))
+            <link rel="canonical" href="{{ \App\Support\SearchIndexing::canonicalUrl(request()) }}">
+        @endif
         {{-- Aperçu d'un lien partagé (WhatsApp, Facebook, Instagram, TikTok) :
              toujours une image, celle de la page ou la carte de la marque. Une
              page peut préciser le type et ajouter ses balises (fiche produit :

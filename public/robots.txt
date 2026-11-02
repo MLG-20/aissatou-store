@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /api/
+Disallow: /webhooks/
+Disallow: /paiement/
+Disallow: /livraison/
+Disallow: /tournee/
