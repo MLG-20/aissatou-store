@@ -1,4 +1,4 @@
-<x-shop-layout :title="$page->title.' — '.config('app.name')">
+<x-shop-layout :title="$page->title.' — '.config('app.name')" :description="$page->title.' de la boutique '.config('app.name').'.'">
     {{-- Page légale : texte écrit en admin (Contenu du site > Pages légales),
          assaini et complété par l'identité légale des réglages
          (LegalPage::renderedContent). Mise en page sobre : on lit, on ne vend pas. --}}

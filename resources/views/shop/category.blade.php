@@ -5,6 +5,10 @@
      texte crème lisible). Sans image, le bandeau est clair : on garde le header
      opaque classique. --}}
 <x-shop-layout :title="$category->name.' — '.config('app.name')" :transparent-header="(bool) $categoryImage" :description="$category->description" :image="$category->sizedUrl('share')">
+    <x-slot:structured-data>
+        <x-shop.structured-data :blocks="[\App\Support\StructuredData::breadcrumb($category)]" />
+    </x-slot:structured-data>
+
     {{-- Bandeau (hero) de catégorie plein largeur. S'il y a une image de
     catégorie (celle réglée en admin et affichée dans « Nos Univers » sur
     l'accueil), on l'utilise en fond avec voile sombre + texte crème, comme le

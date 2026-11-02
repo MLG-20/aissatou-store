@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Storage;
     'low_stock_threshold', 'cash_on_delivery_enabled',
     'legal_name', 'legal_form', 'legal_ninea', 'legal_rccm', 'legal_address',
     'legal_publisher', 'legal_host',
+    'seo_home_title', 'seo_home_description', 'seo_catalogue_description', 'seo_collections_description',
+    'seo_lookbook_description', 'seo_journal_description', 'seo_about_description', 'seo_contact_description',
 ])]
 class SiteSetting extends Model
 {
@@ -25,6 +27,14 @@ class SiteSetting extends Model
     protected $attributes = [
         'low_stock_threshold' => 3,
         'cash_on_delivery_enabled' => false,
+        'seo_home_title' => 'Aissatou Store — Hijabs, foulards et parfums au Sénégal',
+        'seo_home_description' => 'Hijabs, foulards, cols, parfums et sacs choisis avec soin. Commandez en ligne et faites-vous livrer au Sénégal.',
+        'seo_catalogue_description' => 'Tout le catalogue Aissatou Store : hijabs, foulards, cols, parfums et sacs, livrés au Sénégal.',
+        'seo_collections_description' => 'Les collections Aissatou Store : des pièces choisies et réunies par thème, pour chaque occasion.',
+        'seo_lookbook_description' => 'Les looks Aissatou Store : hijabs, foulards et pièces choisies, portés et mis en scène.',
+        'seo_journal_description' => 'Le journal Aissatou Store : conseils de style, matières et idées pour porter le hijab au quotidien.',
+        'seo_about_description' => 'L\'histoire d\'Aissatou Store, boutique de hijabs, foulards et parfums au Sénégal.',
+        'seo_contact_description' => 'Contactez Aissatou Store : une question sur un article, une commande ou une livraison ? Nous vous répondons.',
     ];
 
     protected function casts(): array

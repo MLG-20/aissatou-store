@@ -1,4 +1,4 @@
-<x-shop-layout :title="'À propos — '.config('app.name')">
+<x-shop-layout :title="'À propos — '.config('app.name')" :description="\App\Models\Content\SiteSetting::current()->seo_about_description">
     {{-- Photo pleine largeur en attendant une vraie photographie
     (fondatrice/atelier) fournie par la cliente — voir doc UX/UI 6.7. --}}
     <section class="relative w-full h-[45vh] min-h-[320px] max-h-[480px] bg-brand-ink flex items-center justify-center overflow-hidden">

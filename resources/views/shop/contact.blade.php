@@ -1,4 +1,4 @@
-<x-shop-layout :title="'Contact — '.config('app.name')">
+<x-shop-layout :title="'Contact — '.config('app.name')" :description="\App\Models\Content\SiteSetting::current()->seo_contact_description">
     {{-- CONTACT — trois canaux mis en scène sur fond Encre (WhatsApp en tête :
          c'est le plus rapide au Sénégal), puis le formulaire, les horaires et
          les réseaux. Tout vient des réglages du site (Filament > Contenu du

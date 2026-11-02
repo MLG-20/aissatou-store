@@ -19,6 +19,12 @@
         <meta property="product:price:currency" content="XOF">
         <meta property="product:availability" content="{{ $product->isInStock() ? 'in stock' : 'out of stock' }}">
     </x-slot:meta>
+    <x-slot:structured-data>
+        <x-shop.structured-data :blocks="[
+            \App\Support\StructuredData::product($product),
+            \App\Support\StructuredData::breadcrumb($product->category, [$product->name, route('shop.product', $product)]),
+        ]" />
+    </x-slot:structured-data>
 
     <div
         class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 py-8"

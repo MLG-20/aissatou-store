@@ -1,4 +1,10 @@
-<x-shop-layout :title="config('app.name')" :transparent-header="true" :image="$slides->first(fn ($slide) => $slide->image_path)?->sizedUrl('share')">
+@php $seo = \App\Models\Content\SiteSetting::current(); @endphp
+
+<x-shop-layout :title="$seo->seo_home_title" :share-title="config('app.name')" :description="$seo->seo_home_description" :transparent-header="true" :image="$slides->first(fn ($slide) => $slide->image_path)?->sizedUrl('share')">
+    <x-slot:structured-data>
+        <x-shop.structured-data :blocks="\App\Support\StructuredData::shop($seo)" />
+    </x-slot:structured-data>
+
     {{--
         Hero : carrousel géré depuis l'admin (Filament > Contenu du site >
         Hero). Chaque slide a son image, son titre, son sous-titre et son
@@ -146,10 +152,12 @@
                         'xl:text-brand-ink' => $portrait,
                     ])>
                         <span @class(['text-[0.75rem] uppercase tracking-[0.4em] text-brand-surface/60', 'xl:text-brand-muted' => $portrait])>Aissatou Store</span>
-                        <h1 @class([
+                        {{-- Un seul titre principal par page : les diapositives suivantes gardent le même aspect. --}}
+                        @php $headingTag = $index === 0 ? 'h1' : 'p'; @endphp
+                        <{{ $headingTag }} @class([
                             'font-display text-4xl sm:text-6xl lg:text-7xl leading-[1.05] max-w-3xl',
                             'hero-portrait-title' => $portrait,
-                        ])>{{ $slide->title }}</h1>
+                        ])>{{ $slide->title }}</{{ $headingTag }}>
 
                         @if ($slide->subtitle)
                             <p @class(['text-brand-surface/70 max-w-lg text-base sm:text-lg', 'xl:text-brand-ink/70' => $portrait])>{{ $slide->subtitle }}</p>

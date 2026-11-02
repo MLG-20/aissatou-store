@@ -8,7 +8,7 @@
         <title>{{ $title ?? config('app.name') }}</title>
 
         @php
-            $description ??= \App\Models\Content\SiteSetting::current()->footer_tagline;
+            $description = $description ?: \App\Models\Content\SiteSetting::current()->footer_tagline;
         @endphp
         @if ($description)
             <meta name="description" content="{{ $description }}">
@@ -34,6 +34,8 @@
         <meta property="og:image" content="{{ url($image ?? '/brand/partage.jpg') }}">
         <meta property="og:url" content="{{ url()->current() }}">
         <meta name="twitter:card" content="summary_large_image">
+
+        {{ $structuredData ?? '' }}
 
         {{-- Favicon dérivé du symbole de la marque (cf. public/brand/). --}}
         <link rel="icon" href="/favicon.ico" sizes="any">

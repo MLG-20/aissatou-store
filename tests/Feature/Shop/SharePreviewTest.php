@@ -39,7 +39,7 @@ class SharePreviewTest extends TestCase
     {
         SiteSetting::current()->update(['footer_tagline' => 'L\'élégance voilée, pensée pour vous.']);
 
-        $this->get(route('shop.contact'))
+        $this->get(route('shop.cart'))
             ->assertSee('<meta property="og:image" content="'.url('/brand/partage.jpg').'">', false)
             ->assertSee('<meta property="og:description" content="L&#039;élégance voilée, pensée pour vous.">', false)
             ->assertSee('<meta name="twitter:card" content="summary_large_image">', false);

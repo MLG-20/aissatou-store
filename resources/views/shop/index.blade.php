@@ -7,7 +7,7 @@
         : ['eyebrow' => 'La sélection', 'title' => 'Tout le catalogue', 'intro' => "Hijabs, foulards, cols, parfums et objets à offrir — moins d'objets, mieux choisis."];
 @endphp
 
-<x-shop-layout :title="$heading['title'].' — '.config('app.name')">
+<x-shop-layout :title="$heading['title'].' — '.config('app.name')" :description="$showingNewArrivals ? $heading['intro'] : \App\Models\Content\SiteSetting::current()->seo_catalogue_description">
     {{-- Bandeau de tête en Parchemin plein, sans dégradé : le rapport réserve la
          respiration au fond et proscrit les ornements décoratifs (p.9). --}}
     <section class="w-full bg-brand-parchment border-b border-brand-ink/10 py-14 sm:py-20">

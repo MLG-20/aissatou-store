@@ -33,7 +33,7 @@
 <x-shop-layout
     :title="($current ? $current->title.' — ' : '').'Lookbook — '.config('app.name')"
     :transparent-header="true"
-    :description="$current ? ($current->mood ?: $current->subtitle) : 'Les looks Aissatou Store : hijabs, foulards et pièces choisies, portés et mis en scène.'"
+    :description="$current ? ($current->mood ?: $current->subtitle) : \App\Models\Content\SiteSetting::current()->seo_lookbook_description"
     :image="$cover?->sizedUrl('share')"
 >
     <div

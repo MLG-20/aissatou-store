@@ -1,4 +1,4 @@
-<x-shop-layout :title="'Collections — '.config('app.name')">
+<x-shop-layout :title="'Collections — '.config('app.name')" :description="\App\Models\Content\SiteSetting::current()->seo_collections_description">
     {{-- COLLECTIONS — le récit éditorial de la maison (rapport p.3), mis en page
          comme un magazine : une ouverture avec sommaire, puis un chapitre par
          collection. Photo nette (l'image domine, p.11), texte à côté et non

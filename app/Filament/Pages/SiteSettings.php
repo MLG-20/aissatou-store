@@ -214,6 +214,31 @@ class SiteSettings extends Page implements HasForms
                             ->minValue(0)
                             ->required(),
                     ]),
+
+                Section::make('Référencement Google')
+                    ->description('Ce que Google affiche pour vos pages : un titre, puis une courte phrase. Écrivez ce qu\'une cliente chercherait, avec votre ville ou votre pays. Fiches produit, catégories et articles utilisent déjà leur propre texte.')
+                    ->collapsed()
+                    ->schema([
+                        TextInput::make('seo_home_title')
+                            ->label('Titre de la page d\'accueil')
+                            ->helperText('70 caractères au maximum : au-delà, Google coupe le titre.')
+                            ->maxLength(70)
+                            ->required(),
+                        ...collect([
+                            'seo_home_description' => 'Accueil',
+                            'seo_catalogue_description' => 'Catalogue',
+                            'seo_collections_description' => 'Collections',
+                            'seo_lookbook_description' => 'Lookbook',
+                            'seo_journal_description' => 'Journal',
+                            'seo_about_description' => 'À propos',
+                            'seo_contact_description' => 'Contact',
+                        ])->map(fn (string $page, string $field) => Textarea::make($field)
+                            ->label('Description : '.$page)
+                            ->helperText('160 caractères au maximum : au-delà, Google coupe la phrase.')
+                            ->rows(2)
+                            ->maxLength(160)
+                            ->required())->values()->all(),
+                    ]),
             ])
             ->statePath('data');
     }

@@ -1,4 +1,4 @@
-<x-shop-layout :title="'Journal — '.config('app.name')">
+<x-shop-layout :title="'Journal — '.config('app.name')" :description="\App\Models\Content\SiteSetting::current()->seo_journal_description">
     {{-- JOURNAL — histoires de matières et de gestes, en magazine : le dernier
          article à la une, les suivants en cartes numérotées. Couvertures jamais
          vides (x-shop.post-cover). --}}
