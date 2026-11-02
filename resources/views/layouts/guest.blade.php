@@ -12,9 +12,6 @@
         <link rel="icon" type="image/png" href="/brand/favicon-32.png" sizes="32x32">
         <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
 
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=jost:300,400,500,600|bodoni-moda:400,500,600,400i,500i&display=swap" rel="stylesheet" />
-
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">

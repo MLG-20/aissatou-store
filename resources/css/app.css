@@ -1,3 +1,14 @@
+/* Polices servies par le site : aucune connexion à un service externe. */
+@import '@fontsource/jost/latin-300.css';
+@import '@fontsource/jost/latin-400.css';
+@import '@fontsource/jost/latin-500.css';
+@import '@fontsource/jost/latin-600.css';
+@import '@fontsource/bodoni-moda/latin-400.css';
+@import '@fontsource/bodoni-moda/latin-500.css';
+@import '@fontsource/bodoni-moda/latin-600.css';
+@import '@fontsource/bodoni-moda/latin-400-italic.css';
+@import '@fontsource/bodoni-moda/latin-500-italic.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

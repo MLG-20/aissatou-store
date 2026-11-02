@@ -1,6 +1,7 @@
 @if ($products->isEmpty())
     <p class="text-brand-muted">Aucun produit ne correspond à ces critères.</p>
 @else
+    <h2 class="sr-only">Produits</h2>
     <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
         @foreach ($products as $product)
             <x-shop.product-card :product="$product" />

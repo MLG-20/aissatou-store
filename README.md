@@ -293,6 +293,15 @@ Serveur : PHP 8.4.27 ou plus (`composer install` refuse une version plus ancienn
 
 WhatsApp en production : entreprise de la cliente vérifiée chez Meta, numéro de la boutique enregistré, moyen de paiement ajouté, jeton d'utilisateur système, nouveaux `WHATSAPP_APP_SECRET` / `WHATSAPP_VERIFY_TOKEN`, modèles recréés avec l'URL du site en production, webhook redéclaré sur le domaine définitif.
 
+## Référencement et vitesse
+
+- **Indexation** : liste blanche des pages indexables (`App\Support\SearchIndexing`). Toute autre page reçoit `X-Robots-Tag: noindex, nofollow`, et une nouvelle page reste hors de Google tant qu'elle n'y est pas ajoutée.
+- **`/sitemap.xml` et `/robots.txt`** : des routes, pour annoncer le vrai domaine (cache d'une heure pour le plan du site). À déclarer dans Google Search Console après la mise en ligne.
+- **Données structurées** : produit, fil d'Ariane et boutique (`App\Support\StructuredData`). Pas de note en étoiles sur les produits : les avis du site portent sur la boutique.
+- **Textes Google** : modifiables dans Réglages du site > Référencement Google.
+- **Polices** : servies par le site (paquets `@fontsource`). Le back-office charge encore sa police depuis Bunny Fonts, d'où sa présence dans la CSP.
+- **Cache navigateur** (`docker/nginx/site.conf.template`) : 1 an pour `/build`, 30 jours pour les photos, 7 jours pour les autres fichiers statiques.
+
 ## Sécurité
 
 Limites de débit :

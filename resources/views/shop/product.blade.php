@@ -107,6 +107,7 @@
                             sizes="(min-width: 1024px) 50vw, 100vw"
                             alt="{{ $product->name }}"
                             loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                            fetchpriority="{{ $index === 0 ? 'high' : 'auto' }}"
                             class="h-full w-full object-cover object-center select-none"
                             draggable="false"
                         >

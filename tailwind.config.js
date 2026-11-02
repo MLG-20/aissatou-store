@@ -12,7 +12,7 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                // Polices libres (Bunny Fonts) au registre haute couture : une didone
+                // Polices libres (paquets @fontsource, cf. app.css) au registre haute couture : une didone
                 // pour les titres, une géométrique pour le texte et les labels espacés.
                 // Basculer ici suffira si la cliente achète des licences un jour.
                 sans: ['Jost', ...defaultTheme.fontFamily.sans],
@@ -53,7 +53,7 @@ export default {
                     // les besoins de l'interface :
                     surface: '#FBF7F1',    // Fond de page — le Parchemin pur en pleine
                                            // page écrase le contenu ; version éclaircie.
-                    muted: '#6E6672',      // Texte secondaire — Encre désaturée, le
+                    muted: '#6B636F',      // Texte secondaire — Encre désaturée, le
                                            // rapport ne fournit aucun gris.
                 },
             },

@@ -184,16 +184,21 @@
 
             {{-- Points de navigation alignés sur le texte. --}}
             @if ($slides->count() > 1)
-                <div class="absolute inset-x-0 bottom-6 z-10">
-                    <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 flex gap-2">
+                <div class="absolute inset-x-0 bottom-4 z-10">
+                    <div class="max-w-shell mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 flex">
                         @foreach ($slides as $index => $slide)
                             <button
                                 type="button"
                                 @click="active = {{ $index }}"
-                                class="h-1.5 rounded-full transition-all"
-                                :class="active === {{ $index }} ? 'w-6 bg-brand-accent' : (portraits[active] ? 'w-1.5 bg-brand-surface/50 xl:bg-brand-ink/25' : 'w-1.5 bg-brand-surface/50')"
+                                class="flex h-6 min-w-6 items-center justify-center"
                                 aria-label="Aller à la diapositive {{ $index + 1 }}"
-                            ></button>
+                            >
+                                {{-- Point discret, zone de toucher plus grande autour. --}}
+                                <span
+                                    class="block h-1.5 rounded-full transition-all"
+                                    :class="active === {{ $index }} ? 'w-6 bg-brand-accent' : (portraits[active] ? 'w-1.5 bg-brand-surface/50 xl:bg-brand-ink/25' : 'w-1.5 bg-brand-surface/50')"
+                                ></span>
+                            </button>
                         @endforeach
                     </div>
                 </div>
@@ -266,6 +271,8 @@
                         @if ($image = $collection->sizedUrl($isLead || $mobileWide ? 'large' : 'medium'))
                             <img
                                 src="{{ $image }}"
+                                srcset="{{ $collection->sizedUrl('thumb') }} 480w, {{ $collection->sizedUrl('medium') }} 800w, {{ $collection->sizedUrl('large') }} 1400w"
+                                sizes="{{ $isLead || $mobileWide ? '(min-width: 1024px) 50vw, 100vw' : '(min-width: 1024px) 25vw, 50vw' }}"
                                 alt=""
                                 loading="lazy"
                                 class="absolute inset-0 h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.06]"

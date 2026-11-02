@@ -20,7 +20,7 @@
             @if ($giftImage = $giftCategory?->sizedUrl('large'))
                 <a href="{{ route('shop.category', $giftCategory) }}" class="group relative block" data-reveal>
                     <div class="relative aspect-[4/5] overflow-hidden rounded-sm sm:aspect-square">
-                        <img src="{{ $giftImage }}" alt="Coffrets et cadeaux Aissatou Store" loading="lazy" class="h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.04]">
+                        <img src="{{ $giftImage }}" srcset="{{ $giftCategory->sizedUrl('thumb') }} 480w, {{ $giftCategory->sizedUrl('medium') }} 800w, {{ $giftImage }} 1400w" sizes="(min-width: 1024px) 50vw, 100vw" alt="Coffrets et cadeaux Aissatou Store" loading="lazy" class="h-full w-full object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.04]">
                         <div class="absolute inset-0 bg-gradient-to-t from-brand-ink/50 via-transparent to-transparent"></div>
                     </div>
                     <div class="passage-frame passage-frame--light absolute inset-4 sm:inset-6"></div>

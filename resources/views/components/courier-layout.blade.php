@@ -10,8 +10,6 @@
         <meta name="referrer" content="no-referrer">
         <title>{{ $title }} — {{ config('app.name') }}</title>
         <link rel="icon" type="image/png" href="/brand/favicon-32.png" sizes="32x32">
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=jost:300,400,500,600|bodoni-moda:400,500,600&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css'])
     </head>
     <body class="min-h-screen bg-brand-surface font-sans text-brand-ink antialiased">
