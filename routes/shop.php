@@ -2,6 +2,8 @@
 
 use App\Enums\Content\LegalDocument;
 use App\Http\Controllers\Marketing\ProductFeedController;
+use App\Http\Controllers\Marketing\RobotsController;
+use App\Http\Controllers\Marketing\SitemapController;
 use App\Http\Controllers\Payment\PayTechIpnController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CategoryController;
@@ -71,6 +73,10 @@ Route::post('avis', [ReviewController::class, 'store'])
 
 // Flux catalogue (Meta, Google) : données publiques du catalogue uniquement.
 Route::get('flux/produits.xml', ProductFeedController::class)->middleware('throttle:30,1')->name('marketing.product-feed');
+
+// Plan du site et consignes aux robots : routes et non fichiers, pour annoncer le vrai domaine.
+Route::get('sitemap.xml', SitemapController::class)->middleware('throttle:30,1')->name('marketing.sitemap');
+Route::get('robots.txt', RobotsController::class)->middleware('throttle:30,1')->name('marketing.robots');
 
 Route::get('panier', [CartController::class, 'index'])->name('shop.cart');
 Route::post('panier', [CartController::class, 'store'])->name('shop.cart.store');

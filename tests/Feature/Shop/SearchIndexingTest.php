@@ -78,7 +78,7 @@ class SearchIndexingTest extends TestCase
 
     public function test_robots_file_blocks_technical_addresses_but_not_pages_carrying_noindex(): void
     {
-        $robots = file_get_contents(public_path('robots.txt'));
+        $robots = $this->get('/robots.txt')->assertOk()->getContent();
 
         foreach (['/admin', '/api/', '/webhooks/', '/paiement/', '/livraison/', '/tournee/'] as $path) {
             $this->assertStringContainsString('Disallow: '.$path."\n", $robots);
